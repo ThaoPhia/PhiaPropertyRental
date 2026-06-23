@@ -3,21 +3,6 @@ import Link from 'next/link';
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-blue-600">PhiaRentalLLC</h1>
-          <div className="space-x-4">
-            <Link href="/properties" className="text-gray-600 hover:text-blue-600">
-              Browse Properties
-            </Link>
-            <Link href="/cms" className="text-gray-600 hover:text-blue-600">
-              CMS
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 py-16 text-center">
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -45,21 +30,21 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center p-6 bg-white rounded-lg shadow-md">
             <div className="text-4xl mb-4">🏠</div>
-            <h3 className="text-xl font-semibold mb-2">Premium Properties</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Premium Properties</h3>
             <p className="text-gray-600">
               Handpicked apartments and duplexes in prime locations
             </p>
           </div>
           <div className="text-center p-6 bg-white rounded-lg shadow-md">
             <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold mb-2">Easy to Search</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Easy to Search</h3>
             <p className="text-gray-600">
               Filter by location, type, and price to find your match
             </p>
           </div>
           <div className="text-center p-6 bg-white rounded-lg shadow-md">
             <div className="text-4xl mb-4">💼</div>
-            <h3 className="text-xl font-semibold mb-2">Professional CMS</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Professional CMS</h3>
             <p className="text-gray-600">
               Easily manage and update your property listings
             </p>
@@ -76,4 +61,3 @@ export default function Home() {
     </div>
   );
 }
-

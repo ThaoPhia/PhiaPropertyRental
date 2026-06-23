@@ -40,23 +40,6 @@ export default function CMSEditPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            PhiaRentalLLC
-          </Link>
-          <div className="space-x-4">
-            <Link href="/properties" className="text-gray-600 hover:text-blue-600">
-              Browse Properties
-            </Link>
-            <Link href="/cms" className="text-blue-600 font-semibold">
-              CMS
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Link href="/cms" className="text-blue-600 hover:underline mb-4 inline-block">
           ← Back to CMS
@@ -92,4 +75,3 @@ export default function CMSEditPage({ params }: { params: Promise<{ id: string }
     </div>
   );
 }
-
