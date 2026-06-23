@@ -25,6 +25,7 @@
 *.pem
 .idea/*
 .idea/workspace.xml
+public/images
 
 # debug
 npm-debug.log*
