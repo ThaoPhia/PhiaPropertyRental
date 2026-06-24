@@ -17,7 +17,7 @@ export default function Home() {
               Browse Properties
             </button>
           </Link>
-          <Link href="/cms">
+          <Link href="/cms/login">
             <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-lg">
               Add Property (CMS)
             </button>

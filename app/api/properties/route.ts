@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,6 +34,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const admin = await getAuthenticatedAdminFromRequest(request);
+
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const {
@@ -89,4 +96,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -21,11 +21,12 @@ rm -f database/phiarentalllc.db
 
 ## Step 3: Configure Environment Variables
 
-Edit `.env.local` with your SQLite path:
+Edit `.env.local` with your SQLite path and CMS admin password:
 
 ```env
 SQLITE_DB_PATH=./database/phiarentalllc.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
+CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 ```
 
 ## Step 4: Start the Application
@@ -40,8 +41,9 @@ The application will start at `http://localhost:3000`
 
 - **Home Page**: http://localhost:3000
 - **Browse Properties**: http://localhost:3000/properties
-- **CMS Dashboard**: http://localhost:3000/cms
-- **Add New Property**: http://localhost:3000/cms
+- **CMS Login**: http://localhost:3000/cms/login
+- **CMS Dashboard**: http://localhost:3000/cms (requires login)
+- **Admin Username**: `thoj.phia@gmail.com`
 
 ## Troubleshooting
 
@@ -81,8 +83,8 @@ npm run dev
 ## Next Steps
 
 1. Customize the styling in `app/globals.css`
-2. Add more property images to `/public/images/`
-3. Implement authentication for CMS access
+2. Add more property images to `/public/images/properties/`
+3. Add additional admin users if needed
 4. Add additional property fields as needed
 5. Deploy to Vercel or your preferred hosting
 
@@ -98,4 +100,3 @@ npm run dev
 ## Production Deployment
 
 See the README.md for detailed deployment instructions for Vercel and self-hosted options.
-

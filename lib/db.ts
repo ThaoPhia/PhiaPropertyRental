@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
+import { hashPassword } from '@/lib/password';
 
 const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), 'database', 'phiarentalllc.db');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -38,6 +39,26 @@ db.exec(`
   BEGIN
     UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
   END;
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS auth_sessions (
+    token TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    expiresAt TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+  CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expiresAt);
 `);
 
 const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
@@ -61,7 +82,7 @@ if (propertyCount.count === 0) {
     2000,
     450000,
     'Beautiful duplex in the heart of downtown with modern amenities.',
-    '/images/duplex1.jpg'
+    '/images/properties/duplex1.jpg'
   );
 
   seed.run(
@@ -76,9 +97,39 @@ if (propertyCount.count === 0) {
     1200,
     250000,
     'Cozy apartment with park views and updated fixtures.',
-    '/images/apt1.jpg'
+    '/images/properties/apt1.jpg'
   );
 }
 
-export default db;
+db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
+  .run('/images/properties/duplex1.jpg', '/images/duplex1.jpg');
+db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
+  .run('/images/properties/apt1.jpg', '/images/apt1.jpg');
 
+const adminEmail = 'thoj.phia@gmail.com';
+const adminPassword = process.env.CMS_ADMIN_PASSWORD || 'ChangeMeNow!123!';
+const globalState = globalThis as typeof globalThis & { cmsPasswordWarningShown?: boolean };
+
+if (
+  !process.env.CMS_ADMIN_PASSWORD &&
+  process.env.NODE_ENV !== 'production' &&
+  !globalState.cmsPasswordWarningShown
+) {
+  console.warn(
+    'CMS_ADMIN_PASSWORD is not set. Using insecure default admin password. Set CMS_ADMIN_PASSWORD in .env.local.'
+  );
+  globalState.cmsPasswordWarningShown = true;
+}
+
+db.prepare('INSERT OR IGNORE INTO users (email, password_hash, role) VALUES (?, ?, ?)')
+  .run(adminEmail, hashPassword(adminPassword), 'admin');
+db.prepare('UPDATE users SET role = ? WHERE email = ?').run('admin', adminEmail);
+
+if (process.env.CMS_ADMIN_PASSWORD) {
+  db.prepare('UPDATE users SET password_hash = ? WHERE email = ?')
+    .run(hashPassword(adminPassword), adminEmail);
+}
+
+db.prepare(`DELETE FROM auth_sessions WHERE datetime(expiresAt) <= datetime('now')`).run();
+
+export default db;

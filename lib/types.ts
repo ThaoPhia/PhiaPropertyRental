@@ -31,3 +31,17 @@ export interface PropertyFormData {
   image_url?: string;
 }
 
+export type UserRole = 'admin' | 'user';
+
+export interface AuthenticatedAdmin {
+  id: number;
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthUserRecord {
+  id: number;
+  email: string;
+  password_hash: string;
+  role: UserRole;
+}

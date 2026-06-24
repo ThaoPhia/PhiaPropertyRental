@@ -53,7 +53,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             ${property.price.toLocaleString()}
           </span>
           <Link href={`/properties/${property.id}`}>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
               View Details
             </button>
           </Link>

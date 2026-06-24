@@ -22,7 +22,7 @@ export default function SiteNav() {
             Browse Properties
           </Link>
           <Link
-            href="/cms"
+            href="/cms/login"
             className={cmsActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
           >
             CMS

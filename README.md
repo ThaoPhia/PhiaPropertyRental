@@ -7,6 +7,7 @@ A modern Next.js application for managing and displaying properties (apartments 
 - 🏠 **Property Listing**: Display all properties with detailed information
 - 🔍 **Advanced Filtering**: Filter properties by type and city
 - 📝 **CMS Management**: Create, read, update, and delete properties
+- 🔐 **CMS Authentication**: Admin-only CMS login with cookie sessions
 - 🗄️ **SQLite Database**: File-based persistent data storage with proper schema
 - 📱 **Responsive Design**: Beautiful UI with Tailwind CSS
 - 🎯 **Property Details**: Comprehensive property pages with high-quality information
@@ -45,7 +46,10 @@ Update the `.env.local` file:
 ```bash
 SQLITE_DB_PATH=./database/phiarentalllc.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
+CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 ```
+
+Admin login email is fixed to: `thoj.phia@gmail.com`
 
 ### 3. Install Dependencies
 
@@ -71,10 +75,14 @@ PhiaRentalLLC/
 │   │       ├── route.ts          # GET all, POST new properties
 │   │       └── [id]/
 │   │           └── route.ts      # GET, PUT, DELETE individual property
+│   │   └── auth/
+│   │       ├── login/route.ts    # Admin login
+│   │       └── logout/route.ts   # Admin logout
 │   ├── cms/
-│   │   ├── page.tsx              # CMS dashboard
+│   │   ├── login/page.tsx        # CMS login page
+│   │   ├── page.tsx              # CMS dashboard (protected)
 │   │   └── [id]/
-│   │       └── page.tsx          # Edit property page
+│   │       └── page.tsx          # Edit property page (protected)
 │   ├── properties/
 │   │   ├── page.tsx              # Property listing page
 │   │   └── [id]/
@@ -87,6 +95,8 @@ PhiaRentalLLC/
 │   └── PropertyFilters.tsx       # Filter component
 ├── lib/
 │   ├── db.ts                     # SQLite database initialization
+│   ├── auth.ts                   # Session/cookie auth helpers
+│   └── password.ts               # Password hashing/verification
 │   └── types.ts                  # TypeScript interfaces
 ├── database/
 │   └── schema.sql                # Database schema
@@ -124,9 +134,11 @@ Content-Type: application/json
   "squareFeet": 2000,
   "price": 450000,
   "description": "Beautiful duplex...",
-  "image_url": "/images/duplex1.jpg"
+  "image_url": "/images/properties/duplex1.jpg"
 }
 ```
+
+> Requires authenticated admin session.
 
 ### Update Property
 ```
@@ -139,9 +151,24 @@ Content-Type: application/json
 }
 ```
 
+> Requires authenticated admin session.
+
 ### Delete Property
 ```
 DELETE /api/properties/[id]
+```
+
+> Requires authenticated admin session.
+
+### Login
+```
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "thoj.phia@gmail.com",
+  "password": "your-cms-admin-password"
+}
 ```
 
 ## Database Schema
@@ -178,11 +205,12 @@ CREATE TABLE properties (
 
 ### Managing Properties (CMS)
 
-1. Navigate to `/cms`
-2. **Create**: Click "Add Property" to create a new listing
-3. **Read**: View all properties in the list
-4. **Update**: Click "Edit" on any property detail page
-5. **Delete**: Click "Delete" on the property detail page
+1. Navigate to `/cms/login`
+2. Sign in with email `thoj.phia@gmail.com` and your `CMS_ADMIN_PASSWORD`
+3. **Create**: Click "Add Property" to create a new listing
+4. **Read**: View all properties in the list
+5. **Update**: Click "Edit" on any property detail page
+6. **Delete**: Click "Delete" on the property detail page
 
 ## Available Scripts
 
@@ -229,7 +257,7 @@ npm run dev -- -p 3001
 
 ## Future Enhancements
 
-- [ ] User authentication and authorization
+- [ ] Multi-user authentication and role management
 - [ ] Photo gallery with multiple images per property
 - [ ] Advanced search with price range and amenities
 - [ ] Email notifications for property updates
@@ -242,7 +270,7 @@ npm run dev -- -p 3001
 
 - Always sanitize user inputs (already handled by prepared statements)
 - Use HTTPS in production
-- Implement authentication for CMS access
+- CMS access is restricted to authenticated admin sessions
 - Keep `.env.local` out of git and configure `SQLITE_DB_PATH` per environment
 - Use environment-specific configurations
 

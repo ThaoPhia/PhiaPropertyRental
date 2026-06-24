@@ -4,41 +4,18 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Property } from '@/lib/types';
+import { useAdminSession } from '@/hooks/useAdminSession';
+import { usePropertyById } from '@/hooks/usePropertyById';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [paramsId, setParamsId] = useState<string>('');
+  const admin = useAdminSession();
+  const { property, loading, error, setError } = usePropertyById(paramsId);
 
   useEffect(() => {
     params.then(({ id }) => setParamsId(id));
   }, [params]);
-
-  useEffect(() => {
-    if (!paramsId) return;
-
-    const fetchProperty = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/properties/${paramsId}`);
-        if (!response.ok) {
-          setError('Property not found');
-          return;
-        }
-        const data = await response.json();
-        setProperty(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperty();
-  }, [paramsId]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this property?')) return;
@@ -162,19 +139,23 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
             {/* Actions */}
             <div className="flex gap-4 border-t pt-8">
-              <Link href={`/cms/${property.id}`}>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
-                  Edit Property
-                </button>
-              </Link>
-              <button
-                onClick={handleDelete}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded"
-              >
-                Delete Property
-              </button>
+              {admin && (
+                <>
+                  <Link href={`/cms/${property.id}`}>
+                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                      Edit Property
+                    </button>
+                  </Link>
+                  <button
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded"
+                  >
+                    Delete Property
+                  </button>
+                </>
+              )}
               <Link href="/properties">
-                <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded">
+                <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded cursor-pointer">
                   Back to List
                 </button>
               </Link>
