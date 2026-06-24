@@ -129,6 +129,24 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
 
+            {property.images && property.images.length > 1 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Gallery</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {property.images.map((imageUrl, index) => (
+                    <div key={`${imageUrl}-${index}`} className="relative h-40 overflow-hidden rounded-lg border border-gray-200">
+                      <Image
+                        src={imageUrl}
+                        alt={`${property.name} image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Description */}
             {property.description && (
               <div className="mb-8">

@@ -13,6 +13,11 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const initialImages = Array.from(
+    new Set([...(initialData?.images ?? []), ...(initialData?.image_url ? [initialData.image_url] : [])])
+  );
+  const currentImages = initialImages;
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [formData, setFormData] = useState<PropertyFormData>(
     initialData || {
       name: '',
@@ -50,6 +55,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
     try {
       const submission = new FormData(form);
+      removedImages.forEach((imageUrl) => submission.append('removedImages', imageUrl));
       const url = initialData
         ? `/api/properties/${initialData.id}`
         : '/api/properties';
@@ -70,6 +76,12 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleImageRemoval = (imageUrl: string) => {
+    setRemovedImages((prev) =>
+      prev.includes(imageUrl) ? prev.filter((item) => item !== imageUrl) : [...prev, imageUrl]
+    );
   };
 
   return (
@@ -241,26 +253,48 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         {/* Image URL */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Image
+            Images
           </label>
           <input
             type="file"
-            name="image"
+            name="images"
             accept="image/*"
+            multiple
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {initialData?.image_url && (
+          {currentImages.length > 0 && (
             <div className="mt-3">
-              <p className="text-sm text-gray-500 mb-2">Current image</p>
-              <div className="relative h-40 w-full overflow-hidden rounded-md border border-gray-200">
-                <Image
-                  src={initialData.image_url}
-                  alt={initialData.name}
-                  fill
-                  className="object-cover"
-                />
+              <p className="text-sm text-gray-500 mb-2">Current images</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {currentImages.map((imageUrl, index) => (
+                  <div
+                    key={`${imageUrl}-${index}`}
+                    className={`relative h-32 w-full overflow-hidden rounded-md border ${
+                      removedImages.includes(imageUrl) ? 'border-red-400 opacity-50' : 'border-gray-200'
+                    }`}
+                  >
+                    <Image
+                      src={imageUrl}
+                      alt={`${initialData?.name || 'Property'} image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                    {initialData && (
+                      <button
+                        type="button"
+                        onClick={() => toggleImageRemoval(imageUrl)}
+                        className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs font-medium text-white"
+                      >
+                        {removedImages.includes(imageUrl) ? 'Undo' : 'Remove'}
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
+          )}
+          {removedImages.length > 0 && (
+            <p className="mt-2 text-sm text-red-600">{removedImages.length} image(s) marked for deletion.</p>
           )}
         </div>
 

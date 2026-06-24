@@ -75,8 +75,8 @@ npm run dev
 
 1. **View Properties**: Browse existing properties with details
 2. **Filter**: Filter by property type and city
-3. **Create Property**: Add a new property via CMS
-4. **Edit Property**: Modify existing property details
+3. **Create Property**: Add a new property via CMS with multiple images
+4. **Edit Property**: Modify existing property details, append images, or remove existing ones
 5. **Delete Property**: Remove a property from the system
 6. **Property Details**: View complete information for any property
 

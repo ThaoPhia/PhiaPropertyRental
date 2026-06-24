@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
-import { deletePropertyImage, savePropertyImage } from '@/lib/property-images';
+import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
+import { getPropertyWithImages } from '@/lib/property-data';
 
-async function readPropertyInput(request: NextRequest, existingImageUrl: string | null) {
+async function readPropertyInput(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
 
   if (contentType.includes('multipart/form-data')) {
     const formData = await request.formData();
-    const imageFile = formData.get('image');
+    const imageFiles = formData
+      .getAll('images')
+      .filter((value): value is File => value instanceof File && value.size > 0);
 
     return {
       name: String(formData.get('name') || '').trim(),
@@ -22,8 +25,11 @@ async function readPropertyInput(request: NextRequest, existingImageUrl: string 
       squareFeet: Number.parseFloat(String(formData.get('squareFeet') || '0')) || 0,
       price: Number.parseFloat(String(formData.get('price') || '0')) || 0,
       description: String(formData.get('description') || '').trim(),
-      imageFile: imageFile instanceof File && imageFile.size > 0 ? imageFile : null,
-      imageUrl: existingImageUrl,
+      imageFiles,
+      removedImageUrls: formData
+        .getAll('removedImages')
+        .map((value) => String(value))
+        .filter((value) => value.length > 0),
     };
   }
 
@@ -41,9 +47,8 @@ async function readPropertyInput(request: NextRequest, existingImageUrl: string 
     squareFeet: Number.parseFloat(String(body.squareFeet || '0')) || 0,
     price: Number.parseFloat(String(body.price || '0')) || 0,
     description: String(body.description || '').trim(),
-    imageFile: null as File | null,
-    imageUrl:
-      typeof body.image_url === 'string' && body.image_url.trim() ? String(body.image_url).trim() : existingImageUrl,
+    imageFiles: [] as File[],
+    removedImageUrls: [] as string[],
   };
 }
 
@@ -59,7 +64,7 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(id);
+    const property = getPropertyWithImages(id);
 
     if (!property) {
       return NextResponse.json(
@@ -88,7 +93,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const uploadState = { imageUrl: null as string | null };
+  const uploadState = { imageUrls: [] as string[] };
 
   try {
     const { id: idParam } = await params;
@@ -98,15 +103,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const currentProperty = db
-      .prepare('SELECT image_url FROM properties WHERE id = ?')
-      .get(id) as { image_url: string | null } | undefined;
+    const currentProperty = getPropertyWithImages(id);
 
     if (!currentProperty) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
 
-    const body = await readPropertyInput(request, currentProperty.image_url ?? null);
+    const body = await readPropertyInput(request);
     const {
       name,
       type,
@@ -119,15 +122,20 @@ export async function PUT(
       squareFeet,
       price,
       description,
-      imageFile,
-      imageUrl,
+      imageFiles,
+      removedImageUrls,
     } = body;
 
-    let nextImageUrl = imageUrl;
+    const existingImages = currentProperty.images ?? [];
+    const removedImageSet = new Set(removedImageUrls);
+    const retainedExistingImages = existingImages.filter((imageUrl) => !removedImageSet.has(imageUrl));
+    let nextImageUrl = retainedExistingImages[0] || null;
 
-    if (imageFile) {
-      uploadState.imageUrl = await savePropertyImage(imageFile);
-      nextImageUrl = uploadState.imageUrl;
+    if (imageFiles.length > 0) {
+      uploadState.imageUrls = await savePropertyImages(imageFiles);
+      if (!nextImageUrl) {
+        nextImageUrl = uploadState.imageUrls[0] || null;
+      }
     }
 
     const result = db.prepare(
@@ -151,21 +159,54 @@ export async function PUT(
     );
 
     if (result.changes === 0) {
-      if (uploadState.imageUrl) {
-        await deletePropertyImage(uploadState.imageUrl).catch((cleanupError) => {
-          console.error('Failed to clean up uploaded image:', cleanupError);
-        });
-      }
+      await Promise.all(
+        uploadState.imageUrls.map((imageUrl) =>
+          deletePropertyImage(imageUrl).catch((cleanupError) => {
+            console.error('Failed to clean up uploaded image:', cleanupError);
+          })
+        )
+      );
       return NextResponse.json(
         { error: 'Property not found' },
         { status: 404 }
       );
     }
 
-    if (uploadState.imageUrl && currentProperty.image_url !== nextImageUrl) {
-      await deletePropertyImage(currentProperty.image_url).catch((cleanupError) => {
-        console.error('Failed to remove old property image:', cleanupError);
+    const insertPropertyImage = db.prepare(
+      `INSERT OR IGNORE INTO property_images (property_id, image_url, sort_order)
+       VALUES (?, ?, ?)`
+    );
+
+    if (uploadState.imageUrls.length > 0) {
+      const insertGallery = db.transaction(() => {
+        uploadState.imageUrls.forEach((image, index) => {
+          insertPropertyImage.run(id, image, retainedExistingImages.length + index);
+        });
       });
+
+      insertGallery();
+    }
+
+    if (removedImageUrls.length > 0) {
+      const deletePropertyImageRow = db.prepare(
+        'DELETE FROM property_images WHERE property_id = ? AND image_url = ?'
+      );
+
+      const removeGallery = db.transaction(() => {
+        removedImageUrls.forEach((imageUrl) => {
+          deletePropertyImageRow.run(id, imageUrl);
+        });
+      });
+
+      removeGallery();
+
+      await Promise.all(
+        removedImageUrls.map((imageUrl) =>
+          deletePropertyImage(imageUrl).catch((cleanupError) => {
+            console.error('Failed to remove property image file:', cleanupError);
+          })
+        )
+      );
     }
 
     return NextResponse.json({
@@ -182,12 +223,17 @@ export async function PUT(
       price,
       description,
       image_url: nextImageUrl,
+      images: [...retainedExistingImages, ...uploadState.imageUrls],
     });
   } catch (error) {
-    if (uploadState.imageUrl) {
-      await deletePropertyImage(uploadState.imageUrl).catch((cleanupError) => {
-        console.error('Failed to clean up uploaded image:', cleanupError);
-      });
+    if (uploadState.imageUrls.length > 0) {
+      await Promise.all(
+        uploadState.imageUrls.map((imageUrl) =>
+          deletePropertyImage(imageUrl).catch((cleanupError) => {
+            console.error('Failed to clean up uploaded image:', cleanupError);
+          })
+        )
+      );
     }
     console.error('Database error:', error);
     return NextResponse.json(
@@ -215,9 +261,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const currentProperty = db
-      .prepare('SELECT image_url FROM properties WHERE id = ?')
-      .get(id) as { image_url: string | null } | undefined;
+    const currentProperty = getPropertyWithImages(id);
 
     const result = db.prepare('DELETE FROM properties WHERE id = ?').run(id);
 
@@ -228,9 +272,15 @@ export async function DELETE(
       );
     }
 
-    await deletePropertyImage(currentProperty?.image_url ?? null).catch((cleanupError) => {
-      console.error('Failed to remove property image:', cleanupError);
-    });
+    await Promise.all(
+      (currentProperty?.images ?? [])
+        .filter(Boolean)
+        .map((imageUrl) =>
+          deletePropertyImage(imageUrl).catch((cleanupError) => {
+            console.error('Failed to remove property image:', cleanupError);
+          })
+        )
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {

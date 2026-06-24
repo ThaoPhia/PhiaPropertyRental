@@ -3,8 +3,7 @@ import { redirect } from 'next/navigation';
 import PropertyForm from '@/components/PropertyForm';
 import CMSLogoutButton from '@/components/CMSLogoutButton';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
-import db from '@/lib/db';
-import { Property } from '@/lib/types';
+import { getPropertyWithImages } from '@/lib/property-data';
 
 interface CMSEditPageProps {
   params: Promise<{ id: string }>;
@@ -19,9 +18,7 @@ export default async function CMSEditPage({ params }: CMSEditPageProps) {
 
   const { id: idParam } = await params;
   const id = Number.parseInt(idParam, 10);
-  const property = Number.isNaN(id)
-    ? null
-    : (db.prepare('SELECT * FROM properties WHERE id = ?').get(id) as Property | undefined) || null;
+  const property = Number.isNaN(id) ? null : getPropertyWithImages(id);
 
   return (
     <div className="min-h-screen bg-gray-50">

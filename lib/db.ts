@@ -9,6 +9,7 @@ fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
 
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS properties (
@@ -39,6 +40,19 @@ db.exec(`
   BEGIN
     UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
   END;
+
+  CREATE TABLE IF NOT EXISTS property_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_id INTEGER NOT NULL,
+    image_url TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
+    UNIQUE(property_id, image_url)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
+  CREATE INDEX IF NOT EXISTS idx_property_images_sort_order ON property_images(property_id, sort_order, id);
 
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,6 +119,13 @@ db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/duplex1.jpg', '/images/duplex1.jpg');
 db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/apt1.jpg', '/images/apt1.jpg');
+
+db.prepare(`
+  INSERT OR IGNORE INTO property_images (property_id, image_url, sort_order)
+  SELECT id, image_url, 0
+  FROM properties
+  WHERE image_url IS NOT NULL AND image_url != ''
+`).run();
 
 const adminEmail = 'thoj.phia@gmail.com';
 const adminPassword = process.env.CMS_ADMIN_PASSWORD || 'ChangeMeNow!123!';

@@ -7,6 +7,7 @@ A modern Next.js application for managing and displaying properties (apartments 
 - 🏠 **Property Listing**: Display all properties with detailed information
 - 🔍 **Advanced Filtering**: Filter properties by type and city
 - 📝 **CMS Management**: Create, read, update, and delete properties
+- 🖼️ **Property Galleries**: Upload and browse multiple images per property
 - 🔐 **CMS Authentication**: Admin-only CMS login with cookie sessions
 - 🗄️ **SQLite Database**: File-based persistent data storage with proper schema
 - 📱 **Responsive Design**: Beautiful UI with Tailwind CSS
@@ -133,7 +134,7 @@ bathrooms=2
 squareFeet=2000
 price=450000
 description=Beautiful duplex...
-image=<file>
+images=<file>,<file>,...
 ```
 
 > Requires authenticated admin session.
@@ -143,10 +144,9 @@ image=<file>
 PUT /api/properties/[id]
 Content-Type: multipart/form-data
 
-{
-  "name": "Updated Name",
-  ...
-}
+name=Updated Name
+...
+images=<file>,<file>,...
 ```
 
 > Requires authenticated admin session.
@@ -191,6 +191,16 @@ CREATE TABLE properties (
   createdAt TEXT NOT NULL DEFAULT (datetime('now')),
   updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE property_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  property_id INTEGER NOT NULL,
+  image_url TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
+  UNIQUE(property_id, image_url)
+);
 ```
 
 ## Usage
@@ -207,7 +217,7 @@ CREATE TABLE properties (
 2. Sign in with email `thoj.phia@gmail.com` and your `CMS_ADMIN_PASSWORD`
 3. **Create**: Click "Add Property" to create a new listing
 4. **Read**: View all properties in the list
-5. **Update**: Click "Edit" on any property detail page
+5. **Update**: Click "Edit" on any property detail page to add or remove images
 6. **Delete**: Click "Delete" on the property detail page
 
 ## Available Scripts

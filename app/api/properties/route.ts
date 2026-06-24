@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
-import { deletePropertyImage, savePropertyImage } from '@/lib/property-images';
+import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 
 async function readPropertyInput(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
 
   if (contentType.includes('multipart/form-data')) {
     const formData = await request.formData();
-    const imageFile = formData.get('image');
+    const imageFiles = formData
+      .getAll('images')
+      .filter((value): value is File => value instanceof File && value.size > 0);
 
     return {
       name: String(formData.get('name') || '').trim(),
@@ -22,7 +24,7 @@ async function readPropertyInput(request: NextRequest) {
       squareFeet: Number.parseFloat(String(formData.get('squareFeet') || '0')) || 0,
       price: Number.parseFloat(String(formData.get('price') || '0')) || 0,
       description: String(formData.get('description') || '').trim(),
-      imageFile: imageFile instanceof File && imageFile.size > 0 ? imageFile : null,
+      imageFiles,
     };
   }
 
@@ -40,7 +42,7 @@ async function readPropertyInput(request: NextRequest) {
     squareFeet: Number.parseFloat(String(body.squareFeet || '0')) || 0,
     price: Number.parseFloat(String(body.price || '0')) || 0,
     description: String(body.description || '').trim(),
-    imageFile: null as File | null,
+    imageFiles: [] as File[],
   };
 }
 
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const uploadState = { imageUrl: null as string | null };
+  const uploadState = { imageUrls: [] as string[] };
 
   try {
     const body = await readPropertyInput(request);
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
       squareFeet,
       price,
       description,
-      imageFile,
+      imageFiles,
     } = body;
 
     // Validation
@@ -109,27 +111,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    uploadState.imageUrl = imageFile ? await savePropertyImage(imageFile) : null;
-    const imageUrl = uploadState.imageUrl;
+    uploadState.imageUrls = await savePropertyImages(imageFiles);
+    const imageUrl = uploadState.imageUrls[0] || null;
 
-    const result = db.prepare(
+    const insertProperty = db.prepare(
       `INSERT INTO properties 
        (name, type, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, price, description, image_url)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      name,
-      type,
-      address,
-      city,
-      state,
-      zipCode,
-      bedrooms,
-      bathrooms,
-      squareFeet,
-      price,
-      description,
-      imageUrl
     );
+
+    const insertPropertyImage = db.prepare(
+      `INSERT INTO property_images (property_id, image_url, sort_order)
+       VALUES (?, ?, ?)`
+    );
+
+    const createProperty = db.transaction(() => {
+      const result = insertProperty.run(
+        name,
+        type,
+        address,
+        city,
+        state,
+        zipCode,
+        bedrooms,
+        bathrooms,
+        squareFeet,
+        price,
+        description,
+        imageUrl
+      );
+
+      uploadState.imageUrls.forEach((image, index) => {
+        insertPropertyImage.run(result.lastInsertRowid as number, image, index);
+      });
+
+      return result;
+    });
+
+    const result = createProperty();
 
     return NextResponse.json(
       {
@@ -146,14 +165,19 @@ export async function POST(request: NextRequest) {
         price,
         description,
         image_url: imageUrl,
+        images: uploadState.imageUrls,
       },
       { status: 201 }
     );
   } catch (error) {
-    if (uploadState.imageUrl) {
-      await deletePropertyImage(uploadState.imageUrl).catch((cleanupError) => {
-        console.error('Failed to clean up uploaded image:', cleanupError);
-      });
+    if (uploadState.imageUrls.length > 0) {
+      await Promise.all(
+        uploadState.imageUrls.map((imageUrl) =>
+          deletePropertyImage(imageUrl).catch((cleanupError) => {
+            console.error('Failed to clean up uploaded image:', cleanupError);
+          })
+        )
+      );
     }
     console.error('Database error:', error);
     return NextResponse.json(

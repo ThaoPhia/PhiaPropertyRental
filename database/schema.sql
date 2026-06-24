@@ -29,6 +29,19 @@ BEGIN
   UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
 END;
 
+CREATE TABLE IF NOT EXISTS property_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  property_id INTEGER NOT NULL,
+  image_url TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
+  UNIQUE(property_id, image_url)
+);
+
+CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
+CREATE INDEX IF NOT EXISTS idx_property_images_sort_order ON property_images(property_id, sort_order, id);
+
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,

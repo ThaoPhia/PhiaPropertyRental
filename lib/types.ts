@@ -12,6 +12,7 @@ export interface Property {
   price: number;
   description: string;
   image_url?: string;
+  images?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

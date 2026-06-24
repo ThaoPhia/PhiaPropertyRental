@@ -45,6 +45,27 @@ export async function savePropertyImage(file: File): Promise<string> {
   return `${PROPERTY_IMAGES_URL_PREFIX}${filename}`;
 }
 
+export async function savePropertyImages(files: File[]): Promise<string[]> {
+  const savedImages: string[] = [];
+
+  try {
+    for (const file of files) {
+      savedImages.push(await savePropertyImage(file));
+    }
+
+    return savedImages;
+  } catch (error) {
+    await Promise.all(
+      savedImages.map((imageUrl) =>
+        deletePropertyImage(imageUrl).catch((cleanupError) => {
+          console.error('Failed to clean up partially saved image:', cleanupError);
+        })
+      )
+    );
+    throw error;
+  }
+}
+
 export async function deletePropertyImage(imageUrl?: string | null): Promise<void> {
   if (!imageUrl || !imageUrl.startsWith(PROPERTY_IMAGES_URL_PREFIX)) {
     return;
