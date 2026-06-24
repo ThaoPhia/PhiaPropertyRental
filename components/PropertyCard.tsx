@@ -12,14 +12,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
       {property.image_url && (
-        <div className="relative w-full h-48">
+      <Link href={`/properties/${property.id}`} className="block relative w-full h-48">
           <Image
             src={property.image_url}
             alt={property.name}
             fill
             className="object-cover"
           />
-        </div>
+      </Link>
       )}
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
@@ -62,4 +62,3 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     </div>
   );
 }
-
