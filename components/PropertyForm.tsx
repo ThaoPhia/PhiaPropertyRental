@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { PropertyFormData, Property } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
 interface PropertyFormProps {
   initialData?: Property;
-  onSubmit?: (data: PropertyFormData) => void;
 }
 
-export default function PropertyForm({ initialData, onSubmit }: PropertyFormProps) {
+export default function PropertyForm({ initialData }: PropertyFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,10 +44,12 @@ export default function PropertyForm({ initialData, onSubmit }: PropertyFormProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const form = e.currentTarget as HTMLFormElement;
     setLoading(true);
     setError('');
 
     try {
+      const submission = new FormData(form);
       const url = initialData
         ? `/api/properties/${initialData.id}`
         : '/api/properties';
@@ -55,19 +57,14 @@ export default function PropertyForm({ initialData, onSubmit }: PropertyFormProp
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: submission,
       });
 
       if (!response.ok) {
         throw new Error('Failed to save property');
       }
 
-      if (onSubmit) {
-        onSubmit(formData);
-      } else {
-        router.push('/properties');
-      }
+      router.push('/properties');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -244,15 +241,27 @@ export default function PropertyForm({ initialData, onSubmit }: PropertyFormProp
         {/* Image URL */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Image URL
+            Image
           </label>
           <input
-            type="text"
-            name="image_url"
-            value={formData.image_url || ''}
-            onChange={handleChange}
+            type="file"
+            name="image"
+            accept="image/*"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          {initialData?.image_url && (
+            <div className="mt-3">
+              <p className="text-sm text-gray-500 mb-2">Current image</p>
+              <div className="relative h-40 w-full overflow-hidden rounded-md border border-gray-200">
+                <Image
+                  src={initialData.image_url}
+                  alt={initialData.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Description */}
@@ -289,4 +298,3 @@ export default function PropertyForm({ initialData, onSubmit }: PropertyFormProp
     </form>
   );
 }
-

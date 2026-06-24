@@ -120,22 +120,20 @@ GET /api/properties/[id]
 ### Create Property
 ```
 POST /api/properties
-Content-Type: application/json
+Content-Type: multipart/form-data
 
-{
-  "name": "Downtown Duplex",
-  "type": "duplex",
-  "address": "123 Main St",
-  "city": "New York",
-  "state": "NY",
-  "zipCode": "10001",
-  "bedrooms": 3,
-  "bathrooms": 2,
-  "squareFeet": 2000,
-  "price": 450000,
-  "description": "Beautiful duplex...",
-  "image_url": "/images/properties/duplex1.jpg"
-}
+name=Downtown Duplex
+type=duplex
+address=123 Main St
+city=New York
+state=NY
+zipCode=10001
+bedrooms=3
+bathrooms=2
+squareFeet=2000
+price=450000
+description=Beautiful duplex...
+image=<file>
 ```
 
 > Requires authenticated admin session.
@@ -143,7 +141,7 @@ Content-Type: application/json
 ### Update Property
 ```
 PUT /api/properties/[id]
-Content-Type: application/json
+Content-Type: multipart/form-data
 
 {
   "name": "Updated Name",
