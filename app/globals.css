@@ -1,3 +1,6 @@
+@import "react-photo-album/masonry.css";
+@import "yet-another-react-lightbox/styles.css";
+@import "yet-another-react-lightbox/plugins/thumbnails.css";
 @import "tailwindcss";
 
 :root {
@@ -23,4 +26,3 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
-
