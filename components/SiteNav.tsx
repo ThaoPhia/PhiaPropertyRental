@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 export default function SiteNav() {
   const pathname = usePathname();
   const propertiesActive = pathname.startsWith('/properties');
-  const cmsActive = pathname.startsWith('/cms');
 
   return (
     <nav className="bg-white shadow-sm">
@@ -20,12 +19,6 @@ export default function SiteNav() {
             className={propertiesActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
           >
             Browse Properties
-          </Link>
-          <Link
-            href="/cms/login"
-            className={cmsActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
-          >
-            CMS
           </Link>
         </div>
       </div>
