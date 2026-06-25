@@ -21,12 +21,11 @@ export function getPropertyWithImages(id: number): Property | null {
     )
     .all(id) as { image_url: string }[];
 
-  const images = [
-    ...(property.image_url ? [property.image_url] : []),
-    ...imageRows.map((row) => row.image_url).filter(Boolean),
-  ];
-
-  const uniqueImages = Array.from(new Set(images));
+  const orderedImages = imageRows.map((row) => row.image_url).filter(Boolean);
+  if (property.image_url && !orderedImages.includes(property.image_url)) {
+    orderedImages.unshift(property.image_url);
+  }
+  const uniqueImages = Array.from(new Set(orderedImages));
 
   return {
     ...property,

@@ -16,8 +16,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   const initialImages = Array.from(
     new Set([...(initialData?.images ?? []), ...(initialData?.image_url ? [initialData.image_url] : [])])
   );
-  const currentImages = initialImages;
+  const [currentImages, setCurrentImages] = useState<string[]>(initialImages);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
+  const [draggedImage, setDraggedImage] = useState<string | null>(null);
   const [highlightsJson, setHighlightsJson] = useState(
     initialData?.highlights?.length
       ? JSON.stringify(initialData.highlights, null, 2)
@@ -87,6 +88,9 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     try {
       const submission = new FormData(form);
       removedImages.forEach((imageUrl) => submission.append('removedImages', imageUrl));
+      currentImages
+        .filter((imageUrl) => !removedImages.includes(imageUrl))
+        .forEach((imageUrl) => submission.append('imageOrder', imageUrl));
       const url = initialData
         ? `/api/properties/${initialData.id}`
         : '/api/properties';
@@ -101,7 +105,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         throw new Error('Failed to save property');
       }
 
-      router.push('/properties/' + initialData?.id);
+      router.push(initialData ? `/properties/${initialData.id}` : '/properties');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -113,6 +117,21 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     setRemovedImages((prev) =>
       prev.includes(imageUrl) ? prev.filter((item) => item !== imageUrl) : [...prev, imageUrl]
     );
+  };
+
+  const moveImageToIndex = (imageUrl: string, targetImageUrl: string) => {
+    setCurrentImages((prev) => {
+      const sourceIndex = prev.indexOf(imageUrl);
+      const targetIndex = prev.indexOf(targetImageUrl);
+      if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+        return prev;
+      }
+
+      const next = [...prev];
+      const [moved] = next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, moved);
+      return next;
+    });
   };
 
   return (
@@ -330,9 +349,23 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 {currentImages.map((imageUrl, index) => (
                   <div
                     key={`${imageUrl}-${index}`}
+                    draggable={initialData ? !removedImages.includes(imageUrl) : false}
+                    onDragStart={() => setDraggedImage(imageUrl)}
+                    onDragOver={(event) => {
+                      if (initialData && draggedImage && draggedImage !== imageUrl) {
+                        event.preventDefault();
+                      }
+                    }}
+                    onDrop={() => {
+                      if (initialData && draggedImage) {
+                        moveImageToIndex(draggedImage, imageUrl);
+                      }
+                      setDraggedImage(null);
+                    }}
+                    onDragEnd={() => setDraggedImage(null)}
                     className={`relative h-32 w-full overflow-hidden rounded-md border ${
                       removedImages.includes(imageUrl) ? 'border-red-400 opacity-50' : 'border-gray-200'
-                    }`}
+                    } ${draggedImage === imageUrl ? 'ring-2 ring-blue-400' : ''}`}
                   >
                     <Image
                       src={imageUrl}
@@ -341,13 +374,18 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                       className="object-cover"
                     />
                     {initialData && (
-                      <button
-                        type="button"
-                        onClick={() => toggleImageRemoval(imageUrl)}
-                        className="absolute right-2 top-2 rounded bg-black/70 px-2 py-1 text-xs font-medium text-white"
-                      >
-                        {removedImages.includes(imageUrl) ? 'Undo' : 'Remove'}
-                      </button>
+                      <div className="absolute inset-x-2 top-2 flex justify-between gap-2">
+                        <span className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
+                          Drag to reorder
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleImageRemoval(imageUrl)}
+                          className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white"
+                        >
+                          {removedImages.includes(imageUrl) ? 'Undo' : 'Remove'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}

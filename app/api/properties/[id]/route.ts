@@ -31,6 +31,10 @@ async function readPropertyInput(request: NextRequest) {
       details: String(formData.get('details') || formData.get('description') || '').trim(),
       highlights: String(formData.get('highlights') || '[]'),
       imageFiles,
+      imageOrder: formData
+        .getAll('imageOrder')
+        .map((value) => String(value))
+        .filter((value) => value.length > 0),
       removedImageUrls: formData
         .getAll('removedImages')
         .map((value) => String(value))
@@ -56,6 +60,9 @@ async function readPropertyInput(request: NextRequest) {
     details: String(body.details || body.description || '').trim(),
     highlights: typeof body.highlights === 'string' ? body.highlights : JSON.stringify(body.highlights || []),
     imageFiles: [] as File[],
+    imageOrder: Array.isArray(body.imageOrder)
+      ? body.imageOrder.map((value: unknown) => String(value)).filter((value: string) => value.length > 0)
+      : [],
     removedImageUrls: [] as string[],
   };
 }
@@ -134,13 +141,17 @@ export async function PUT(
       details,
       highlights,
       imageFiles,
+      imageOrder,
       removedImageUrls,
     } = body;
 
     const existingImages = currentProperty.images ?? [];
     const removedImageSet = new Set(removedImageUrls);
     const retainedExistingImages = existingImages.filter((imageUrl) => !removedImageSet.has(imageUrl));
-    let nextImageUrl = retainedExistingImages[0] || null;
+    const retainedImageSet = new Set(retainedExistingImages);
+    const orderedRetainedExistingImages = imageOrder
+      .filter((imageUrl: string) => retainedImageSet.has(imageUrl))
+      .concat(retainedExistingImages.filter((imageUrl: string) => !imageOrder.includes(imageUrl)));
 
     let parsedHighlights = [];
     try {
@@ -154,10 +165,10 @@ export async function PUT(
 
     if (imageFiles.length > 0) {
       uploadState.imageUrls = await savePropertyImages(imageFiles);
-      if (!nextImageUrl) {
-        nextImageUrl = uploadState.imageUrls[0] || null;
-      }
     }
+
+    const finalOrderedImages = [...orderedRetainedExistingImages, ...uploadState.imageUrls];
+    const nextImageUrl = finalOrderedImages[0] || null;
 
     const result = db.prepare(
       `UPDATE properties 
@@ -196,34 +207,28 @@ export async function PUT(
       );
     }
 
-    const insertPropertyImage = db.prepare(
-      `INSERT OR IGNORE INTO property_images (property_id, image_url, sort_order)
-       VALUES (?, ?, ?)`
+    const upsertPropertyImage = db.prepare(
+      `INSERT INTO property_images (property_id, image_url, sort_order)
+       VALUES (?, ?, ?)
+       ON CONFLICT(property_id, image_url) DO UPDATE SET sort_order = excluded.sort_order`
     );
 
-    if (uploadState.imageUrls.length > 0) {
-      const insertGallery = db.transaction(() => {
-        uploadState.imageUrls.forEach((image, index) => {
-          insertPropertyImage.run(id, image, retainedExistingImages.length + index);
-        });
-      });
+    const deletePropertyImageRow = db.prepare(
+      'DELETE FROM property_images WHERE property_id = ? AND image_url = ?'
+    );
 
-      insertGallery();
-    }
+    const syncGallery = db.transaction(() => {
+      finalOrderedImages.forEach((imageUrl, index) => {
+        upsertPropertyImage.run(id, imageUrl, index);
+      });
+      removedImageUrls.forEach((imageUrl) => {
+        deletePropertyImageRow.run(id, imageUrl);
+      });
+    });
+
+    syncGallery();
 
     if (removedImageUrls.length > 0) {
-      const deletePropertyImageRow = db.prepare(
-        'DELETE FROM property_images WHERE property_id = ? AND image_url = ?'
-      );
-
-      const removeGallery = db.transaction(() => {
-        removedImageUrls.forEach((imageUrl) => {
-          deletePropertyImageRow.run(id, imageUrl);
-        });
-      });
-
-      removeGallery();
-
       await Promise.all(
         removedImageUrls.map((imageUrl) =>
           deletePropertyImage(imageUrl).catch((cleanupError) => {
@@ -250,7 +255,7 @@ export async function PUT(
       highlights: parsedHighlights,
       dateAvailable: dateAvailable || null,
       image_url: nextImageUrl,
-      images: [...retainedExistingImages, ...uploadState.imageUrls],
+      images: finalOrderedImages,
     });
   } catch (error) {
     if (uploadState.imageUrls.length > 0) {
