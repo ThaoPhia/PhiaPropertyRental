@@ -24,15 +24,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-xl font-semibold text-gray-800">{property.name}</h3>
-          <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-            {property.type}
+          <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded capitalize">
+            {property.status}
           </span>
         </div>
         <p className="text-gray-600 text-sm mb-2">
           {property.address}, {property.city}, {property.state} {property.zipCode}
         </p>
         <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-          {property.description}
+          {property.details}
         </p>
         <div className="grid grid-cols-3 gap-2 mb-3 text-sm">
           <div className="text-center">
@@ -50,7 +50,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         </div>
         <div className="flex justify-between items-center">
           <span className="text-2xl font-bold text-green-600">
-            ${property.price.toLocaleString()}
+            ${property.monthlyRent.toLocaleString()}/mo
           </span>
           <Link href={`/properties/${property.id}`}>
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm cursor-pointer">

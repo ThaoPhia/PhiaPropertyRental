@@ -16,6 +16,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('duplex', 'apartment', 'other')),
+    status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon')),
     address TEXT NOT NULL,
     city TEXT NOT NULL,
     state TEXT NOT NULL,
@@ -23,8 +24,10 @@ db.exec(`
     bedrooms INTEGER NOT NULL,
     bathrooms REAL NOT NULL,
     squareFeet INTEGER NOT NULL,
-    price REAL NOT NULL,
-    description TEXT,
+    monthlyRent REAL NOT NULL DEFAULT 0,
+    details TEXT,
+    highlights TEXT NOT NULL DEFAULT '[]',
+    dateAvailable TEXT,
     image_url TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
@@ -32,7 +35,8 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(type);
   CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
-  CREATE INDEX IF NOT EXISTS idx_properties_price ON properties(price);
+  CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
+  CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthlyRent);
 
   CREATE TRIGGER IF NOT EXISTS trg_properties_updated_at
   AFTER UPDATE ON properties
@@ -77,16 +81,52 @@ db.exec(`
 
 const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
 
+function getPropertyColumns(): Set<string> {
+  const rows = db.prepare('PRAGMA table_info(properties)').all() as { name: string }[];
+  return new Set(rows.map((row) => row.name));
+}
+
+const propertyColumns = getPropertyColumns();
+
+function addColumnIfMissing(columnName: string, definition: string): void {
+  if (!propertyColumns.has(columnName)) {
+    db.exec(`ALTER TABLE properties ADD COLUMN ${definition}`);
+  }
+}
+
+addColumnIfMissing('status', "status TEXT DEFAULT 'available'");
+addColumnIfMissing('monthlyRent', 'monthlyRent REAL DEFAULT 0');
+addColumnIfMissing('details', 'details TEXT');
+addColumnIfMissing('highlights', "highlights TEXT DEFAULT '[]'");
+addColumnIfMissing('dateAvailable', 'dateAvailable TEXT');
+
+if (propertyColumns.has('price') || propertyColumns.has('description')) {
+  db.prepare(`
+    UPDATE properties
+    SET monthlyRent = COALESCE(monthlyRent, price),
+        details = COALESCE(details, description)
+  `).run();
+}
+
+db.prepare(`
+  UPDATE properties
+  SET status = COALESCE(status, ?),
+      highlights = COALESCE(NULLIF(highlights, ''), '[]')
+`).run('available');
+
+db.prepare("UPDATE properties SET dateAvailable = COALESCE(dateAvailable, date('now')) WHERE status = 'available' AND (dateAvailable IS NULL OR dateAvailable = '')").run();
+
 if (propertyCount.count === 0) {
   const seed = db.prepare(`
     INSERT INTO properties (
-      name, type, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, price, description, image_url
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   seed.run(
     'Downtown Duplex',
     'duplex',
+    'available',
     '123 Main St',
     'New York',
     'NY',
@@ -96,12 +136,18 @@ if (propertyCount.count === 0) {
     2000,
     450000,
     'Beautiful duplex in the heart of downtown with modern amenities.',
+    JSON.stringify([
+      { icon: '🏠', text: 'Spacious layout' },
+      { icon: '✨', text: 'Modern amenities' },
+    ]),
+    '2026-06-24',
     '/images/properties/duplex1.jpg'
   );
 
   seed.run(
     'Park View Apartment',
     'apartment',
+    'available',
     '456 Park Ave',
     'New York',
     'NY',
@@ -111,6 +157,11 @@ if (propertyCount.count === 0) {
     1200,
     250000,
     'Cozy apartment with park views and updated fixtures.',
+    JSON.stringify([
+      { icon: '🌳', text: 'Park views' },
+      { icon: '🛠️', text: 'Updated fixtures' },
+    ]),
+    '2026-06-24',
     '/images/properties/apt1.jpg'
   );
 }
@@ -119,6 +170,21 @@ db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/duplex1.jpg', '/images/duplex1.jpg');
 db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/apt1.jpg', '/images/apt1.jpg');
+
+if (propertyColumns.has('price') || propertyColumns.has('description')) {
+  db.prepare(`
+    UPDATE properties
+    SET monthlyRent = COALESCE(NULLIF(monthlyRent, 0), price),
+        details = COALESCE(NULLIF(details, ''), description)
+  `).run();
+}
+
+db.prepare(`
+  UPDATE properties
+  SET dateAvailable = COALESCE(NULLIF(dateAvailable, ''), date('now')),
+      highlights = COALESCE(NULLIF(highlights, ''), '[]'),
+      status = COALESCE(NULLIF(status, ''), 'available')
+`).run();
 
 db.prepare(`
   INSERT OR IGNORE INTO property_images (property_id, image_url, sort_order)

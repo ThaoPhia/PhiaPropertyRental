@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS properties (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('duplex', 'apartment', 'other')),
+  status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon')),
   address TEXT NOT NULL,
   city TEXT NOT NULL,
   state TEXT NOT NULL,
@@ -11,8 +12,10 @@ CREATE TABLE IF NOT EXISTS properties (
   bedrooms INTEGER NOT NULL,
   bathrooms REAL NOT NULL,
   squareFeet INTEGER NOT NULL,
-  price REAL NOT NULL,
-  description TEXT,
+  monthlyRent REAL NOT NULL DEFAULT 0,
+  details TEXT,
+  highlights TEXT NOT NULL DEFAULT '[]',
+  dateAvailable TEXT,
   image_url TEXT,
   createdAt TEXT NOT NULL DEFAULT (datetime('now')),
   updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
@@ -20,7 +23,8 @@ CREATE TABLE IF NOT EXISTS properties (
 
 CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(type);
 CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
-CREATE INDEX IF NOT EXISTS idx_properties_price ON properties(price);
+CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
+CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthlyRent);
 
 CREATE TRIGGER IF NOT EXISTS trg_properties_updated_at
 AFTER UPDATE ON properties
@@ -64,7 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires
 
 -- Sample data
 INSERT INTO properties (
-  name, type, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, price, description, image_url
+  name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url
 ) VALUES
-('Downtown Duplex', 'duplex', '123 Main St', 'New York', 'NY', '10001', 3, 2, 2000, 450000.00, 'Beautiful duplex in the heart of downtown with modern amenities.', '/images/properties/duplex1.jpg'),
-('Park View Apartment', 'apartment', '456 Park Ave', 'New York', 'NY', '10002', 2, 1, 1200, 250000.00, 'Cozy apartment with park views and updated fixtures.', '/images/properties/apt1.jpg');
+('Downtown Duplex', 'duplex', 'available', '123 Main St', 'New York', 'NY', '10001', 3, 2, 2000, 450000.00, 'Beautiful duplex in the heart of downtown with modern amenities.', '[{"icon":"🏠","text":"Spacious layout"},{"icon":"✨","text":"Modern amenities"}]', '2026-06-24', '/images/properties/duplex1.jpg'),
+('Park View Apartment', 'apartment', 'available', '456 Park Ave', 'New York', 'NY', '10002', 2, 1, 1200, 250000.00, 'Cozy apartment with park views and updated fixtures.', '[{"icon":"🌳","text":"Park views"},{"icon":"🛠️","text":"Updated fixtures"}]', '2026-06-24', '/images/properties/apt1.jpg');

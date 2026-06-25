@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
+import { parsePropertyHighlights } from '@/lib/property-fields';
 
 async function readPropertyInput(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
@@ -23,7 +24,11 @@ async function readPropertyInput(request: NextRequest) {
       bathrooms: Number.parseFloat(String(formData.get('bathrooms') || '0')) || 0,
       squareFeet: Number.parseFloat(String(formData.get('squareFeet') || '0')) || 0,
       price: Number.parseFloat(String(formData.get('price') || '0')) || 0,
-      description: String(formData.get('description') || '').trim(),
+      monthlyRent: Number.parseFloat(String(formData.get('monthlyRent') || formData.get('price') || '0')) || 0,
+      status: String(formData.get('status') || 'available').trim(),
+      dateAvailable: String(formData.get('dateAvailable') || '').trim(),
+      details: String(formData.get('details') || formData.get('description') || '').trim(),
+      highlights: String(formData.get('highlights') || '[]'),
       imageFiles,
     };
   }
@@ -40,8 +45,11 @@ async function readPropertyInput(request: NextRequest) {
     bedrooms: Number.parseFloat(String(body.bedrooms || '0')) || 0,
     bathrooms: Number.parseFloat(String(body.bathrooms || '0')) || 0,
     squareFeet: Number.parseFloat(String(body.squareFeet || '0')) || 0,
-    price: Number.parseFloat(String(body.price || '0')) || 0,
-    description: String(body.description || '').trim(),
+    monthlyRent: Number.parseFloat(String(body.monthlyRent || body.price || '0')) || 0,
+    status: String(body.status || 'available').trim(),
+    dateAvailable: String(body.dateAvailable || '').trim(),
+    details: String(body.details || body.description || '').trim(),
+    highlights: typeof body.highlights === 'string' ? body.highlights : JSON.stringify(body.highlights || []),
     imageFiles: [] as File[],
   };
 }
@@ -91,6 +99,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       type,
+      status,
       address,
       city,
       state,
@@ -98,8 +107,10 @@ export async function POST(request: NextRequest) {
       bedrooms,
       bathrooms,
       squareFeet,
-      price,
-      description,
+      monthlyRent,
+      dateAvailable,
+      details,
+      highlights,
       imageFiles,
     } = body;
 
@@ -111,13 +122,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let parsedHighlights = [];
+    try {
+      parsedHighlights = parsePropertyHighlights(highlights);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid highlights' },
+        { status: 400 }
+      );
+    }
+
     uploadState.imageUrls = await savePropertyImages(imageFiles);
     const imageUrl = uploadState.imageUrls[0] || null;
 
     const insertProperty = db.prepare(
       `INSERT INTO properties 
-       (name, type, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, price, description, image_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       (name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
 
     const insertPropertyImage = db.prepare(
@@ -129,6 +150,7 @@ export async function POST(request: NextRequest) {
       const result = insertProperty.run(
         name,
         type,
+        status || 'available',
         address,
         city,
         state,
@@ -136,8 +158,10 @@ export async function POST(request: NextRequest) {
         bedrooms,
         bathrooms,
         squareFeet,
-        price,
-        description,
+        monthlyRent,
+        details,
+        JSON.stringify(parsedHighlights),
+        dateAvailable || null,
         imageUrl
       );
 
@@ -155,6 +179,7 @@ export async function POST(request: NextRequest) {
         id: result.lastInsertRowid,
         name,
         type,
+        status,
         address,
         city,
         state,
@@ -162,8 +187,10 @@ export async function POST(request: NextRequest) {
         bedrooms,
         bathrooms,
         squareFeet,
-        price,
-        description,
+        monthlyRent,
+        details,
+        highlights: parsedHighlights,
+        dateAvailable: dateAvailable || null,
         image_url: imageUrl,
         images: uploadState.imageUrls,
       },

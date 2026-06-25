@@ -2,6 +2,7 @@ export interface Property {
   id: number;
   name: string;
   type: 'duplex' | 'apartment' | 'other';
+  status: 'available' | 'occupied' | 'coming soon';
   address: string;
   city: string;
   state: string;
@@ -9,8 +10,10 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   squareFeet: number;
-  price: number;
-  description: string;
+  monthlyRent: number;
+  details: string;
+  highlights: PropertyHighlight[];
+  dateAvailable: string | null;
   image_url?: string;
   images?: string[];
   createdAt: Date;
@@ -20,6 +23,7 @@ export interface Property {
 export interface PropertyFormData {
   name: string;
   type: 'duplex' | 'apartment' | 'other';
+  status: 'available' | 'occupied' | 'coming soon';
   address: string;
   city: string;
   state: string;
@@ -27,9 +31,15 @@ export interface PropertyFormData {
   bedrooms: number;
   bathrooms: number;
   squareFeet: number;
-  price: number;
-  description: string;
+  monthlyRent: number;
+  details: string;
+  dateAvailable: string;
   image_url?: string;
+}
+
+export interface PropertyHighlight {
+  icon: string;
+  text: string;
 }
 
 export type UserRole = 'admin' | 'user';

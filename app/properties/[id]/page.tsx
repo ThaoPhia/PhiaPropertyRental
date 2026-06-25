@@ -67,7 +67,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <Link href="/properties" className="text-blue-600 hover:underline mb-4 inline-block">
           ← Back to Properties
         </Link>
@@ -90,12 +90,18 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h1 className="text-4xl font-bold text-gray-900">{property.name}</h1>
-                <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded mt-2">
-                  {property.type}
-                </span>
+                <div className="flex gap-2 mt-2">
+                  <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded capitalize">
+                    {property.status}
+                  </span>
+                  <span className="inline-block bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded capitalize">
+                    {property.type}
+                  </span>
+                </div>
               </div>
               <p className="text-4xl font-bold text-green-600">
-                ${property.price.toLocaleString()}
+                ${property.monthlyRent.toLocaleString()}
+                <span className="text-lg font-medium text-gray-500">/mo</span>
               </p>
             </div>
 
@@ -123,20 +129,37 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 </p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Price per Sq Ft</p>
+                <p className="text-gray-600 text-sm">Date Available</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${Math.round(property.price / property.squareFeet)}
+                  {property.dateAvailable ? new Date(property.dateAvailable).toLocaleDateString() : 'Soon'}
                 </p>
               </div>
             </div>
 
             <PropertyGallery images={property.images ?? []} title={property.name} />
 
-            {/* Description */}
-            {property.description && (
+            {/* Details */}
+            {property.details && (
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Description</h2>
-                <p className="text-gray-700 leading-relaxed">{property.description}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Details</h2>
+                <p className="text-gray-700 leading-relaxed">{property.details}</p>
+              </div>
+            )}
+
+            {property.highlights.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Highlights</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {property.highlights.map((highlight, index) => (
+                    <div
+                      key={`${highlight.icon}-${index}`}
+                      className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"
+                    >
+                      <span className="text-2xl">{highlight.icon}</span>
+                      <span className="text-gray-800">{highlight.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

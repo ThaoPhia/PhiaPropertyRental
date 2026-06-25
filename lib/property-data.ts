@@ -1,13 +1,17 @@
 import db from '@/lib/db';
 import { Property } from '@/lib/types';
+import { normalizePropertyRow } from '@/lib/property-fields';
 
 export function getPropertyWithImages(id: number): Property | null {
-  const property = db.prepare('SELECT * FROM properties WHERE id = ?').get(id) as Property | undefined;
+  const propertyRow = db.prepare('SELECT * FROM properties WHERE id = ?').get(id) as
+    | Record<string, unknown>
+    | undefined;
 
-  if (!property) {
+  if (!propertyRow) {
     return null;
   }
 
+  const property = normalizePropertyRow(propertyRow);
   const imageRows = db
     .prepare(
       `SELECT image_url
