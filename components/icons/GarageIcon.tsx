@@ -1,0 +1,12 @@
+import type { SVGProps } from 'react';
+
+export const GarageIcon = (props: SVGProps<SVGSVGElement>) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 640 640"
+        fill="currentColor"
+        {...props}
+    >
+        <path d="M32 576L32 160L320 64L608 160L608 576L544 576L544 256L96 256L96 576L32 576zM496 384L144 384L144 304L496 304L496 384zM496 576L144 576L144 432L496 432L496 576zM256 480L256 528L384 528L384 480L256 480z" />
+    </svg>
+);

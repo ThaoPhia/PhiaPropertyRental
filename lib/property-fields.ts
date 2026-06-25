@@ -1,6 +1,14 @@
 import { Property, PropertyHighlight } from '@/lib/types';
 
 const DEFAULT_STATUS: Property['status'] = 'available';
+const legacyIconNameByPath: Record<string, string> = {
+  '/images/icons/garage-sharp-solid.png': 'GarageIcon',
+};
+
+function normalizePropertyHighlightIcon(icon: string): string {
+  const trimmedIcon = icon.trim();
+  return legacyIconNameByPath[trimmedIcon] ?? trimmedIcon;
+}
 
 function isPropertyHighlight(value: unknown): value is PropertyHighlight {
   return (
@@ -23,7 +31,7 @@ export function parsePropertyHighlights(value: unknown): PropertyHighlight[] {
   }
 
   const highlights = parsed.filter(isPropertyHighlight).map((item) => ({
-    icon: item.icon.trim(),
+    icon: normalizePropertyHighlightIcon(item.icon),
     text: item.text.trim(),
   }));
 
@@ -48,7 +56,7 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
   let highlights: PropertyHighlight[] = [];
   if (Array.isArray(highlightsValue)) {
     highlights = highlightsValue.filter(isPropertyHighlight).map((item) => ({
-      icon: item.icon.trim(),
+      icon: normalizePropertyHighlightIcon(item.icon),
       text: item.text.trim(),
     }));
   } else if (typeof highlightsValue === 'string' && highlightsValue.trim()) {

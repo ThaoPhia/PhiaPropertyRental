@@ -70,5 +70,5 @@ CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires
 INSERT INTO properties (
   name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url
 ) VALUES
-('Downtown Duplex', 'duplex', 'available', '123 Main St', 'New York', 'NY', '10001', 3, 2, 2000, 450000.00, 'Beautiful duplex in the heart of downtown with modern amenities.', '[{"icon":"🏠","text":"Spacious layout"},{"icon":"✨","text":"Modern amenities"}]', '2026-06-24', '/images/properties/duplex1.jpg'),
-('Park View Apartment', 'apartment', 'available', '456 Park Ave', 'New York', 'NY', '10002', 2, 1, 1200, 250000.00, 'Cozy apartment with park views and updated fixtures.', '[{"icon":"🌳","text":"Park views"},{"icon":"🛠️","text":"Updated fixtures"}]', '2026-06-24', '/images/properties/apt1.jpg');
+('Downtown Duplex', 'duplex', 'available', '123 Main St', 'New York', 'NY', '10001', 3, 2, 2000, 450000.00, 'Beautiful duplex in the heart of downtown with modern amenities.', '[{"icon":"GarageIcon","text":"Spacious layout"},{"icon":"GarageIcon","text":"Modern amenities"}]', '2026-06-24', '/images/properties/duplex1.jpg'),
+('Park View Apartment', 'apartment', 'available', '456 Park Ave', 'New York', 'NY', '10002', 2, 1, 1200, 250000.00, 'Cozy apartment with park views and updated fixtures.', '[{"icon":"GarageIcon","text":"Park views"},{"icon":"GarageIcon","text":"Updated fixtures"}]', '2026-06-24', '/images/properties/apt1.jpg');

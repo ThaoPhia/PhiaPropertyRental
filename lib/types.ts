@@ -38,7 +38,7 @@ export interface PropertyFormData {
 }
 
 export interface PropertyHighlight {
-  icon: string;
+  icon: string; // icon component name (e.g., GarageIcon)
   text: string;
 }
 

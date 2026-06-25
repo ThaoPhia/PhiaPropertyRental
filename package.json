@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "generate:icons": "node scripts/generate-property-highlight-icons.mjs",
+    "dev": "npm run generate:icons && next dev",
+    "build": "npm run generate:icons && next build",
     "start": "next start",
     "lint": "eslint"
   },

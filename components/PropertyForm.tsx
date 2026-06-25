@@ -23,8 +23,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       ? JSON.stringify(initialData.highlights, null, 2)
       : JSON.stringify(
           [
-            { icon: '🏠', text: 'Spacious layout' },
-            { icon: '✨', text: 'Modern amenities' },
+            { icon: 'GarageIcon', text: 'Spacious layout' },
+            { icon: 'GarageIcon', text: 'Modern amenities' },
           ],
           null,
           2
@@ -101,7 +101,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         throw new Error('Failed to save property');
       }
 
-      router.push('/properties');
+      router.push('/properties/' + initialData?.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -385,7 +385,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             className="w-full px-3 py-2 font-mono text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <p className="mt-2 text-sm text-gray-500">
-            Use a JSON array like: {"[{\"icon\":\"🏠\",\"text\":\"Spacious layout\"}]"}
+            Use a JSON array like: {"[{\"icon\":\"GarageIcon\",\"text\":\"Spacious layout\"}]"}
           </p>
         </div>
       </div>

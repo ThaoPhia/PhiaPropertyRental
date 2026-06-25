@@ -137,8 +137,8 @@ if (propertyCount.count === 0) {
     450000,
     'Beautiful duplex in the heart of downtown with modern amenities.',
     JSON.stringify([
-      { icon: '🏠', text: 'Spacious layout' },
-      { icon: '✨', text: 'Modern amenities' },
+      { icon: 'GarageIcon', text: 'Spacious layout' },
+      { icon: 'GarageIcon', text: 'Modern amenities' },
     ]),
     '2026-06-24',
     '/images/properties/duplex1.jpg'
@@ -158,8 +158,8 @@ if (propertyCount.count === 0) {
     250000,
     'Cozy apartment with park views and updated fixtures.',
     JSON.stringify([
-      { icon: '🌳', text: 'Park views' },
-      { icon: '🛠️', text: 'Updated fixtures' },
+      { icon: 'GarageIcon', text: 'Park views' },
+      { icon: 'GarageIcon', text: 'Updated fixtures' },
     ]),
     '2026-06-24',
     '/images/properties/apt1.jpg'
