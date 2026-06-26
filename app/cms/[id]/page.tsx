@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import PropertyForm from '@/components/PropertyForm';
-import CMSLogoutButton from '@/components/CMSLogoutButton';
 import { Button } from '@/components/ui/button';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 import { getPropertyWithImages } from '@/lib/property-data';
@@ -28,7 +27,6 @@ export default async function CMSEditPage({ params }: CMSEditPageProps) {
           <Link href="/cms" className="text-blue-600 hover:underline inline-block">
             ← Back to CMS
           </Link>
-          <CMSLogoutButton />
         </div>
 
         {!property ? (
