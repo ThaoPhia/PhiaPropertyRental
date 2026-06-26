@@ -3,52 +3,107 @@ import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      {/* Hero Section */}
-      <section className="max-w-[92rem] mx-auto px-4 md:px-6 py-16 text-center">
-        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-          Find Your Perfect Property
-        </h2>
-        <p className="text-xl text-gray-600 mb-8">
-          Discover premium apartments and duplexes in your ideal location
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button asChild size="lg" className="px-8 font-bold">
-            <Link href="/properties">
-              Browse Properties
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary" className="px-8 font-bold">
-            <Link href="/cms/login">
-              Add Property (CMS)
-            </Link>
-          </Button>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50">
+      <section className="max-w-[92rem] mx-auto px-4 md:px-6 pt-14 pb-12 md:pt-20 md:pb-16">
+        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <p className="inline-flex items-center rounded-full border border-blue-200 bg-blue-100/60 px-3 py-1 text-xs font-semibold tracking-[0.15em] uppercase text-blue-800">
+              Phia Rental LLC
+            </p>
+            <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight text-slate-900">
+              Beautiful, Move-In Ready Homes
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-slate-600">
+              Explore a curated set of homes with quality finishes, thoughtful layouts, and
+              professional property management.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg" className="px-8 font-semibold">
+                <Link href="/properties">Browse Properties</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="px-8 font-semibold">
+                <Link href="/properties">Apply Now</Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 md:p-8 shadow-lg">
+            <h2 className="text-xl font-semibold text-slate-900">Why Rent with Us</h2>
+            <div className="mt-5 space-y-4">
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-900">Curated inventory</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  A focused portfolio so every listing gets attention and care.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-900">Premium presentation</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Clear photos, detailed highlights, and transparent pricing.
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-900">Responsive management</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Fast communication and dependable support for tenants.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="max-w-[92rem] mx-auto px-4 md:px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <div className="text-4xl mb-4">🏠</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Premium Properties</h3>
-            <p className="text-gray-600">
-              Handpicked apartments and duplexes in prime locations
-            </p>
+      <section className="max-w-[92rem] mx-auto px-4 md:px-6 pb-16 md:pb-20">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Homes</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">Apartments & Duplexes</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <div className="text-4xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Easy to Search</h3>
-            <p className="text-gray-600">
-              Filter by location, type, and price to find your match
-            </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Quality</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">Well-Maintained Spaces</p>
           </div>
-          <div className="text-center p-6 bg-white rounded-lg shadow-md">
-            <div className="text-4xl mb-4">💼</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Professional CMS</h3>
-            <p className="text-gray-600">
-              Easily manage and update your property listings
-            </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Support</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">Professional Management</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="max-w-[92rem] mx-auto px-4 md:px-6 pb-16 md:pb-24">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="p-6 md:p-8">
+              <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Our Location</p>
+              <h2 className="mt-2 text-3xl font-bold text-slate-900">Menasha, Wisconsin</h2>
+              <p className="mt-3 text-slate-600 max-w-xl">
+                We proudly serve renters in Menasha and the surrounding Fox Valley area, with
+                access to local parks, shopping, dining, and major commuter routes.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild className="px-6 font-semibold">
+                  <Link href="/properties">Apply Now</Link>
+                </Button>
+                <Button asChild variant="secondary" className="px-6 font-semibold">
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=Menasha%2C+WI"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open in Google Maps
+                  </a>
+                </Button>
+              </div>
+            </div>
+            <div className="min-h-[320px] border-t lg:border-t-0 lg:border-l border-slate-200">
+              <iframe
+                title="Map of Menasha, WI"
+                src="https://www.google.com/maps?q=Menasha,WI&output=embed"
+                className="h-full min-h-[320px] w-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
           </div>
         </div>
       </section>
