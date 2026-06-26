@@ -2,11 +2,21 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAdminSession } from '@/hooks/useAdminSession';
 
 export default function SiteNav() {
   const pathname = usePathname();
+  const router = useRouter();
+  const admin = useAdminSession();
   const propertiesActive = pathname.startsWith('/properties');
+  const isCmsActive = pathname.startsWith('/cms');
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/cms/login');
+    router.refresh();
+  };
 
   return (
     <nav className="bg-white shadow-sm">
@@ -24,7 +34,24 @@ export default function SiteNav() {
             Phia Rental LLC
           </span>
         </Link>
-        <div className="space-x-4">
+        <div className="flex items-center gap-4">
+          {admin && (
+            <div className="inline-flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2">
+              <Link
+                href="/cms"
+                className={isCmsActive ? 'text-blue-700 font-semibold' : 'text-blue-700 hover:text-blue-800 font-medium'}
+              >
+                CMS
+              </Link>
+              <span className="h-4 w-px bg-blue-200" aria-hidden="true"></span>
+              <button
+                onClick={handleLogout}
+                className="text-blue-700 hover:text-blue-800 font-medium cursor-pointer"
+              >
+                Log out
+              </button>
+            </div>
+          )}
           <Link
             href="/properties"
             className={propertiesActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
