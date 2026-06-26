@@ -1,16 +1,12 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import PropertyCard from '@/components/PropertyCard';
-import PropertyFilters from '@/components/PropertyFilters';
 import { Property } from '@/lib/types';
 
-function PropertiesContent() {
-  const searchParams = useSearchParams();
+export default function PropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,19 +14,7 @@ function PropertiesContent() {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        const type = searchParams.get('type');
-        const city = searchParams.get('city');
-
-        let url = '/api/properties';
-        const params = new URLSearchParams();
-        if (type) params.append('type', type);
-        if (city) params.append('city', city);
-
-        if (params.toString()) {
-          url += `?${params.toString()}`;
-        }
-
-        const response = await fetch(url);
+        const response = await fetch('/api/properties');
         if (!response.ok) {
           setError('Failed to fetch properties');
           return;
@@ -38,10 +22,6 @@ function PropertiesContent() {
 
         const data = await response.json();
         setProperties(data);
-
-        // Extract unique cities
-        const uniqueCities = [...new Set(data.map((p: Property) => p.city))].sort() as string[];
-        setCities(uniqueCities);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -50,24 +30,33 @@ function PropertiesContent() {
     };
 
     fetchProperties();
-  }, [searchParams]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Our Properties</h1>
+    <div className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-slate-50">
+      <div className="max-w-7xl mx-auto px-4 py-10 md:py-14">
+        <div className="mb-10 rounded-3xl border border-slate-200 bg-white/80 p-6 md:p-10 shadow-sm">
+          <p className="text-sm font-semibold tracking-[0.2em] uppercase text-blue-700">Phia Rental LLC</p>
+          <h1 className="mt-3 text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">
+            Beautiful Homes, Carefully Maintained
+          </h1>
+          <p className="mt-4 max-w-2xl text-slate-600 text-base md:text-lg">
+            Explore our curated portfolio of rentals with spacious layouts, premium finishes, and
+            ready-to-move-in comfort.
+          </p>
+          {!loading && properties.length > 0 && (
+            <div className="mt-6 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-800">
+              {properties.length} {properties.length === 1 ? 'Property Available' : 'Properties Available'}
+            </div>
+          )}
+        </div>
 
-        {/* Filters */}
-        {cities.length > 0 && <PropertyFilters cities={cities} />}
-
-        {/* Error Message */}
         {error && (
           <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded mb-6">
             {error}
           </div>
         )}
 
-        {/* Loading State */}
         {loading && (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -75,9 +64,8 @@ function PropertiesContent() {
           </div>
         )}
 
-        {/* Properties Grid */}
         {!loading && properties.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <p className="text-gray-600 mb-4">No properties found.</p>
             <Link href="/cms">
               <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
@@ -86,7 +74,7 @@ function PropertiesContent() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-8">
             {properties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
@@ -94,20 +82,5 @@ function PropertiesContent() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function PropertiesPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    }>
-      <PropertiesContent />
-    </Suspense>
   );
 }

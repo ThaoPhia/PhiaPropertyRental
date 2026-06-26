@@ -9,56 +9,93 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const address = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`;
+  const highlights = Array.isArray(property.highlights) ? property.highlights : [];
+  const hasHighlights = highlights.length > 0;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {property.image_url && (
-        <Link href={`/properties/${property.id}`} className="block relative w-full h-48">
+    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
+      <Link
+        href={`/properties/${property.id}`}
+        className="relative block h-72 md:h-[26rem] w-full overflow-hidden bg-slate-100"
+      >
+        {property.image_url ? (
           <Image
             src={property.image_url}
             alt={property.name}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes="(min-width: 1024px) 80vw, 100vw"
+            priority={false}
           />
-        </Link>
-      )}
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-semibold text-gray-800">{property.name}</h3>
-          <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded capitalize">
-            {property.status}
-          </span>
+        ) : (
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-slate-500">
+            Property image coming soon
+          </div>
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-5">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-white/90 px-3 py-1 font-medium text-slate-900 capitalize">
+              {property.type}
+            </span>
+            <span className="rounded-full bg-blue-100/95 px-3 py-1 font-medium text-blue-900 capitalize">
+              {property.status}
+            </span>
+            <span className="rounded-full bg-emerald-100/95 px-3 py-1 font-medium text-emerald-900">
+              ${property.monthlyRent.toLocaleString()}/mo
+            </span>
+          </div>
+          <h3 className="mt-3 text-2xl md:text-3xl font-semibold text-white">{property.name}</h3>
+          <p className="mt-1 text-sm md:text-base text-white/90">{address}</p>
         </div>
-        <p className="text-gray-600 text-sm mb-2">
-          {property.address}, {property.city}, {property.state} {property.zipCode}
-        </p>
-        <p className="text-gray-700 text-sm mb-3 line-clamp-2">
-          {property.details}
-        </p>
-        <div className="grid grid-cols-3 gap-2 mb-3 text-sm">
-          <div className="text-center">
-            <p className="text-gray-500">Beds</p>
-            <p className="font-semibold">{property.bedrooms}</p>
+      </Link>
+
+      <div className="p-5 md:p-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5">
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Bedrooms</p>
+            <p className="text-xl font-semibold text-slate-900">{property.bedrooms}</p>
           </div>
-          <div className="text-center">
-            <p className="text-gray-500">Baths</p>
-            <p className="font-semibold">{property.bathrooms}</p>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Bathrooms</p>
+            <p className="text-xl font-semibold text-slate-900">{property.bathrooms}</p>
           </div>
-          <div className="text-center">
-            <p className="text-gray-500">Sq Ft</p>
-            <p className="font-semibold">{property.squareFeet.toLocaleString()}</p>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Sq Ft</p>
+            <p className="text-xl font-semibold text-slate-900">{property.squareFeet.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Available</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {property.dateAvailable ? new Date(property.dateAvailable).toLocaleDateString() : 'Now'}
+            </p>
           </div>
         </div>
-        <div className="flex justify-between items-center">
-          <span className="text-2xl font-bold text-green-600">
-            ${property.monthlyRent.toLocaleString()}/mo
-          </span>
+
+        <p className="text-slate-700 leading-relaxed md:text-base">{property.details}</p>
+
+        {hasHighlights && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {highlights.slice(0, 4).map((highlight, index) => (
+              <span
+                key={`${highlight.icon}-${index}`}
+                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
+              >
+                {highlight.text}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-6 flex items-center justify-between">
+          <span className="text-sm text-slate-500">Professionally managed by Phia Rental LLC</span>
           <Link href={`/properties/${property.id}`}>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm cursor-pointer">
-              View Details
+            <button className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 cursor-pointer">
+              View Full Details
             </button>
           </Link>
         </div>
       </div>
-    </div>
+    </article>
   );
 }

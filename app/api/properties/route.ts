@@ -3,6 +3,7 @@ import db from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { parsePropertyHighlights } from '@/lib/property-fields';
+import { normalizePropertyRow } from '@/lib/property-fields';
 
 async function readPropertyInput(request: NextRequest) {
   const contentType = request.headers.get('content-type') || '';
@@ -73,9 +74,10 @@ export async function GET(request: NextRequest) {
       params.push(city);
     }
 
-    const rows = db.prepare(`${query} ORDER BY datetime(createdAt) DESC`).all(...params);
+    const rows = db.prepare(`${query} ORDER BY datetime(createdAt) DESC`).all(...params) as Record<string, unknown>[];
+    const properties = rows.map((row) => normalizePropertyRow(row));
 
-    return NextResponse.json(rows);
+    return NextResponse.json(properties);
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
