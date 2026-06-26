@@ -20,6 +20,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   const [currentImages, setCurrentImages] = useState<string[]>(initialImages);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
+  const [isDraggingUpload, setIsDraggingUpload] = useState(false);
+  const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
   const [highlightsJson, setHighlightsJson] = useState(
     initialData?.highlights?.length
       ? JSON.stringify(initialData.highlights, null, 2)
@@ -80,6 +82,32 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     }));
   };
 
+  const handleImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextFiles = Array.from(event.target.files ?? []);
+    setSelectedUploadFiles(nextFiles);
+  };
+
+  const mergeUploadFiles = (incomingFiles: File[]) => {
+    setSelectedUploadFiles((prev) => {
+      const deduped = new Map<string, File>();
+      [...prev, ...incomingFiles].forEach((file) => {
+        deduped.set(`${file.name}-${file.size}-${file.lastModified}`, file);
+      });
+      return Array.from(deduped.values());
+    });
+  };
+
+  const handleUploadDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setIsDraggingUpload(false);
+    const droppedFiles = Array.from(event.dataTransfer.files).filter((file) =>
+      file.type.startsWith('image/')
+    );
+    if (droppedFiles.length > 0) {
+      mergeUploadFiles(droppedFiles);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
@@ -88,6 +116,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
     try {
       const submission = new FormData(form);
+      selectedUploadFiles.forEach((file) => submission.append('images', file));
       removedImages.forEach((imageUrl) => submission.append('removedImages', imageUrl));
       currentImages
         .filter((imageUrl) => !removedImages.includes(imageUrl))
@@ -336,13 +365,59 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Images
           </label>
-          <input
-            type="file"
-            name="images"
-            accept="image/*"
-            multiple
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setIsDraggingUpload(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setIsDraggingUpload(true);
+            }}
+            onDragLeave={(event) => {
+              event.preventDefault();
+              setIsDraggingUpload(false);
+            }}
+            onDrop={handleUploadDrop}
+            className={`rounded-lg border border-dashed p-4 transition-colors ${
+              isDraggingUpload
+                ? 'border-blue-500 bg-blue-100/70'
+                : 'border-blue-300 bg-blue-50/40'
+            }`}
+          >
+            <input
+              id="property-images"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImagesChange}
+              className="sr-only"
+            />
+            <label
+              htmlFor="property-images"
+              className="flex cursor-pointer flex-col items-center justify-center rounded-md border border-blue-200 bg-white px-4 py-6 text-center hover:bg-blue-50"
+            >
+              <span className="text-sm font-semibold text-blue-800">
+                {isDraggingUpload ? 'Drop images to upload' : 'Drop images here or click to browse'}
+              </span>
+              <span className="mt-1 text-xs text-slate-600">Supports multiple image files (JPG, PNG, WEBP)</span>
+            </label>
+            {selectedUploadFiles.length > 0 && (
+              <div className="mt-3 rounded-md bg-white p-3">
+                <p className="text-sm font-medium text-slate-800">
+                  {selectedUploadFiles.length} new image{selectedUploadFiles.length === 1 ? '' : 's'} selected
+                </p>
+                <ul className="mt-1 space-y-1 text-xs text-slate-600">
+                  {selectedUploadFiles.slice(0, 5).map((file) => (
+                    <li key={`${file.name}-${file.lastModified}`}>{file.name}</li>
+                  ))}
+                  {selectedUploadFiles.length > 5 && (
+                    <li>+{selectedUploadFiles.length - 5} more</li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
           {currentImages.length > 0 && (
             <div className="mt-3">
               <p className="text-sm text-gray-500 mb-2">Current images</p>
