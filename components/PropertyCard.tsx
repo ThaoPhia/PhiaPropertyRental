@@ -4,12 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { useAdminSession } from '@/hooks/useAdminSession';
 
 interface PropertyCardProps {
   property: Property;
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
+  const admin = useAdminSession();
   const address = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`;
   const highlights = Array.isArray(property.highlights) ? property.highlights : [];
   const hasHighlights = highlights.length > 0;
@@ -90,11 +92,20 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         <div className="mt-6 flex items-center justify-between">
           <span className="text-sm text-slate-500">Professionally managed by Phia Rental LLC</span>
-          <Button asChild className="px-5 text-sm font-semibold">
-            <Link href={`/properties/${property.id}`}>
-              View Full Details
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {admin && (
+              <Button asChild variant="secondary" className="px-4 text-sm font-semibold text-slate-800">
+                <Link href={`/cms/${property.id}`}>
+                  Edit Property
+                </Link>
+              </Button>
+            )}
+            <Button asChild className="px-5 text-sm font-semibold">
+              <Link href={`/properties/${property.id}`}>
+                View Full Details
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </article>
