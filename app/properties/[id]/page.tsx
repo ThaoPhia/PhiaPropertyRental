@@ -52,7 +52,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   if (error || !property) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-8">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error || 'Property not found'}</p>
             <Link href="/properties">
@@ -68,7 +68,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-8">
         <Link href="/properties" className="text-blue-600 hover:underline mb-4 inline-block">
           ← Back to Properties
         </Link>

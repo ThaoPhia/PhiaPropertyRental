@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 py-16 text-center">
+      <section className="max-w-[92rem] mx-auto px-4 md:px-6 py-16 text-center">
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
           Find Your Perfect Property
         </h2>
@@ -26,7 +26,7 @@ export default function Home() {
       </section>
 
       {/* Features */}
-      <section className="max-w-7xl mx-auto px-4 py-16">
+      <section className="max-w-[92rem] mx-auto px-4 md:px-6 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center p-6 bg-white rounded-lg shadow-md">
             <div className="text-4xl mb-4">🏠</div>

@@ -9,7 +9,7 @@ export default function SiteNav() {
 
   return (
     <nav className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold text-blue-600">
           PhiaRentalLLC
         </Link>
