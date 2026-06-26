@@ -17,6 +17,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PhiaRentalLLC",
   description: "Property listings and CMS",
+  icons: {
+    icon: "/images/logos/logo1.png",
+    apple: "/images/logos/logo1.png",
+  },
 };
 
 export default function RootLayout({

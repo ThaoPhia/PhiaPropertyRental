@@ -11,6 +11,17 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-blue-50: #eef5fa;
+  --color-blue-100: #dbe9f4;
+  --color-blue-200: #b8d3e8;
+  --color-blue-300: #8cb6d8;
+  --color-blue-400: #5f96c5;
+  --color-blue-500: #3878ad;
+  --color-blue-600: #1f5f91;
+  --color-blue-700: #154d78;
+  --color-blue-800: #123f61;
+  --color-blue-900: #0c3c60;
+  --color-blue-950: #08263d;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
