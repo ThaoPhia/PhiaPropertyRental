@@ -97,6 +97,19 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     });
   };
 
+  const removeSelectedUploadFile = (targetFile: File) => {
+    setSelectedUploadFiles((prev) =>
+      prev.filter(
+        (file) =>
+          !(
+            file.name === targetFile.name &&
+            file.size === targetFile.size &&
+            file.lastModified === targetFile.lastModified
+          )
+      )
+    );
+  };
+
   const handleUploadDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDraggingUpload(false);
@@ -409,7 +422,21 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                 </p>
                 <ul className="mt-1 space-y-1 text-xs text-slate-600">
                   {selectedUploadFiles.slice(0, 5).map((file) => (
-                    <li key={`${file.name}-${file.lastModified}`}>{file.name}</li>
+                    <li
+                      key={`${file.name}-${file.lastModified}`}
+                      className="flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-slate-100 odd:bg-slate-50"
+                    >
+                      <span className="truncate">{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className="h-auto px-2 py-1 text-xs text-slate-600 hover:text-red-700 cursor-pointer"
+                        onClick={() => removeSelectedUploadFile(file)}
+                      >
+                        Remove
+                      </Button>
+                    </li>
                   ))}
                   {selectedUploadFiles.length > 5 && (
                     <li>+{selectedUploadFiles.length - 5} more</li>
