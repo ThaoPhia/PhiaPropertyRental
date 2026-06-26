@@ -4,14 +4,27 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAdminSession } from '@/hooks/useAdminSession';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function SiteNav() {
   const pathname = usePathname();
   const router = useRouter();
   const admin = useAdminSession();
   const propertiesActive = pathname.startsWith('/properties');
-  const isCmsActive = pathname.startsWith('/cms');
+  const adminHandle = admin?.email?.split('@')[0] ?? '';
+  const adminInitials = adminHandle
+    .split(/[.\-_]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'A';
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -36,31 +49,48 @@ export default function SiteNav() {
           </span>
         </Link>
         <div className="flex items-center gap-4">
-          {admin && (
-            <div className="inline-flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2">
-              <Link
-                href="/cms"
-                className={isCmsActive ? 'text-blue-700 font-semibold' : 'text-blue-700 hover:text-blue-800 font-medium'}
-              >
-                CMS
-              </Link>
-              <span className="h-4 w-px bg-blue-200" aria-hidden="true"></span>
-              <Button
-                onClick={handleLogout}
-                variant="ghost"
-                size="sm"
-                className="h-auto p-0 text-blue-700 hover:bg-transparent hover:text-blue-800"
-              >
-                Log out
-              </Button>
-            </div>
-          )}
           <Link
             href="/properties"
             className={propertiesActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
           >
             Browse Properties
           </Link>
+          {admin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                      type="button"
+                      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 cursor-pointer"
+                      aria-label="Open user menu"
+                  >
+                    <Avatar className="size-8" size="default">
+                      <AvatarFallback className="bg-blue-700 text-xs font-semibold text-white">
+                        {adminInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="bg-white/100 backdrop-blur-none supports-[backdrop-filter]:bg-white"
+                >
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="hover:bg-blue-50 focus:bg-blue-50">
+                    <Link href="/cms">CMS</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                      variant="destructive"
+                      className="hover:bg-red-50 focus:bg-red-50"
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        void handleLogout();
+                      }}
+                  >
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+          )}
         </div>
       </div>
     </nav>
