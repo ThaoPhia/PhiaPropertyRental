@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -55,11 +56,11 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-8">
           <div className="text-center">
             <p className="text-red-600 mb-4">{error || 'Property not found'}</p>
-            <Link href="/properties">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+            <Button asChild className="px-6">
+              <Link href="/properties">
                 Return to Properties
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
@@ -171,24 +172,25 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             <div className="flex gap-4 border-t pt-8">
               {admin && (
                 <>
-                  <Link href={`/cms/${property.id}`}>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">
+                  <Button asChild className="px-6 font-bold">
+                    <Link href={`/cms/${property.id}`}>
                       Edit Property
-                    </button>
-                  </Link>
-                  <button
+                    </Link>
+                  </Button>
+                  <Button
                     onClick={handleDelete}
-                    className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded"
+                    variant="destructive"
+                    className="px-6 font-bold"
                   >
                     Delete Property
-                  </button>
+                  </Button>
                 </>
               )}
-              <Link href="/properties">
-                <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded cursor-pointer">
+              <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
+                <Link href="/properties">
                   Back to List
-                </button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

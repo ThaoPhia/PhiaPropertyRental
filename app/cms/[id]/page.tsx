@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import PropertyForm from '@/components/PropertyForm';
 import CMSLogoutButton from '@/components/CMSLogoutButton';
+import { Button } from '@/components/ui/button';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 import { getPropertyWithImages } from '@/lib/property-data';
 
@@ -33,11 +34,11 @@ export default async function CMSEditPage({ params }: CMSEditPageProps) {
         {!property ? (
           <div className="text-center py-12">
             <p className="text-gray-600 mb-4">Property not found</p>
-            <Link href="/cms">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+            <Button asChild className="px-6">
+              <Link href="/cms">
                 Return to CMS
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow-lg p-8">

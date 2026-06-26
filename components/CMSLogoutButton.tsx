@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 export default function CMSLogoutButton() {
   const router = useRouter();
@@ -12,11 +13,12 @@ export default function CMSLogoutButton() {
   };
 
   return (
-    <button
+    <Button
       onClick={handleLogout}
-      className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded"
+      variant="secondary"
+      className="h-9 px-4 text-gray-800"
     >
       Log out
-    </button>
+    </Button>
   );
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Lightbox from 'yet-another-react-lightbox';
 import { Fullscreen, Thumbnails, Zoom } from 'yet-another-react-lightbox/plugins';
+import { Button } from '@/components/ui/button';
 
 interface PropertyGalleryProps {
   images: string[];
@@ -34,11 +35,12 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
       <div className="max-h-[404px] overflow-y-auto pr-2">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {slides.map((slide, photoIndex) => (
-            <button
+            <Button
               key={`${slide.src}-${photoIndex}`}
               type="button"
               onClick={() => setIndex(photoIndex)}
-              className="relative aspect-[4/3] overflow-hidden rounded-lg border border-gray-200 bg-gray-100"
+              variant="outline"
+              className="relative h-auto aspect-[4/3] overflow-hidden rounded-lg border-gray-200 bg-gray-100 p-0"
             >
               <Image
                 src={slide.src}
@@ -46,7 +48,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
                 fill
                 className="object-cover"
               />
-            </button>
+            </Button>
           ))}
         </div>
       </div>

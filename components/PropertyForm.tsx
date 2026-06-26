@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { PropertyFormData, Property } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 interface PropertyFormProps {
   initialData?: Property;
@@ -378,13 +379,15 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                         <span className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
                           Drag to reorder
                         </span>
-                        <button
+                        <Button
                           type="button"
                           onClick={() => toggleImageRemoval(imageUrl)}
-                          className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white"
+                          size="xs"
+                          variant="secondary"
+                          className="h-auto bg-black/70 px-2 py-1 text-xs font-medium text-white hover:bg-black/80"
                         >
                           {removedImages.includes(imageUrl) ? 'Undo' : 'Remove'}
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -429,20 +432,21 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       </div>
 
       <div className="flex gap-4 mt-6">
-        <button
+        <Button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded disabled:bg-gray-400"
+          className="flex-1 h-10 font-medium"
         >
           {loading ? 'Saving...' : initialData ? 'Update Property' : 'Create Property'}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
           onClick={() => router.back()}
-          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded"
+          variant="secondary"
+          className="flex-1 h-10 text-gray-800 font-medium"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

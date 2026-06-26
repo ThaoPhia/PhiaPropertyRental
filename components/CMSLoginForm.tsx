@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 interface CMSLoginFormProps {
   defaultEmail: string;
@@ -77,13 +78,13 @@ export default function CMSLoginForm({ defaultEmail }: CMSLoginFormProps) {
         />
       </div>
 
-      <button
+      <Button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded disabled:bg-gray-400"
+        className="w-full h-10 font-medium"
       >
         {loading ? 'Signing in...' : 'Sign in'}
-      </button>
+      </Button>
     </form>
   );
 }

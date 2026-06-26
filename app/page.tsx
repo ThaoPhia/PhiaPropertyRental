@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   return (
@@ -12,16 +13,16 @@ export default function Home() {
           Discover premium apartments and duplexes in your ideal location
         </p>
         <div className="flex gap-4 justify-center">
-          <Link href="/properties">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg">
+          <Button asChild size="lg" className="px-8 font-bold">
+            <Link href="/properties">
               Browse Properties
-            </button>
-          </Link>
-          <Link href="/cms/login">
-            <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-8 rounded-lg">
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="px-8 font-bold">
+            <Link href="/cms/login">
               Add Property (CMS)
-            </button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </section>
 

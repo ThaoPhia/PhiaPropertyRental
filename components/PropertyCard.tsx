@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Property } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 
 interface PropertyCardProps {
   property: Property;
@@ -89,11 +90,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         <div className="mt-6 flex items-center justify-between">
           <span className="text-sm text-slate-500">Professionally managed by Phia Rental LLC</span>
-          <Link href={`/properties/${property.id}`}>
-            <button className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 cursor-pointer">
+          <Button asChild className="px-5 text-sm font-semibold">
+            <Link href={`/properties/${property.id}`}>
               View Full Details
-            </button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </article>

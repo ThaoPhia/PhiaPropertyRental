@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import PropertyCard from '@/components/PropertyCard';
+import { Button } from '@/components/ui/button';
 import { Property } from '@/lib/types';
 
 export default function PropertiesPage() {
@@ -67,11 +68,11 @@ export default function PropertiesPage() {
         {!loading && properties.length === 0 ? (
           <div className="text-center py-12 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <p className="text-gray-600 mb-4">No properties found.</p>
-            <Link href="/cms">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded">
+            <Button asChild className="px-6">
+              <Link href="/cms">
                 Add a Property
-              </button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8">

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAdminSession } from '@/hooks/useAdminSession';
+import { Button } from '@/components/ui/button';
 
 export default function SiteNav() {
   const pathname = usePathname();
@@ -44,12 +45,14 @@ export default function SiteNav() {
                 CMS
               </Link>
               <span className="h-4 w-px bg-blue-200" aria-hidden="true"></span>
-              <button
+              <Button
                 onClick={handleLogout}
-                className="text-blue-700 hover:text-blue-800 font-medium cursor-pointer"
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0 text-blue-700 hover:bg-transparent hover:text-blue-800"
               >
                 Log out
-              </button>
+              </Button>
             </div>
           )}
           <Link
