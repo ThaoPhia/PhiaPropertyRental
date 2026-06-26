@@ -75,12 +75,10 @@ export default function SiteNav() {
                   className="bg-white/100 backdrop-blur-none supports-[backdrop-filter]:bg-white"
                 >
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="hover:bg-blue-50 focus:bg-blue-50">
+                  <DropdownMenuItem asChild>
                     <Link href="/cms">CMS</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                      variant="destructive"
-                      className="hover:bg-red-50 focus:bg-red-50"
                       onSelect={(event) => {
                         event.preventDefault();
                         void handleLogout();

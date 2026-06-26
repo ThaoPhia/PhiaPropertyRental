@@ -21,7 +21,7 @@ export default async function CMSCreatePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link href="/cms">
+          <Link href="/properties">
             <div className="p-4 bg-white rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-gray-200 hover:border-blue-600">
               <h3 className="font-semibold text-gray-900">All Properties</h3>
               <p className="text-sm text-gray-600">View and manage all properties</p>
