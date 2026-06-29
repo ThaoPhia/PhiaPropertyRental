@@ -100,14 +100,6 @@ addColumnIfMissing('details', 'details TEXT');
 addColumnIfMissing('highlights', "highlights TEXT DEFAULT '[]'");
 addColumnIfMissing('dateAvailable', 'dateAvailable TEXT');
 
-if (propertyColumns.has('price') || propertyColumns.has('description')) {
-  db.prepare(`
-    UPDATE properties
-    SET monthlyRent = COALESCE(monthlyRent, price),
-        details = COALESCE(details, description)
-  `).run();
-}
-
 db.prepare(`
   UPDATE properties
   SET status = COALESCE(status, ?),
@@ -170,14 +162,6 @@ db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/duplex1.jpg', '/images/duplex1.jpg');
 db.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?')
   .run('/images/properties/apt1.jpg', '/images/apt1.jpg');
-
-if (propertyColumns.has('price') || propertyColumns.has('description')) {
-  db.prepare(`
-    UPDATE properties
-    SET monthlyRent = COALESCE(NULLIF(monthlyRent, 0), price),
-        details = COALESCE(NULLIF(details, ''), description)
-  `).run();
-}
 
 db.prepare(`
   UPDATE properties

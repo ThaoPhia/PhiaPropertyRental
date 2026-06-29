@@ -47,7 +47,7 @@ export function serializePropertyHighlights(highlights: PropertyHighlight[] | st
 }
 
 export function normalizePropertyRow(row: Record<string, unknown>): Property {
-  const monthlyRent = Number(row.monthlyRent ?? row.price ?? 0);
+  const monthlyRent = Number(row.monthlyRent ?? 0);
   const details = String(row.details ?? row.description ?? '');
   const status = (row.status as Property['status'] | undefined) || DEFAULT_STATUS;
   const dateAvailable = row.dateAvailable ? String(row.dateAvailable) : null;
