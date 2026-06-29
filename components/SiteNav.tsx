@@ -74,10 +74,10 @@ export default function SiteNav() {
                   align="end"
                   className="bg-white/100 backdrop-blur-none supports-[backdrop-filter]:bg-white"
                 >
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/cms">CMS</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
                       onSelect={(event) => {
                         event.preventDefault();
