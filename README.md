@@ -48,6 +48,8 @@ Update the `.env.local` file:
 SQLITE_DB_PATH=./database/phiarentalllc.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
+NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
+RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
 ```
 
 Admin login email is fixed to: `thoj.phia@gmail.com`
@@ -165,7 +167,8 @@ Content-Type: application/json
 
 {
   "email": "thoj.phia@gmail.com",
-  "password": "your-cms-admin-password"
+  "password": "your-cms-admin-password",
+  "recaptchaToken": "token-from-google-recaptcha"
 }
 ```
 

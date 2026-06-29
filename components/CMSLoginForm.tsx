@@ -1,30 +1,67 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
-interface CMSLoginFormProps {
-  defaultEmail: string;
+declare global {
+  interface Window {
+    grecaptcha: {
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+    };
+  }
 }
 
-export default function CMSLoginForm({ defaultEmail }: CMSLoginFormProps) {
+export default function CMSLoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState(defaultEmail);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
+  const recaptchaConfigured = recaptchaSiteKey.length > 0;
+
+  useEffect(() => {
+    if (!recaptchaConfigured) return;
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, [recaptchaSiteKey, recaptchaConfigured]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
+
+    if (!recaptchaConfigured) {
+      setError('reCAPTCHA is not configured. Please set NEXT_PUBLIC_RECAPTCHA_SITE_KEY.');
+      return;
+    }
+
+    if (!email || !password) {
+      setError('Email and password are required.');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const recaptchaToken = await window.grecaptcha.execute(recaptchaSiteKey, {
+        action: 'login',
+      });
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
 
       if (!response.ok) {
@@ -78,13 +115,33 @@ export default function CMSLoginForm({ defaultEmail }: CMSLoginFormProps) {
         />
       </div>
 
+      {!recaptchaConfigured && (
+        <div className="p-3 bg-amber-100 border border-amber-300 text-amber-900 rounded text-sm">
+          reCAPTCHA is not configured for this environment.
+        </div>
+      )}
+
       <Button
         type="submit"
-        disabled={loading}
+        disabled={loading || !recaptchaConfigured}
         className="w-full h-10 font-medium"
       >
         {loading ? 'Signing in...' : 'Sign in'}
       </Button>
+
+      {recaptchaConfigured && (
+        <p className="text-xs text-gray-500 text-center">
+          This site is protected by reCAPTCHA and the Google{' '}
+          <a href="https://policies.google.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+            Privacy Policy
+          </a>{' '}
+          and{' '}
+          <a href="https://policies.google.com/terms" className="underline" target="_blank" rel="noopener noreferrer">
+            Terms of Service
+          </a>{' '}
+          apply.
+        </p>
+      )}
     </form>
   );
 }
