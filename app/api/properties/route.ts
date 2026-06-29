@@ -4,55 +4,7 @@ import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { parsePropertyHighlights } from '@/lib/property-fields';
 import { normalizePropertyRow } from '@/lib/property-fields';
-
-async function readPropertyInput(request: NextRequest) {
-  const contentType = request.headers.get('content-type') || '';
-
-  if (contentType.includes('multipart/form-data')) {
-    const formData = await request.formData();
-    const imageFiles = formData
-      .getAll('images')
-      .filter((value): value is File => value instanceof File && value.size > 0);
-
-    return {
-      name: String(formData.get('name') || '').trim(),
-      type: String(formData.get('type') || '').trim(),
-      address: String(formData.get('address') || '').trim(),
-      city: String(formData.get('city') || '').trim(),
-      state: String(formData.get('state') || '').trim(),
-      zipCode: String(formData.get('zipCode') || '').trim(),
-      bedrooms: Number.parseFloat(String(formData.get('bedrooms') || '0')) || 0,
-      bathrooms: Number.parseFloat(String(formData.get('bathrooms') || '0')) || 0,
-      squareFeet: Number.parseFloat(String(formData.get('squareFeet') || '0')) || 0,
-      monthlyRent: Number.parseFloat(String(formData.get('monthlyRent') || '0')) || 0,
-      status: String(formData.get('status') || 'available').trim(),
-      dateAvailable: String(formData.get('dateAvailable') || '').trim(),
-      details: String(formData.get('details') || formData.get('description') || '').trim(),
-      highlights: String(formData.get('highlights') || '[]'),
-      imageFiles,
-    };
-  }
-
-  const body = await request.json();
-
-  return {
-    name: String(body.name || '').trim(),
-    type: String(body.type || '').trim(),
-    address: String(body.address || '').trim(),
-    city: String(body.city || '').trim(),
-    state: String(body.state || '').trim(),
-    zipCode: String(body.zipCode || '').trim(),
-    bedrooms: Number.parseFloat(String(body.bedrooms || '0')) || 0,
-    bathrooms: Number.parseFloat(String(body.bathrooms || '0')) || 0,
-    squareFeet: Number.parseFloat(String(body.squareFeet || '0')) || 0,
-    monthlyRent: Number.parseFloat(String(body.monthlyRent || '0')) || 0,
-    status: String(body.status || 'available').trim(),
-    dateAvailable: String(body.dateAvailable || '').trim(),
-    details: String(body.details || body.description || '').trim(),
-    highlights: typeof body.highlights === 'string' ? body.highlights : JSON.stringify(body.highlights || []),
-    imageFiles: [] as File[],
-  };
-}
+import { readPropertyInput } from '@/lib/property-input';
 
 export async function GET(request: NextRequest) {
   try {
