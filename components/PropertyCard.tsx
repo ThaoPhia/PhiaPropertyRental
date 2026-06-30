@@ -12,7 +12,7 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ property }: PropertyCardProps) {
-  const admin = useAdminSession();
+  const { admin } = useAdminSession();
   const address = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`;
   const highlights = Array.isArray(property.highlights) ? property.highlights : [];
   const hasHighlights = highlights.length > 0;

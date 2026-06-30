@@ -24,7 +24,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [applicationLoading, setApplicationLoading] = useState(false);
   const [applicationError, setApplicationError] = useState('');
   const [applicationSuccess, setApplicationSuccess] = useState('');
-  const admin = useAdminSession();
+  const { admin } = useAdminSession();
   const { property, loading, error, setError } = usePropertyById(paramsId);
 
   useEffect(() => {

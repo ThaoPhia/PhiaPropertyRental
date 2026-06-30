@@ -1,0 +1,230 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { useAdminSession } from '@/hooks/useAdminSession';
+
+interface Application {
+  id: number;
+  applicantName: string;
+  email: string;
+  phone: string;
+  householdIncome: number;
+  moveInDate: string;
+  propertyName: string;
+  propertyId: number;
+  status?: string;
+  createdAt: string;
+}
+
+export default function ApplicationsPage() {
+  const router = useRouter();
+  const { admin, isLoading: isAuthLoading } = useAdminSession();
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+
+  useEffect(() => {
+    if (!isAuthLoading && admin === null) {
+      router.push('/cms/login');
+    }
+  }, [admin, isAuthLoading, router]);
+
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/applications');
+        if (!response.ok) {
+          setError('Failed to fetch applications');
+          return;
+        }
+
+        const data = await response.json();
+        setApplications(Array.isArray(data) ? data : []);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+  const handleApprove = async (id: number) => {
+    if (!confirm('Approve this application?')) return;
+    // TODO: Implement approve API endpoint
+    alert('Approve functionality coming soon');
+  };
+
+  const handleDecline = async (id: number) => {
+    if (!confirm('Decline this application?')) return;
+    // TODO: Implement decline API endpoint
+    alert('Decline functionality coming soon');
+  };
+
+  if (isAuthLoading) {
+    return null;
+  }
+
+  if (!admin) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Rental Applications</h1>
+            <p className="text-sm text-gray-600 mt-1">Manage tenant rental applications</p>
+          </div>
+          <Link href="/cms" className="text-blue-600 hover:underline">
+            ← Back to CMS
+          </Link>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Loading applications...</p>
+          </div>
+        ) : applications.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow">
+            <p className="text-gray-600 mb-4">No applications yet</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Applications List */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="p-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Applications ({applications.length})
+                  </h2>
+                </div>
+                <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                  {applications.map((app) => (
+                    <button
+                      key={app.id}
+                      onClick={() => setSelectedApplication(app)}
+                      className={`w-full text-left p-4 hover:bg-blue-50 transition ${
+                        selectedApplication?.id === app.id ? 'bg-blue-100' : ''
+                      }`}
+                    >
+                      <p className="font-semibold text-gray-900">{app.applicantName}</p>
+                      <p className="text-sm text-gray-600">{app.propertyName}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(app.createdAt).toLocaleDateString()}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Details Panel */}
+            <div className="lg:col-span-2">
+              {selectedApplication ? (
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Application Details</h2>
+
+                  <div className="space-y-4 mb-8">
+                    <div>
+                      <p className="text-sm text-gray-600">Applicant Name</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {selectedApplication.applicantName}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="text-lg text-gray-900">
+                        <a href={`mailto:${selectedApplication.email}`} className="text-blue-600 hover:underline">
+                          {selectedApplication.email}
+                        </a>
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="text-lg text-gray-900">
+                        <a href={`tel:${selectedApplication.phone}`} className="text-blue-600 hover:underline">
+                          {selectedApplication.phone}
+                        </a>
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Household Income</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        ${selectedApplication.householdIncome.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Move-in Date</p>
+                      <p className="text-lg text-gray-900">
+                        {new Date(selectedApplication.moveInDate).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Property</p>
+                      <p className="text-lg text-gray-900">
+                        <Link
+                          href={`/properties/${selectedApplication.propertyId}`}
+                          className="text-blue-600 hover:underline"
+                        >
+                          {selectedApplication.propertyName}
+                        </Link>
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Applied On</p>
+                      <p className="text-lg text-gray-900">
+                        {new Date(selectedApplication.createdAt).toLocaleDateString()}{' '}
+                        {new Date(selectedApplication.createdAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6 flex gap-3">
+                    <Button
+                      onClick={() => handleApprove(selectedApplication.id)}
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      onClick={() => handleDecline(selectedApplication.id)}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                  Select an application to view details
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

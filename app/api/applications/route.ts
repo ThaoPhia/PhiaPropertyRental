@@ -10,6 +10,33 @@ interface ApplicationPayload {
   moveInDate: unknown;
 }
 
+export async function GET() {
+  try {
+    const applications = db.prepare(`
+      SELECT 
+        id, 
+        applicant_name as applicantName,
+        email,
+        phone,
+        household_income as householdIncome,
+        move_in_date as moveInDate,
+        property_id as propertyId,
+        property_name as propertyName,
+        createdAt
+      FROM applications
+      ORDER BY createdAt DESC
+    `).all();
+
+    return NextResponse.json(applications);
+  } catch (error) {
+    console.error('Failed to fetch applications:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch applications' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   let body: ApplicationPayload;
 

@@ -16,7 +16,7 @@ import {
 export default function SiteNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const admin = useAdminSession();
+  const { admin } = useAdminSession();
   const propertiesActive = pathname.startsWith('/properties');
   const adminHandle = admin?.email?.split('@')[0] ?? '';
   const adminInitials = adminHandle
@@ -76,6 +76,9 @@ export default function SiteNav() {
                 >
                   <DropdownMenuItem asChild>
                     <Link href="/cms">CMS</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cms/applications">Applications</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

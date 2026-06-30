@@ -7,6 +7,7 @@ import { AuthenticatedAdmin } from '@/lib/types';
 export function useAdminSession() {
   const pathname = usePathname();
   const [admin, setAdmin] = useState<AuthenticatedAdmin | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -20,16 +21,19 @@ export function useAdminSession() {
 
         if (!response.ok) {
           setAdmin(null);
+          setIsLoading(false);
           return;
         }
 
         const data = await response.json();
         setAdmin(data?.admin || null);
+        setIsLoading(false);
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           return;
         }
         setAdmin(null);
+        setIsLoading(false);
       }
     };
 
@@ -40,5 +44,5 @@ export function useAdminSession() {
     };
   }, [pathname]);
 
-  return admin;
+  return { admin, isLoading };
 }
