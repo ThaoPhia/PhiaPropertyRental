@@ -81,8 +81,17 @@ db.exec(`
     applicant_name TEXT NOT NULL,
     email TEXT NOT NULL,
     phone TEXT NOT NULL,
+    current_address_street TEXT NOT NULL,
+    current_address_city TEXT NOT NULL,
+    current_address_state TEXT NOT NULL,
+    current_address_zip TEXT NOT NULL,
+    current_address_since_date TEXT NOT NULL,
     household_income REAL NOT NULL,
     move_in_date TEXT NOT NULL,
+    total_occupancy INTEGER NOT NULL,
+    landlord_name TEXT NOT NULL,
+    landlord_phone TEXT NOT NULL,
+    additional_info TEXT,
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
   );
@@ -96,24 +105,35 @@ db.exec(`
 
 const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
 
-function getPropertyColumns(): Set<string> {
-  const rows = db.prepare('PRAGMA table_info(properties)').all() as { name: string }[];
+function getTableColumns(tableName: string): Set<string> {
+  const rows = db.prepare(`PRAGMA table_info(${tableName})`).all() as { name: string }[];
   return new Set(rows.map((row) => row.name));
 }
 
-const propertyColumns = getPropertyColumns();
+const propertyColumns = getTableColumns('properties');
+const applicationColumns = getTableColumns('applications');
 
-function addColumnIfMissing(columnName: string, definition: string): void {
-  if (!propertyColumns.has(columnName)) {
-    db.exec(`ALTER TABLE properties ADD COLUMN ${definition}`);
+function addColumnIfMissing(tableName: string, columnName: string, definition: string): void {
+  const columns = tableName === 'properties' ? propertyColumns : applicationColumns;
+  if (!columns.has(columnName)) {
+    db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${definition}`);
   }
 }
 
-addColumnIfMissing('status', "status TEXT DEFAULT 'available'");
-addColumnIfMissing('monthlyRent', 'monthlyRent REAL DEFAULT 0');
-addColumnIfMissing('details', 'details TEXT');
-addColumnIfMissing('highlights', "highlights TEXT DEFAULT '[]'");
-addColumnIfMissing('dateAvailable', 'dateAvailable TEXT');
+addColumnIfMissing('properties', 'status', "status TEXT DEFAULT 'available'");
+addColumnIfMissing('properties', 'monthlyRent', 'monthlyRent REAL DEFAULT 0');
+addColumnIfMissing('properties', 'details', 'details TEXT');
+addColumnIfMissing('properties', 'highlights', "highlights TEXT DEFAULT '[]'");
+addColumnIfMissing('properties', 'dateAvailable', 'dateAvailable TEXT');
+addColumnIfMissing('applications', 'current_address_street', 'current_address_street TEXT');
+addColumnIfMissing('applications', 'current_address_city', 'current_address_city TEXT');
+addColumnIfMissing('applications', 'current_address_state', 'current_address_state TEXT');
+addColumnIfMissing('applications', 'current_address_zip', 'current_address_zip TEXT');
+addColumnIfMissing('applications', 'current_address_since_date', 'current_address_since_date TEXT');
+addColumnIfMissing('applications', 'total_occupancy', 'total_occupancy INTEGER');
+addColumnIfMissing('applications', 'landlord_name', 'landlord_name TEXT');
+addColumnIfMissing('applications', 'landlord_phone', 'landlord_phone TEXT');
+addColumnIfMissing('applications', 'additional_info', 'additional_info TEXT');
 
 db.prepare(`
   UPDATE properties

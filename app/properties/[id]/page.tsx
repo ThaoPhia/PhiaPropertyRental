@@ -19,8 +19,18 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
   const [applicantName, setApplicantName] = useState('');
   const [applicantEmail, setApplicantEmail] = useState('');
   const [applicantPhone, setApplicantPhone] = useState('');
+  const [currentAddressStreet, setCurrentAddressStreet] = useState('');
+  const [currentAddressCity, setCurrentAddressCity] = useState('');
+  const [currentAddressState, setCurrentAddressState] = useState('');
+  const [currentAddressZip, setCurrentAddressZip] = useState('');
+  const [currentAddressSinceDate, setCurrentAddressSinceDate] = useState('');
   const [householdIncome, setHouseholdIncome] = useState('');
   const [moveInDate, setMoveInDate] = useState('');
+  const [totalOccupancy, setTotalOccupancy] = useState('');
+  const [landlordName, setLandlordName] = useState('');
+  const [landlordPhone, setLandlordPhone] = useState('');
+  const [additionalInfo, setAdditionalInfo] = useState('');
+  const [acknowledgeQuickApplication, setAcknowledgeQuickApplication] = useState(false);
   const [applicationLoading, setApplicationLoading] = useState(false);
   const [applicationError, setApplicationError] = useState('');
   const [applicationSuccess, setApplicationSuccess] = useState('');
@@ -126,8 +136,17 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
           applicantName,
           email: applicantEmail,
           phone: applicantPhone,
+          currentAddressStreet,
+          currentAddressCity,
+          currentAddressState,
+          currentAddressZip,
+          currentAddressSinceDate,
           householdIncome,
           moveInDate,
+          totalOccupancy,
+          landlordName,
+          landlordPhone,
+          additionalInfo,
         }),
       });
 
@@ -141,8 +160,18 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
       setApplicantName('');
       setApplicantEmail('');
       setApplicantPhone('');
+      setCurrentAddressStreet('');
+      setCurrentAddressCity('');
+      setCurrentAddressState('');
+      setCurrentAddressZip('');
+      setCurrentAddressSinceDate('');
       setHouseholdIncome('');
       setMoveInDate('');
+      setTotalOccupancy('');
+      setLandlordName('');
+      setLandlordPhone('');
+      setAdditionalInfo('');
+      setAcknowledgeQuickApplication(false);
     } catch (err) {
       setApplicationError(err instanceof Error ? err.message : 'Failed to submit application');
     } finally {
@@ -315,10 +344,30 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 setApplicantEmail={setApplicantEmail}
                 applicantPhone={applicantPhone}
                 setApplicantPhone={setApplicantPhone}
+                currentAddressStreet={currentAddressStreet}
+                setCurrentAddressStreet={setCurrentAddressStreet}
+                currentAddressCity={currentAddressCity}
+                setCurrentAddressCity={setCurrentAddressCity}
+                currentAddressState={currentAddressState}
+                setCurrentAddressState={setCurrentAddressState}
+                currentAddressZip={currentAddressZip}
+                setCurrentAddressZip={setCurrentAddressZip}
+                currentAddressSinceDate={currentAddressSinceDate}
+                setCurrentAddressSinceDate={setCurrentAddressSinceDate}
                 householdIncome={householdIncome}
                 setHouseholdIncome={setHouseholdIncome}
                 moveInDate={moveInDate}
                 setMoveInDate={setMoveInDate}
+                totalOccupancy={totalOccupancy}
+                setTotalOccupancy={setTotalOccupancy}
+                landlordName={landlordName}
+                setLandlordName={setLandlordName}
+                landlordPhone={landlordPhone}
+                setLandlordPhone={setLandlordPhone}
+                additionalInfo={additionalInfo}
+                setAdditionalInfo={setAdditionalInfo}
+                acknowledgeQuickApplication={acknowledgeQuickApplication}
+                setAcknowledgeQuickApplication={setAcknowledgeQuickApplication}
                 applicationLoading={applicationLoading}
                 applicationError={applicationError}
                 applicationSuccess={applicationSuccess}

@@ -11,8 +11,17 @@ interface Application {
   applicantName: string;
   email: string;
   phone: string;
+  currentAddressStreet: string;
+  currentAddressCity: string;
+  currentAddressState: string;
+  currentAddressZip: string;
+  currentAddressSinceDate: string;
   householdIncome: number;
   moveInDate: string;
+  totalOccupancy: number;
+  landlordName: string;
+  landlordPhone: string;
+  additionalInfo?: string;
   propertyName: string;
   propertyId: number;
   status?: string;
@@ -166,6 +175,41 @@ export default function ApplicationsPage() {
                     </div>
 
                     <div>
+                      <p className="text-sm text-gray-600">Current Street Address</p>
+                      <p className="text-lg text-gray-900">
+                        {selectedApplication.currentAddressStreet}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">City</p>
+                      <p className="text-lg text-gray-900">
+                        {selectedApplication.currentAddressCity}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">State</p>
+                      <p className="text-lg text-gray-900">
+                        {selectedApplication.currentAddressState}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Zip Code</p>
+                      <p className="text-lg text-gray-900">
+                        {selectedApplication.currentAddressZip}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Been Living There Since</p>
+                      <p className="text-lg text-gray-900">
+                        {new Date(selectedApplication.currentAddressSinceDate).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div>
                       <p className="text-sm text-gray-600">Household Income</p>
                       <p className="text-lg font-semibold text-gray-900">
                         ${selectedApplication.householdIncome.toLocaleString()}
@@ -179,7 +223,43 @@ export default function ApplicationsPage() {
                       </p>
                     </div>
 
+                    <div className="md:col-span-2 border-t border-gray-300 pt-4 mt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-3">Current Occupancy Details</p>
+                    </div>
+
                     <div>
+                      <p className="text-sm text-gray-600">Total Number of Occupancy</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {selectedApplication.totalOccupancy}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Landlord Name</p>
+                      <p className="text-lg text-gray-900">
+                        {selectedApplication.landlordName}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-gray-600">Landlord Phone</p>
+                      <p className="text-lg text-gray-900">
+                        <a href={`tel:${selectedApplication.landlordPhone}`} className="text-blue-600 hover:underline">
+                          {selectedApplication.landlordPhone}
+                        </a>
+                      </p>
+                    </div>
+
+                    {selectedApplication.additionalInfo && (
+                      <div>
+                        <p className="text-sm text-gray-600">Additional Information</p>
+                        <p className="text-lg text-gray-900 whitespace-pre-wrap">
+                          {selectedApplication.additionalInfo}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2">
                       <p className="text-sm text-gray-600">Property</p>
                       <p className="text-lg text-gray-900">
                         <Link
@@ -191,7 +271,7 @@ export default function ApplicationsPage() {
                       </p>
                     </div>
 
-                    <div>
+                    <div className="md:col-span-2">
                       <p className="text-sm text-gray-600">Applied On</p>
                       <p className="text-lg text-gray-900">
                         {new Date(selectedApplication.createdAt).toLocaleDateString()}{' '}
