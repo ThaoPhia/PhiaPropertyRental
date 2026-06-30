@@ -21,7 +21,7 @@ export default function Home() {
                 <Link href="/properties">Browse Properties</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="px-8 font-semibold">
-                <Link href="/properties">Apply Now</Link>
+                <a href="mailto:contact@phiarentalllc.com">Contact Us</a>
               </Button>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function Home() {
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild className="px-6 font-semibold">
-                  <Link href="/properties">Apply Now</Link>
+                  <Link href="/properties">Browse Properties</Link>
                 </Button>
                 <Button asChild variant="secondary" className="px-6 font-semibold">
                   <a
