@@ -13,12 +13,31 @@ import { resolvePropertyHighlightIcon } from '@/components/icons/property-highli
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [paramsId, setParamsId] = useState<string>('');
+  const [propertySequence, setPropertySequence] = useState<Array<{ id: number; name: string }>>([]);
   const admin = useAdminSession();
   const { property, loading, error, setError } = usePropertyById(paramsId);
 
   useEffect(() => {
     params.then(({ id }) => setParamsId(id));
   }, [params]);
+
+  useEffect(() => {
+    const fetchPropertySequence = async () => {
+      try {
+        const response = await fetch('/api/properties');
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json() as Array<{ id: number; name: string }>;
+        setPropertySequence(data.map((item) => ({ id: item.id, name: item.name })));
+      } catch {
+        setPropertySequence([]);
+      }
+    };
+
+    fetchPropertySequence();
+  }, []);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this property?')) return;
@@ -72,6 +91,11 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     : property.dateAvailable
       ? new Date(property.dateAvailable).toLocaleDateString()
       : 'Soon';
+  const currentIndex = propertySequence.findIndex((item) => String(item.id) === paramsId);
+  const previousProperty = currentIndex > 0 ? propertySequence[currentIndex - 1] : null;
+  const nextProperty = currentIndex >= 0 && currentIndex < propertySequence.length - 1
+    ? propertySequence[currentIndex + 1]
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -79,6 +103,22 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         <Link href="/properties" className="text-blue-600 hover:underline mb-4 inline-block">
           ← Back to Properties
         </Link>
+        {admin && (
+          <div className="mb-4 flex flex-wrap gap-4">
+            <Button asChild className="px-6 font-bold">
+              <Link href={`/cms/${property.id}`}>
+                Edit Property
+              </Link>
+            </Button>
+            <Button
+              onClick={handleDelete}
+              variant="destructive"
+              className="px-6 font-bold"
+            >
+              Delete Property
+            </Button>
+          </div>
+        )}
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           {/* Image */}
@@ -174,29 +214,30 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex gap-4 border-t pt-8">
-              {admin && (
-                <>
-                  <Button asChild className="px-6 font-bold">
-                    <Link href={`/cms/${property.id}`}>
-                      Edit Property
-                    </Link>
-                  </Button>
-                  <Button
-                    onClick={handleDelete}
-                    variant="destructive"
-                    className="px-6 font-bold"
-                  >
-                    Delete Property
-                  </Button>
-                </>
+            {/* Navigation */}
+            <div className="flex flex-wrap justify-center gap-4 border-t pt-8">
+              {previousProperty ? (
+                <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
+                  <Link href={`/properties/${previousProperty.id}`}>
+                    ← Previous
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="secondary" disabled className="px-6 font-bold text-gray-500">
+                  ← Previous
+                </Button>
               )}
-              <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
-                <Link href="/properties">
-                  Back to List
-                </Link>
-              </Button>
+              {nextProperty ? (
+                <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
+                  <Link href={`/properties/${nextProperty.id}`}>
+                    Next →
+                  </Link>
+                </Button>
+              ) : (
+                <Button variant="secondary" disabled className="px-6 font-bold text-gray-500">
+                  Next →
+                </Button>
+              )}
             </div>
           </div>
         </div>
