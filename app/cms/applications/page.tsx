@@ -113,16 +113,16 @@ export default function ApplicationsPage() {
             <p className="text-gray-600 mb-4">No applications yet</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-screen">
             {/* Applications List */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="p-4 border-b border-gray-200">
+              <div className="bg-white rounded-lg shadow overflow-hidden flex flex-col h-full">
+                <div className="p-4 border-b border-gray-200 flex-shrink-0">
                   <h2 className="text-lg font-semibold text-gray-900">
                     Applications ({applications.length})
                   </h2>
                 </div>
-                <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                <div className="divide-y divide-gray-200 overflow-y-auto flex-1">
                   {applications.map((app) => (
                     <button
                       key={app.id}
@@ -148,7 +148,7 @@ export default function ApplicationsPage() {
                 <div className="bg-white rounded-lg shadow-lg p-6">
                   <h2 className="text-2xl font-bold text-gray-900 mb-6">Application Details</h2>
 
-                  <div className="space-y-4 mb-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                       <p className="text-sm text-gray-600">Applicant Name</p>
                       <p className="text-lg font-semibold text-gray-900">
@@ -175,91 +175,104 @@ export default function ApplicationsPage() {
                     </div>
 
                     <div>
-                      <p className="text-sm text-gray-600">Current Street Address</p>
-                      <p className="text-lg text-gray-900">
-                        {selectedApplication.currentAddressStreet}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">City</p>
-                      <p className="text-lg text-gray-900">
-                        {selectedApplication.currentAddressCity}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">State</p>
-                      <p className="text-lg text-gray-900">
-                        {selectedApplication.currentAddressState}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Zip Code</p>
-                      <p className="text-lg text-gray-900">
-                        {selectedApplication.currentAddressZip}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Been Living There Since</p>
-                      <p className="text-lg text-gray-900">
-                        {new Date(selectedApplication.currentAddressSinceDate).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    <div>
                       <p className="text-sm text-gray-600">Household Income</p>
                       <p className="text-lg font-semibold text-gray-900">
                         ${selectedApplication.householdIncome.toLocaleString()}
                       </p>
                     </div>
+                  </div>
 
-                    <div>
-                      <p className="text-sm text-gray-600">Move-in Date</p>
-                      <p className="text-lg text-gray-900">
-                        {new Date(selectedApplication.moveInDate).toLocaleDateString()}
-                      </p>
-                    </div>
-
-                    <div className="md:col-span-2 border-t border-gray-300 pt-4 mt-4">
-                      <p className="text-sm font-medium text-gray-700 mb-3">Current Occupancy Details</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Total Number of Occupancy</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {selectedApplication.totalOccupancy}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Landlord Name</p>
-                      <p className="text-lg text-gray-900">
-                        {selectedApplication.landlordName}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Landlord Phone</p>
-                      <p className="text-lg text-gray-900">
-                        <a href={`tel:${selectedApplication.landlordPhone}`} className="text-blue-600 hover:underline">
-                          {selectedApplication.landlordPhone}
-                        </a>
-                      </p>
-                    </div>
-
-                    {selectedApplication.additionalInfo && (
+                  <div className="border-t border-gray-300 pt-4 mb-6">
+                    <p className="text-sm font-medium text-gray-700 mb-4">Occupancy & Move-in</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-gray-600">Additional Information</p>
-                        <p className="text-lg text-gray-900 whitespace-pre-wrap">
-                          {selectedApplication.additionalInfo}
+                        <p className="text-sm text-gray-600">Total Occupancy</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {selectedApplication.totalOccupancy}
                         </p>
                       </div>
-                    )}
 
-                    <div className="md:col-span-2">
+                      <div>
+                        <p className="text-sm text-gray-600">Move-in Date</p>
+                        <p className="text-lg text-gray-900">
+                          {new Date(selectedApplication.moveInDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-300 pt-4 mb-6">
+                    <p className="text-sm font-medium text-gray-700 mb-4">Current Address</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Street Address</p>
+                        <p className="text-lg text-gray-900">
+                          {selectedApplication.currentAddressStreet}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">City</p>
+                        <p className="text-lg text-gray-900">
+                          {selectedApplication.currentAddressCity}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">State</p>
+                        <p className="text-lg text-gray-900">
+                          {selectedApplication.currentAddressState}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">Zip Code</p>
+                        <p className="text-lg text-gray-900">
+                          {selectedApplication.currentAddressZip}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">Living There Since</p>
+                        <p className="text-lg text-gray-900">
+                          {new Date(selectedApplication.currentAddressSinceDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-300 pt-4 mb-6">
+                    <p className="text-sm font-medium text-gray-700 mb-4">Landlord Information</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Landlord Name</p>
+                        <p className="text-lg text-gray-900">
+                          {selectedApplication.landlordName}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-gray-600">Landlord Phone</p>
+                        <p className="text-lg text-gray-900">
+                          <a href={`tel:${selectedApplication.landlordPhone}`} className="text-blue-600 hover:underline">
+                            {selectedApplication.landlordPhone}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedApplication.additionalInfo && (
+                    <div className="border-t border-gray-300 pt-4 mb-6">
+                      <p className="text-sm text-gray-600">Additional Information</p>
+                      <p className="text-lg text-gray-900 whitespace-pre-wrap">
+                        {selectedApplication.additionalInfo}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="border-t border-gray-300 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
                       <p className="text-sm text-gray-600">Property</p>
                       <p className="text-lg text-gray-900">
                         <Link
@@ -271,7 +284,7 @@ export default function ApplicationsPage() {
                       </p>
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div>
                       <p className="text-sm text-gray-600">Applied On</p>
                       <p className="text-lg text-gray-900">
                         {new Date(selectedApplication.createdAt).toLocaleDateString()}{' '}
