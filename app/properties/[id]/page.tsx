@@ -1,25 +1,70 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { usePropertyById } from '@/hooks/usePropertyById';
 import PropertyGallery from '@/components/PropertyGallery';
+import ApplyNowForm from '@/components/ApplyNowForm';
 import { resolvePropertyHighlightIcon } from '@/components/icons/property-highlight-icons';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [paramsId, setParamsId] = useState<string>('');
   const [propertySequence, setPropertySequence] = useState<Array<{ id: number; name: string }>>([]);
+  const [applicantName, setApplicantName] = useState('');
+  const [applicantEmail, setApplicantEmail] = useState('');
+  const [applicantPhone, setApplicantPhone] = useState('');
+  const [householdIncome, setHouseholdIncome] = useState('');
+  const [moveInDate, setMoveInDate] = useState('');
+  const [applicationLoading, setApplicationLoading] = useState(false);
+  const [applicationError, setApplicationError] = useState('');
+  const [applicationSuccess, setApplicationSuccess] = useState('');
   const admin = useAdminSession();
   const { property, loading, error, setError } = usePropertyById(paramsId);
 
   useEffect(() => {
     params.then(({ id }) => setParamsId(id));
   }, [params]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        // Multiple retry attempts with increasing delays
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        const tryScroll = () => {
+          const element = document.getElementById(hash);
+          if (element) {
+            setTimeout(() => {
+              element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+          } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(tryScroll, 200);
+          }
+        };
+        
+        tryScroll();
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      handleScroll();
+      window.addEventListener('hashchange', handleScroll);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hashchange', handleScroll);
+    };
+  }, [paramsId]);
 
   useEffect(() => {
     const fetchPropertySequence = async () => {
@@ -55,6 +100,52 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
       router.push('/properties');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete property');
+    }
+  };
+
+  const handleApplyNow = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setApplicationError('');
+    setApplicationSuccess('');
+
+    if (!property) {
+      setApplicationError('Property not found');
+      return;
+    }
+
+    setApplicationLoading(true);
+
+    try {
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: property.id,
+          propertyName: property.name,
+          applicantName,
+          email: applicantEmail,
+          phone: applicantPhone,
+          householdIncome,
+          moveInDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setApplicationError(data?.error || 'Failed to submit application');
+        return;
+      }
+
+      setApplicationSuccess('Application submitted successfully. We will contact you soon.');
+      setApplicantName('');
+      setApplicantEmail('');
+      setApplicantPhone('');
+      setHouseholdIncome('');
+      setMoveInDate('');
+    } catch (err) {
+      setApplicationError(err instanceof Error ? err.message : 'Failed to submit application');
+    } finally {
+      setApplicationLoading(false);
     }
   };
 
@@ -212,6 +303,26 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   })}
                 </div>
               </div>
+            )}
+
+            {property.status !== 'occupied' && (
+              <ApplyNowForm
+                property={property}
+                applicantName={applicantName}
+                setApplicantName={setApplicantName}
+                applicantEmail={applicantEmail}
+                setApplicantEmail={setApplicantEmail}
+                applicantPhone={applicantPhone}
+                setApplicantPhone={setApplicantPhone}
+                householdIncome={householdIncome}
+                setHouseholdIncome={setHouseholdIncome}
+                moveInDate={moveInDate}
+                setMoveInDate={setMoveInDate}
+                applicationLoading={applicationLoading}
+                applicationError={applicationError}
+                applicationSuccess={applicationSuccess}
+                onSubmit={handleApplyNow}
+              />
             )}
 
             {/* Navigation */}

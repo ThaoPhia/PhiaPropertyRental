@@ -74,9 +74,24 @@ db.exec(`
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
   );
 
+  CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_id INTEGER NOT NULL,
+    property_name TEXT NOT NULL,
+    applicant_name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    household_income REAL NOT NULL,
+    move_in_date TEXT NOT NULL,
+    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
+  );
+
   CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
   CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
   CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expiresAt);
+  CREATE INDEX IF NOT EXISTS idx_applications_property_id ON applications(property_id);
+  CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
 `);
 
 const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };

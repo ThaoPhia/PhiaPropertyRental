@@ -99,9 +99,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <span className="text-sm text-slate-500">Professionally managed by Phia Rental LLC</span>
           <div className="flex items-center gap-2">
             {admin && (
+                <Button asChild variant="outline" className="px-4 text-sm font-semibold text-slate-800">
+                  <Link href={`/cms/${property.id}`}>
+                    Edit Property
+                  </Link>
+                </Button>
+            )}
+            {property.status !== 'occupied' && (
               <Button asChild variant="secondary" className="px-4 text-sm font-semibold text-slate-800">
-                <Link href={`/cms/${property.id}`}>
-                  Edit Property
+                <Link href={`/properties/${property.id}#apply-now`}>
+                  Apply Now
                 </Link>
               </Button>
             )}
