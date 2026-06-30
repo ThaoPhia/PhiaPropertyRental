@@ -197,7 +197,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         </Link>
         {admin && (
           <div className="mb-4 flex flex-wrap gap-4">
-            <Button asChild className="px-6 font-bold">
+            <Button asChild size="nav">
               <Link href={`/cms/${property.id}`}>
                 Edit Property
               </Link>
@@ -205,7 +205,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             <Button
               onClick={handleDelete}
               variant="destructive"
-              className="px-6 font-bold"
+              size="nav"
             >
               Delete Property
             </Button>
@@ -329,24 +329,24 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             {/* Navigation */}
             <div className="flex flex-wrap justify-center gap-4 border-t pt-8">
               {previousProperty ? (
-                <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
+                <Button asChild variant="secondary" size="nav" className="text-gray-800">
                   <Link href={`/properties/${previousProperty.id}`}>
                     ← Previous
                   </Link>
                 </Button>
               ) : (
-                <Button variant="secondary" disabled className="px-6 font-bold text-gray-500">
+                <Button variant="secondary" size="nav" disabled className="text-gray-500">
                   ← Previous
                 </Button>
               )}
               {nextProperty ? (
-                <Button asChild variant="secondary" className="px-6 font-bold text-gray-800">
+                <Button asChild variant="secondary" size="nav" className="text-gray-800">
                   <Link href={`/properties/${nextProperty.id}`}>
                     Next →
                   </Link>
                 </Button>
               ) : (
-                <Button variant="secondary" disabled className="px-6 font-bold text-gray-500">
+                <Button variant="secondary" size="nav" disabled className="text-gray-500">
                   Next →
                 </Button>
               )}
