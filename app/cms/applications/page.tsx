@@ -4,6 +4,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAdminSession } from '@/hooks/useAdminSession';
 
 interface Application {
@@ -35,6 +43,9 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [pendingDeclineId, setPendingDeclineId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthLoading && admin === null) {
@@ -70,10 +81,22 @@ export default function ApplicationsPage() {
     alert('Approve functionality coming soon');
   };
 
-  const handleDecline = async (id: number) => {
-    if (!confirm('Decline this application?')) return;
-    // TODO: Implement decline API endpoint
-    alert('Decline functionality coming soon');
+  const handleDeclineClick = (id: number) => {
+    setPendingDeclineId(id);
+    setDeclineReason('');
+    setShowDeclineDialog(true);
+  };
+
+  const handleDeclineSubmit = async () => {
+    if (!declineReason.trim()) {
+      alert('Please select a reason for declining');
+      return;
+    }
+    // TODO: Implement decline API endpoint with reason
+    alert(`Decline functionality coming soon\nReason: ${declineReason}`);
+    setShowDeclineDialog(false);
+    setDeclineReason('');
+    setPendingDeclineId(null);
   };
 
   if (isAuthLoading) {
@@ -301,7 +324,7 @@ export default function ApplicationsPage() {
                       Approve
                     </Button>
                     <Button
-                      onClick={() => handleDecline(selectedApplication.id)}
+                      onClick={() => handleDeclineClick(selectedApplication.id)}
                       variant="destructive"
                       className="flex-1"
                     >
@@ -317,6 +340,59 @@ export default function ApplicationsPage() {
             </div>
           </div>
         )}
+
+        {/* Decline Dialog */}
+        <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Decline Application</DialogTitle>
+              <DialogDescription>
+                Please select a reason for declining this application.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 py-4">
+              {[
+                'Low household income',
+                'Maxed out occupancy',
+                'Pending approval for another applicant',
+                'Other'
+              ].map((reason) => (
+                <label key={reason} className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="decline-reason"
+                    value={reason}
+                    checked={declineReason === reason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                  />
+                  <span className="ml-3 text-sm text-gray-900">{reason}</span>
+                </label>
+              ))}
+            </div>
+
+            <DialogFooter>
+              <Button
+                onClick={() => {
+                  setShowDeclineDialog(false);
+                  setDeclineReason('');
+                  setPendingDeclineId(null);
+                }}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeclineSubmit}
+                variant="destructive"
+                disabled={!declineReason.trim()}
+              >
+                Decline
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
