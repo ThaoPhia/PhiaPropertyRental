@@ -533,11 +533,11 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-4 mt-6 justify-center">
         <Button
           type="submit"
           disabled={loading}
-          className="flex-1 h-10 font-medium"
+          className="h-10 font-medium"
         >
           {loading ? 'Saving...' : initialData ? 'Update Property' : 'Create Property'}
         </Button>
@@ -545,7 +545,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           type="button"
           onClick={() => router.back()}
           variant="secondary"
-          className="flex-1 h-10 text-gray-800 font-medium"
+          className="h-10 text-gray-800 font-medium"
         >
           Cancel
         </Button>
