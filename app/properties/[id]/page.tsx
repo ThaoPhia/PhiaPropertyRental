@@ -67,6 +67,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     );
   }
 
+  const availabilityText = property.status === 'occupied'
+    ? 'Currently occupied'
+    : property.dateAvailable
+      ? new Date(property.dateAvailable).toLocaleDateString()
+      : 'Soon';
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-8">
@@ -131,9 +137,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 </p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Date Available</p>
+                <p className="text-gray-600 text-sm">Availability</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {property.dateAvailable ? new Date(property.dateAvailable).toLocaleDateString() : 'Soon'}
+                  {availabilityText}
                 </p>
               </div>
             </div>

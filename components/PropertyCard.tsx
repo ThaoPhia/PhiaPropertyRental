@@ -15,6 +15,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const address = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`;
   const highlights = Array.isArray(property.highlights) ? property.highlights : [];
   const hasHighlights = highlights.length > 0;
+  const availabilityText = property.status === 'occupied'
+    ? 'Occupied'
+    : property.dateAvailable
+      ? new Date(property.dateAvailable).toLocaleDateString()
+      : 'Now';
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
@@ -68,9 +73,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <p className="text-xl font-semibold text-slate-900">{property.squareFeet.toLocaleString()}</p>
           </div>
           <div className="rounded-xl bg-slate-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Available</p>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Availability</p>
             <p className="text-sm font-semibold text-slate-900">
-              {property.dateAvailable ? new Date(property.dateAvailable).toLocaleDateString() : 'Now'}
+              {availabilityText}
             </p>
           </div>
         </div>
