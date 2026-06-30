@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import PropertyCard from '@/components/PropertyCard';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Property } from '@/lib/types';
 
 export default function PropertiesPage() {
@@ -46,9 +47,11 @@ export default function PropertiesPage() {
             ready-to-move-in comfort.
           </p>
           {!loading && properties.length > 0 && (
-            <div className="mt-6 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-800">
-              {properties.length} {properties.length === 1 ? 'Property Available' : 'Properties Available'}
-            </div>
+           <div className="mt-6">
+             <Badge>
+               {properties.length} {properties.length === 1 ? 'Property Available' : 'Properties Available'}
+             </Badge>
+           </div>
           )}
         </div>
 

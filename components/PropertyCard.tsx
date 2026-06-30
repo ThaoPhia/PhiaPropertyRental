@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAdminSession } from '@/hooks/useAdminSession';
 
 interface PropertyCardProps {
@@ -42,16 +43,16 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-5">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-white/90 px-3 py-1 font-medium text-slate-900 capitalize">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="card" className="capitalize">
               {property.type}
-            </span>
-            <span className="rounded-full bg-blue-100/95 px-3 py-1 font-medium text-blue-900 capitalize">
+            </Badge>
+            <Badge variant="status" className="capitalize">
               {property.status}
-            </span>
-            <span className="rounded-full bg-emerald-100/95 px-3 py-1 font-medium text-emerald-900">
+            </Badge>
+            <Badge variant="price">
               ${property.monthlyRent.toLocaleString()}/mo
-            </span>
+            </Badge>
           </div>
           <h3 className="mt-3 text-2xl md:text-3xl font-semibold text-white">{property.name}</h3>
           <p className="mt-1 text-sm md:text-base text-white/90">{address}</p>
@@ -85,12 +86,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         {hasHighlights && (
           <div className="mt-5 flex flex-wrap gap-2">
             {highlights.slice(0, 4).map((highlight, index) => (
-              <span
-                key={`${highlight.icon}-${index}`}
-                className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
-              >
+              <Badge key={`${highlight.icon}-${index}`} variant="highlight">
                 {highlight.text}
-              </span>
+              </Badge>
             ))}
           </div>
         )}

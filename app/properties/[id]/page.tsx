@@ -9,6 +9,7 @@ import { useAdminSession } from '@/hooks/useAdminSession';
 import { usePropertyById } from '@/hooks/usePropertyById';
 import PropertyGallery from '@/components/PropertyGallery';
 import ApplyNowForm from '@/components/ApplyNowForm';
+import { Badge } from '@/components/ui/badge';
 import { resolvePropertyHighlightIcon } from '@/components/icons/property-highlight-icons';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -230,12 +231,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               <div>
                 <h1 className="text-4xl font-bold text-gray-900">{property.name}</h1>
                 <div className="flex gap-2 mt-2">
-                  <span className="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded capitalize">
+                  <Badge variant="detail-status">
                     {property.status}
-                  </span>
-                  <span className="inline-block bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded capitalize">
+                  </Badge>
+                  <Badge variant="detail">
                     {property.type}
-                  </span>
+                  </Badge>
                 </div>
               </div>
               <p className="text-4xl font-bold text-green-600">

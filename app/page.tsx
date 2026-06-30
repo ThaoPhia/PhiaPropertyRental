@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
   return (
@@ -7,9 +8,7 @@ export default function Home() {
       <section className="max-w-[92rem] mx-auto px-4 md:px-6 pt-14 pb-12 md:pt-20 md:pb-16">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <p className="px-4 py-2 inline-flex items-center rounded-full border border-blue-200 bg-blue-100/60 text-xs font-semibold tracking-[0.15em] uppercase text-blue-800">
-              Phia Rental LLC
-            </p>
+            <Badge>Phia Rental LLC</Badge>
             <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight text-slate-900">
               Beautiful, Move-In Ready Homes
             </h1>
