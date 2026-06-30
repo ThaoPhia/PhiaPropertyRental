@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "generate:icons": "node scripts/generate-property-highlight-icons.mjs",
+    "seed:applications": "node scripts/seed-applications.mjs",
     "dev": "npm run generate:icons && next dev",
     "build": "npm run generate:icons && next build",
     "start": "next start",
