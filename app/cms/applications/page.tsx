@@ -104,12 +104,47 @@ export default function ApplicationsPage() {
 
   const handleApprove = async (id: number) => {
     if (!confirm('Approve this application?')) return;
-    // TODO: Implement approve API endpoint
-    setMessageDialog({
-      open: true,
-      title: 'Coming Soon',
-      message: 'Approve functionality coming soon',
-    });
+
+    try {
+      const response = await fetch('/api/applications/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: id,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to approve application: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      // Refresh applications list
+      const appResponse = await fetch('/api/applications');
+      if (appResponse.ok) {
+        const updatedApps = await appResponse.json();
+        setApplications(updatedApps);
+        setSelectedApplication(null);
+      }
+
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message: 'Application approved and email sent successfully',
+      });
+    } catch (error) {
+      console.error('Error approving application:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to approve application',
+      });
+    }
   };
 
   const handleDeclineClick = (id: number) => {

@@ -12,21 +12,15 @@ interface Application {
   status?: string;
 }
 
-interface DeclinePayload {
-  applicationId: unknown;
-  reason: unknown;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as DeclinePayload;
+    const body = (await request.json()) as { applicationId: unknown };
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
-    const reason = String(body.reason || '').trim();
 
-    if (Number.isNaN(applicationId) || !reason) {
+    if (Number.isNaN(applicationId)) {
       return NextResponse.json(
-        { error: 'Invalid application ID or reason' },
+        { error: 'Invalid application ID' },
         { status: 400 }
       );
     }
@@ -43,9 +37,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send decline email (to site email if local, otherwise to applicant)
+    // Send approval email (to site email if local, otherwise to applicant)
     const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
-    
+
     const emailResult = await resend.emails.send({
       from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
       to: emailToSend || application.email,
@@ -58,25 +52,20 @@ export async function POST(request: NextRequest) {
             </div>
 
             <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <h2 style="color: #333; margin-top: 0;">Application Decision</h2>
+              <h2 style="color: #333; margin-top: 0;">Application Approved!</h2>
               <p style="color: #666; margin: 10px 0;">Hi ${application.applicant_name},</p>
               
               <p style="color: #666; line-height: 1.6;">
-                Thank you for submitting your rental application for <strong>${application.property_name}</strong>. 
-                We appreciate your interest in our property.
+                Congratulations! Your rental application for <strong>${application.property_name}</strong> has been approved.
               </p>
 
-              <p style="color: #666; line-height: 1.6;">
-                Unfortunately, after careful review, we have decided not to move forward with your application at this time for the following reason:
-              </p>
-
-              <div style="background-color: #fff; padding: 15px; border-left: 4px solid #ef4444; margin: 20px 0;">
-                <p style="color: #333; margin: 0; font-weight: 500;">${reason}</p>
+              <div style="background-color: #fff; padding: 15px; border-left: 4px solid #22c55e; margin: 20px 0;">
+                <p style="color: #333; margin: 0; font-weight: 500;">We're excited to have you as our tenant!</p>
               </div>
 
               <p style="color: #666; line-height: 1.6;">
-                We encourage you to apply for other properties that may be a better fit for your situation. 
-                If you have any questions, please don't hesitate to reach out to us.
+                Our team will be in touch shortly with next steps and move-in details. 
+                If you have any questions in the meantime, please don't hesitate to reach out to us.
               </p>
 
               <p style="color: #666; margin: 20px 0 0 0;">
@@ -101,17 +90,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    db.prepare('UPDATE applications SET status = ? WHERE id = ?').run('declined', applicationId);
+    db.prepare('UPDATE applications SET status = ? WHERE id = ?').run('approved', applicationId);
 
     return NextResponse.json({
       success: true,
-      message: 'Application declined and email sent',
+      message: 'Application approved and email sent',
       emailId: emailResult.data?.id,
     });
   } catch (error) {
-    console.error('Error declining application:', error);
+    console.error('Error approving application:', error);
     return NextResponse.json(
-      { error: 'Failed to decline application' },
+      { error: 'Failed to approve application' },
       { status: 500 }
     );
   }
