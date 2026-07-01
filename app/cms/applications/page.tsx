@@ -82,6 +82,7 @@ export default function ApplicationsPage() {
 
   const getFilteredApplications = () => {
     return applications.filter((app) => {
+      if (statusFilter === null && app.status === 'deleted') return false;
       if (statusFilter && app.status !== statusFilter) return false;
       
       if (dateFromFilter) {

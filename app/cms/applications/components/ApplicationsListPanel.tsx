@@ -45,7 +45,7 @@ export function ApplicationsListPanel({
               >
                 All
               </button>
-              {['pending', 'approved', 'declined'].map((status) => (
+              {['pending', 'approved', 'declined', 'deleted'].map((status) => (
                 <button
                   key={status}
                   onClick={() => onStatusFilterChange(status)}

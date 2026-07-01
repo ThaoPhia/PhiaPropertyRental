@@ -43,12 +43,12 @@ export async function GET() {
         status,
         createdAt
       FROM applications
-      WHERE status != 'deleted'
       ORDER BY 
         CASE status
           WHEN 'pending' THEN 0
           WHEN 'approved' THEN 1
           WHEN 'declined' THEN 2
+          WHEN 'deleted' THEN 3
         END,
         createdAt DESC
     `).all();
