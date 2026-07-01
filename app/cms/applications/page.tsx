@@ -1,6 +1,5 @@
 'use client';
 
-import {Badge} from "@/components/ui/badge";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -14,28 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAdminSession } from '@/hooks/useAdminSession';
-
-interface Application {
-  id: number;
-  applicantName: string;
-  email: string;
-  phone: string;
-  currentAddressStreet: string;
-  currentAddressCity: string;
-  currentAddressState: string;
-  currentAddressZip: string;
-  currentAddressSinceDate: string;
-  householdIncome: number;
-  moveInDate: string;
-  totalOccupancy: number;
-  landlordName: string;
-  landlordPhone: string;
-  additionalInfo?: string;
-  propertyName: string;
-  propertyId: number;
-  status?: string;
-  createdAt: string;
-}
+import { ApplicationsListPanel } from './components/ApplicationsListPanel';
+import { ApplicationDetailsPanel } from './components/ApplicationDetailsPanel';
+import type { Application } from './types';
 
 export default function ApplicationsPage() {
   const router = useRouter();
@@ -247,294 +227,27 @@ export default function ApplicationsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-screen">
-            {/* Applications List */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow overflow-hidden flex flex-col h-full">
-                <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    Applications ({getFilteredApplications().length})
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="flex gap-2 flex-wrap">
-                      <button
-                        onClick={() => setStatusFilter(null)}
-                        className={`px-3 py-1 rounded-full text-sm font-medium transition ${
-                          statusFilter === null
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        All
-                      </button>
-                      {['pending', 'approved', 'declined'].map((status) => (
-                        <button
-                          key={status}
-                          onClick={() => setStatusFilter(status)}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition capitalize ${
-                            statusFilter === status
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="border-t pt-4">
-                      <p className="text-sm font-medium text-gray-700 mb-2">Filter by Date</p>
-                      <div className="flex gap-2">
-                        <input
-                          type="date"
-                          value={dateFromFilter}
-                          onChange={(e) => setDateFromFilter(e.target.value)}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                          placeholder="From"
-                        />
-                        <input
-                          type="date"
-                          value={dateToFilter}
-                          onChange={(e) => setDateToFilter(e.target.value)}
-                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                          placeholder="To"
-                        />
-                        {(dateFromFilter || dateToFilter) && (
-                          <button
-                            onClick={() => {
-                              setDateFromFilter('');
-                              setDateToFilter('');
-                            }}
-                            className="px-2 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition"
-                          >
-                            Clear
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Applications List */}
-                <div className="divide-y divide-gray-200 overflow-y-auto flex-1">
-                  {getFilteredApplications().map((app) => (
-                    <button
-                      key={app.id}
-                      onClick={() => setSelectedApplication(app)}
-                      className={`w-full text-left p-4 hover:bg-blue-50 transition ${
-                        selectedApplication?.id === app.id ? 'bg-blue-100' : ''
-                      }`}
-                    >
-                      <p className="font-semibold text-gray-900">{app.applicantName}</p>
-                      <p className="text-sm text-gray-600">{app.propertyName}</p>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-gray-500">
-                          {new Date(app.createdAt).toLocaleDateString()}
-                        </p>
-                          {app.status && (
-                            <Badge
-                              className={`px-2 py-1 rounded-full text-xs font-medium border-0 ${
-                                app.status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : app.status === 'approved'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
-                              }`}
-                            >
-                              {app.status}
-                            </Badge>
-                          )}
-                        </div>
-                      </button>
-                    ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Details Panel */}
+            <ApplicationsListPanel
+              applications={getFilteredApplications()}
+              selectedApplicationId={selectedApplication?.id ?? null}
+              statusFilter={statusFilter}
+              dateFromFilter={dateFromFilter}
+              dateToFilter={dateToFilter}
+              onStatusFilterChange={setStatusFilter}
+              onDateFromFilterChange={setDateFromFilter}
+              onDateToFilterChange={setDateToFilter}
+              onClearDateFilters={() => {
+                setDateFromFilter('');
+                setDateToFilter('');
+              }}
+              onSelectApplication={setSelectedApplication}
+            />
             <div className="lg:col-span-2">
-              {selectedApplication ? (
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
-                    {selectedApplication.status && (
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
-                          selectedApplication.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : selectedApplication.status === 'approved'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {selectedApplication.status}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                      <p className="text-sm text-gray-600">Applicant Name</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        {selectedApplication.applicantName}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="text-lg text-gray-900">
-                        <a href={`mailto:${selectedApplication.email}`} className="text-blue-600 hover:underline">
-                          {selectedApplication.email}
-                        </a>
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Phone</p>
-                      <p className="text-lg text-gray-900">
-                        <a href={`tel:${selectedApplication.phone}`} className="text-blue-600 hover:underline">
-                          {selectedApplication.phone}
-                        </a>
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Household Income</p>
-                      <p className="text-lg font-semibold text-gray-900">
-                        ${selectedApplication.householdIncome.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-300 pt-4 mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-4">Occupancy & Move-in</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Total Occupancy</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {selectedApplication.totalOccupancy}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">Move-in Date</p>
-                        <p className="text-lg text-gray-900">
-                          {new Date(selectedApplication.moveInDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-300 pt-4 mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-4">Current Address</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Street Address</p>
-                        <p className="text-lg text-gray-900">
-                          {selectedApplication.currentAddressStreet}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">City</p>
-                        <p className="text-lg text-gray-900">
-                          {selectedApplication.currentAddressCity}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">State</p>
-                        <p className="text-lg text-gray-900">
-                          {selectedApplication.currentAddressState}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">Zip Code</p>
-                        <p className="text-lg text-gray-900">
-                          {selectedApplication.currentAddressZip}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">Living There Since</p>
-                        <p className="text-lg text-gray-900">
-                          {new Date(selectedApplication.currentAddressSinceDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-300 pt-4 mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-4">Landlord Information</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Landlord Name</p>
-                        <p className="text-lg text-gray-900">
-                          {selectedApplication.landlordName}
-                        </p>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-600">Landlord Phone</p>
-                        <p className="text-lg text-gray-900">
-                          <a href={`tel:${selectedApplication.landlordPhone}`} className="text-blue-600 hover:underline">
-                            {selectedApplication.landlordPhone}
-                          </a>
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedApplication.additionalInfo && (
-                    <div className="border-t border-gray-300 pt-4 mb-6">
-                      <p className="text-sm text-gray-600">Additional Information</p>
-                      <p className="text-lg text-gray-900 whitespace-pre-wrap">
-                        {selectedApplication.additionalInfo}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="border-t border-gray-300 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Property</p>
-                      <p className="text-lg text-gray-900">
-                        <Link
-                          href={`/properties/${selectedApplication.propertyId}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {selectedApplication.propertyName}
-                        </Link>
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-gray-600">Applied On</p>
-                      <p className="text-lg text-gray-900">
-                        {new Date(selectedApplication.createdAt).toLocaleDateString()}{' '}
-                        {new Date(selectedApplication.createdAt).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-6 flex gap-3">
-                    <Button
-                      onClick={() => handleApprove(selectedApplication.id)}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      Approve
-                    </Button>
-                    <Button
-                      onClick={() => handleDeclineClick(selectedApplication.id)}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-                  Select an application to view details
-                </div>
-              )}
+              <ApplicationDetailsPanel
+                selectedApplication={selectedApplication}
+                onApprove={handleApprove}
+                onDecline={handleDeclineClick}
+              />
             </div>
           </div>
         )}
