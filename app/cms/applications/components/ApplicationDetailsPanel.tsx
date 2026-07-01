@@ -7,12 +7,16 @@ interface ApplicationDetailsPanelProps {
   selectedApplication: Application | null;
   onApprove: (id: number) => void;
   onDecline: (id: number) => void;
+  onSetPending: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
 export function ApplicationDetailsPanel({
   selectedApplication,
   onApprove,
   onDecline,
+  onSetPending,
+  onDelete,
 }: ApplicationDetailsPanelProps) {
   if (!selectedApplication) {
     return (
@@ -186,19 +190,30 @@ export function ApplicationDetailsPanel({
         </div>
       </div>
 
-      <div className="border-t pt-6 flex gap-3">
+      <div className="border-t pt-6 grid grid-cols-2 gap-3">
         <Button
           onClick={() => onApprove(selectedApplication.id)}
-          className="flex-1 bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700"
         >
           Approve
         </Button>
         <Button
           onClick={() => onDecline(selectedApplication.id)}
           variant="destructive"
-          className="flex-1"
         >
           Decline
+        </Button>
+        <Button
+          onClick={() => onSetPending(selectedApplication.id)}
+          variant="outline"
+        >
+          Pending
+        </Button>
+        <Button
+          onClick={() => onDelete(selectedApplication.id)}
+          variant="secondary"
+        >
+          Delete
         </Button>
       </div>
     </div>

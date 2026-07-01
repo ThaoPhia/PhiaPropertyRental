@@ -32,6 +32,22 @@ export default function ApplicationsPage() {
     title: '',
     message: '',
   });
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    confirmLabel: string;
+    confirmVariant: 'default' | 'destructive';
+  }>({
+    open: false,
+    title: '',
+    description: '',
+    confirmLabel: 'Confirm',
+    confirmVariant: 'default',
+  });
+  const [pendingConfirmAction, setPendingConfirmAction] = useState<
+    { type: 'approve'; id: number } | { type: 'status'; id: number; status: 'pending' | 'deleted' } | null
+  >(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
@@ -82,9 +98,16 @@ export default function ApplicationsPage() {
     });
   };
 
-  const handleApprove = async (id: number) => {
-    if (!confirm('Approve this application?')) return;
+  const refreshApplications = async () => {
+    const appResponse = await fetch('/api/applications');
+    if (!appResponse.ok) return false;
+    const updatedApps = await appResponse.json();
+    setApplications(Array.isArray(updatedApps) ? updatedApps : []);
+    setSelectedApplication(null);
+    return true;
+  };
 
+  const approveApplication = async (id: number) => {
     try {
       const response = await fetch('/api/applications/approve', {
         method: 'POST',
@@ -104,13 +127,7 @@ export default function ApplicationsPage() {
         return;
       }
 
-      // Refresh applications list
-      const appResponse = await fetch('/api/applications');
-      if (appResponse.ok) {
-        const updatedApps = await appResponse.json();
-        setApplications(updatedApps);
-        setSelectedApplication(null);
-      }
+      await refreshApplications();
 
       setMessageDialog({
         open: true,
@@ -125,6 +142,17 @@ export default function ApplicationsPage() {
         message: 'Failed to approve application',
       });
     }
+  };
+
+  const handleApprove = (id: number) => {
+    setPendingConfirmAction({ type: 'approve', id });
+    setConfirmDialog({
+      open: true,
+      title: 'Approve Application',
+      description: 'Are you sure you want to approve this application?',
+      confirmLabel: 'Approve',
+      confirmVariant: 'default',
+    });
   };
 
   const handleDeclineClick = (id: number) => {
@@ -163,13 +191,7 @@ export default function ApplicationsPage() {
         return;
       }
 
-      // Refresh applications list
-      const appResponse = await fetch('/api/applications');
-      if (appResponse.ok) {
-        const updatedApps = await appResponse.json();
-        setApplications(updatedApps);
-        setSelectedApplication(null);
-      }
+      await refreshApplications();
 
       setMessageDialog({
         open: true,
@@ -187,6 +209,75 @@ export default function ApplicationsPage() {
         message: 'Failed to decline application',
       });
     }
+  };
+
+  const setApplicationStatus = async (id: number, status: 'pending' | 'deleted') => {
+    try {
+      const response = await fetch('/api/applications/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: id,
+          status,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to update status: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      await refreshApplications();
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message:
+          status === 'deleted'
+            ? 'Application deleted successfully'
+            : 'Application status updated to pending',
+      });
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to update application status',
+      });
+    }
+  };
+
+  const handleSetStatus = (id: number, status: 'pending' | 'deleted') => {
+    const isDelete = status === 'deleted';
+    setPendingConfirmAction({ type: 'status', id, status });
+    setConfirmDialog({
+      open: true,
+      title: isDelete ? 'Delete Application' : 'Set Pending Status',
+      description: isDelete
+        ? 'Are you sure you want to mark this application as deleted?'
+        : 'Are you sure you want to set this application to pending?',
+      confirmLabel: isDelete ? 'Delete' : 'Set Pending',
+      confirmVariant: isDelete ? 'destructive' : 'default',
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!pendingConfirmAction) return;
+
+    const action = pendingConfirmAction;
+    setConfirmDialog((prev) => ({ ...prev, open: false }));
+    setPendingConfirmAction(null);
+
+    if (action.type === 'approve') {
+      await approveApplication(action.id);
+      return;
+    }
+
+    await setApplicationStatus(action.id, action.status);
   };
 
   if (isAuthLoading) {
@@ -247,6 +338,8 @@ export default function ApplicationsPage() {
                 selectedApplication={selectedApplication}
                 onApprove={handleApprove}
                 onDecline={handleDeclineClick}
+                onSetPending={(id) => handleSetStatus(id, 'pending')}
+                onDelete={(id) => handleSetStatus(id, 'deleted')}
               />
             </div>
           </div>
@@ -300,6 +393,38 @@ export default function ApplicationsPage() {
                 disabled={!declineReason.trim()}
               >
                 Decline
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Confirmation Dialog */}
+        <Dialog
+          open={confirmDialog.open}
+          onOpenChange={(open) => {
+            setConfirmDialog((prev) => ({ ...prev, open }));
+            if (!open) {
+              setPendingConfirmAction(null);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{confirmDialog.title}</DialogTitle>
+              <DialogDescription>{confirmDialog.description}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfirmDialog((prev) => ({ ...prev, open: false }));
+                  setPendingConfirmAction(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button variant={confirmDialog.confirmVariant} onClick={handleConfirmAction}>
+                {confirmDialog.confirmLabel}
               </Button>
             </DialogFooter>
           </DialogContent>
