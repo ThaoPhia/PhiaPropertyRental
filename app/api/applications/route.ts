@@ -40,9 +40,17 @@ export async function GET() {
         additional_info as additionalInfo,
         property_id as propertyId,
         property_name as propertyName,
+        status,
         createdAt
       FROM applications
-      ORDER BY createdAt DESC
+      WHERE status != 'deleted'
+      ORDER BY 
+        CASE status
+          WHEN 'pending' THEN 0
+          WHEN 'approved' THEN 1
+          WHEN 'declined' THEN 2
+        END,
+        createdAt DESC
     `).all();
 
     return NextResponse.json(applications);

@@ -66,6 +66,33 @@ CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expiresAt);
 
+CREATE TABLE IF NOT EXISTS applications (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  property_id INTEGER NOT NULL,
+  property_name TEXT NOT NULL,
+  applicant_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  household_income REAL NOT NULL,
+  move_in_date TEXT NOT NULL,
+  current_address_street TEXT,
+  current_address_city TEXT,
+  current_address_state TEXT,
+  current_address_zip TEXT,
+  current_address_since_date TEXT,
+  total_occupancy INTEGER,
+  landlord_name TEXT,
+  landlord_phone TEXT,
+  additional_info TEXT,
+  status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'declined', 'deleted')),
+  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_applications_property_id ON applications(property_id);
+CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+
 -- Sample data
 INSERT INTO properties (
   name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url

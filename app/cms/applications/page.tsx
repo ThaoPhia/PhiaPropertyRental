@@ -1,5 +1,6 @@
 'use client';
 
+import {Badge} from "@/components/ui/badge";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -46,6 +47,14 @@ export default function ApplicationsPage() {
   const [showDeclineDialog, setShowDeclineDialog] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
   const [pendingDeclineId, setPendingDeclineId] = useState<number | null>(null);
+  const [messageDialog, setMessageDialog] = useState<{ open: boolean; title: string; message: string }>({
+    open: false,
+    title: '',
+    message: '',
+  });
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFromFilter, setDateFromFilter] = useState<string>('');
+  const [dateToFilter, setDateToFilter] = useState<string>('');
 
   useEffect(() => {
     if (!isAuthLoading && admin === null) {
@@ -75,10 +84,32 @@ export default function ApplicationsPage() {
     fetchApplications();
   }, []);
 
+  const getFilteredApplications = () => {
+    return applications.filter((app) => {
+      if (statusFilter && app.status !== statusFilter) return false;
+      
+      if (dateFromFilter) {
+        const appDate = new Date(app.createdAt).toLocaleDateString('en-CA');
+        if (appDate < dateFromFilter) return false;
+      }
+      
+      if (dateToFilter) {
+        const appDate = new Date(app.createdAt).toLocaleDateString('en-CA');
+        if (appDate > dateToFilter) return false;
+      }
+      
+      return true;
+    });
+  };
+
   const handleApprove = async (id: number) => {
     if (!confirm('Approve this application?')) return;
     // TODO: Implement approve API endpoint
-    alert('Approve functionality coming soon');
+    setMessageDialog({
+      open: true,
+      title: 'Coming Soon',
+      message: 'Approve functionality coming soon',
+    });
   };
 
   const handleDeclineClick = (id: number) => {
@@ -89,14 +120,58 @@ export default function ApplicationsPage() {
 
   const handleDeclineSubmit = async () => {
     if (!declineReason.trim()) {
-      alert('Please select a reason for declining');
+      setMessageDialog({
+        open: true,
+        title: 'Missing Information',
+        message: 'Please select a reason for declining',
+      });
       return;
     }
-    // TODO: Implement decline API endpoint with reason
-    alert(`Decline functionality coming soon\nReason: ${declineReason}`);
-    setShowDeclineDialog(false);
-    setDeclineReason('');
-    setPendingDeclineId(null);
+
+    try {
+      const response = await fetch('/api/applications/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: pendingDeclineId,
+          reason: declineReason,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to decline application: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      // Refresh applications list
+      const appResponse = await fetch('/api/applications');
+      if (appResponse.ok) {
+        const updatedApps = await appResponse.json();
+        setApplications(updatedApps);
+        setSelectedApplication(null);
+      }
+
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message: 'Application declined and email sent successfully',
+      });
+      setShowDeclineDialog(false);
+      setDeclineReason('');
+      setPendingDeclineId(null);
+    } catch (error) {
+      console.error('Error declining application:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to decline application',
+      });
+    }
   };
 
   if (isAuthLoading) {
@@ -141,12 +216,70 @@ export default function ApplicationsPage() {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-lg shadow overflow-hidden flex flex-col h-full">
                 <div className="p-4 border-b border-gray-200 flex-shrink-0">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Applications ({applications.length})
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Applications ({getFilteredApplications().length})
                   </h2>
+                  <div className="space-y-4">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => setStatusFilter(null)}
+                        className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+                          statusFilter === null
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        All
+                      </button>
+                      {['pending', 'approved', 'declined'].map((status) => (
+                        <button
+                          key={status}
+                          onClick={() => setStatusFilter(status)}
+                          className={`px-3 py-1 rounded-full text-sm font-medium transition capitalize ${
+                            statusFilter === status
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          {status}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="border-t pt-4">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Filter by Date</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="date"
+                          value={dateFromFilter}
+                          onChange={(e) => setDateFromFilter(e.target.value)}
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                          placeholder="From"
+                        />
+                        <input
+                          type="date"
+                          value={dateToFilter}
+                          onChange={(e) => setDateToFilter(e.target.value)}
+                          className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                          placeholder="To"
+                        />
+                        {(dateFromFilter || dateToFilter) && (
+                          <button
+                            onClick={() => {
+                              setDateFromFilter('');
+                              setDateToFilter('');
+                            }}
+                            className="px-2 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded transition"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                {/* Applications List */}
                 <div className="divide-y divide-gray-200 overflow-y-auto flex-1">
-                  {applications.map((app) => (
+                  {getFilteredApplications().map((app) => (
                     <button
                       key={app.id}
                       onClick={() => setSelectedApplication(app)}
@@ -156,11 +289,26 @@ export default function ApplicationsPage() {
                     >
                       <p className="font-semibold text-gray-900">{app.applicantName}</p>
                       <p className="text-sm text-gray-600">{app.propertyName}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(app.createdAt).toLocaleDateString()}
-                      </p>
-                    </button>
-                  ))}
+                      <div className="flex items-center justify-between mt-2">
+                        <p className="text-xs text-gray-500">
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </p>
+                          {app.status && (
+                            <Badge
+                              className={`px-2 py-1 rounded-full text-xs font-medium border-0 ${
+                                app.status === 'pending'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : app.status === 'approved'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {app.status}
+                            </Badge>
+                          )}
+                        </div>
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>
@@ -169,7 +317,22 @@ export default function ApplicationsPage() {
             <div className="lg:col-span-2">
               {selectedApplication ? (
                 <div className="bg-white rounded-lg shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Application Details</h2>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Application Details</h2>
+                    {selectedApplication.status && (
+                      <span
+                        className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${
+                          selectedApplication.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : selectedApplication.status === 'approved'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {selectedApplication.status}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
@@ -389,6 +552,21 @@ export default function ApplicationsPage() {
                 disabled={!declineReason.trim()}
               >
                 Decline
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Message Dialog */}
+        <Dialog open={messageDialog.open} onOpenChange={(open) => setMessageDialog({ ...messageDialog, open })}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{messageDialog.title}</DialogTitle>
+            </DialogHeader>
+            <p className="text-gray-700">{messageDialog.message}</p>
+            <DialogFooter>
+              <Button onClick={() => setMessageDialog({ ...messageDialog, open: false })}>
+                OK
               </Button>
             </DialogFooter>
           </DialogContent>
