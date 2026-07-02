@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import type { ApplicationPayload } from './types';
+import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
 export async function GET() {
   try {
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
   const landlordName = String(body.landlordName || '').trim();
   const landlordPhone = String(body.landlordPhone || '').trim();
   const additionalInfo = String(body.additionalInfo || '').trim();
+  const recaptchaToken = String(body.recaptchaToken || '').trim();
 
   if (
     Number.isNaN(propertyId) ||
@@ -88,11 +90,32 @@ export async function POST(request: NextRequest) {
     Number.isNaN(totalOccupancy) ||
     totalOccupancy < 1 ||
     !landlordName ||
-    !landlordPhone
+    !landlordPhone ||
+    !recaptchaToken
   ) {
     return NextResponse.json(
       { error: 'All application fields are required' },
       { status: 400 }
+    );
+  }
+
+  const remoteIpHeader = request.headers.get('x-forwarded-for');
+  const remoteIp = remoteIpHeader ? remoteIpHeader.split(',')[0].trim() : null;
+
+  try {
+    const recaptchaValid = await verifyRecaptchaToken({
+      token: recaptchaToken,
+      remoteIp,
+      expectedAction: 'application',
+    });
+
+    if (!recaptchaValid) {
+      return NextResponse.json({ error: 'reCAPTCHA verification failed' }, { status: 400 });
+    }
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'reCAPTCHA verification failed' },
+      { status: 503 }
     );
   }
 

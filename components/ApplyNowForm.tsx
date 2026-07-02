@@ -39,6 +39,7 @@ interface ApplyNowFormProps {
   applicationLoading: boolean;
   applicationError: string;
   applicationSuccess: string;
+  recaptchaConfigured: boolean;
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
@@ -77,6 +78,7 @@ export default function ApplyNowForm({
   applicationLoading,
   applicationError,
   applicationSuccess,
+  recaptchaConfigured,
   onSubmit,
 }: ApplyNowFormProps) {
   const today = new Date().toISOString().split('T')[0];
@@ -311,6 +313,11 @@ export default function ApplyNowForm({
             {applicationSuccess}
           </div>
         )}
+        {!recaptchaConfigured && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 text-sm">
+            reCAPTCHA is not configured for this environment.
+          </div>
+        )}
 
         <div className="flex items-start gap-2">
           <input
@@ -327,10 +334,27 @@ export default function ApplyNowForm({
         </div>
 
         <div>
-          <Button type="submit" disabled={applicationLoading || !acknowledgeQuickApplication} className="px-6 font-bold">
+          <Button
+            type="submit"
+            disabled={applicationLoading || !acknowledgeQuickApplication || !recaptchaConfigured}
+            className="px-6 font-bold"
+          >
             {applicationLoading ? 'Submitting...' : 'Submit Application'}
           </Button>
         </div>
+        {recaptchaConfigured && (
+          <p className="text-xs text-gray-500">
+            This site is protected by reCAPTCHA and the Google{' '}
+            <a href="https://policies.google.com/privacy" className="underline" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>{' '}
+            and{' '}
+            <a href="https://policies.google.com/terms" className="underline" target="_blank" rel="noopener noreferrer">
+              Terms of Service
+            </a>{' '}
+            apply.
+          </p>
+        )}
       </form>
     </div>
   );

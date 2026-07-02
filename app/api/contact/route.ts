@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { escapeHtml } from '@/lib/escape-html';
+import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -9,6 +10,7 @@ interface ContactPayload {
   email: unknown;
   phone: unknown;
   comments: unknown;
+  recaptchaToken: unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -19,9 +21,30 @@ export async function POST(request: NextRequest) {
     const email = String(body.email || '').trim().toLowerCase();
     const phone = String(body.phone || '').trim();
     const comments = String(body.comments || '').trim();
+    const recaptchaToken = String(body.recaptchaToken || '').trim();
 
-    if (!name || !email || !phone || !comments) {
+    if (!name || !email || !phone || !comments || !recaptchaToken) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+    }
+
+    const remoteIpHeader = request.headers.get('x-forwarded-for');
+    const remoteIp = remoteIpHeader ? remoteIpHeader.split(',')[0].trim() : null;
+
+    try {
+      const recaptchaValid = await verifyRecaptchaToken({
+        token: recaptchaToken,
+        remoteIp,
+        expectedAction: 'contact',
+      });
+
+      if (!recaptchaValid) {
+        return NextResponse.json({ error: 'reCAPTCHA verification failed' }, { status: 400 });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'reCAPTCHA verification failed' },
+        { status: 503 }
+      );
     }
 
     const recipient = process.env.SITE_EMAIL_TO || process.env.SITE_EMAIL_FROM;

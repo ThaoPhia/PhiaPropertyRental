@@ -11,9 +11,11 @@ import PropertyGallery from '@/components/PropertyGallery';
 import ApplyNowForm from '@/components/ApplyNowForm';
 import { Badge } from '@/components/ui/badge';
 import { resolvePropertyHighlightIcon } from '@/components/icons/property-highlight-icons';
+import { executeRecaptcha, isRecaptchaConfigured } from '@/lib/recaptcha-client';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const recaptchaConfigured = isRecaptchaConfigured();
   const [paramsId, setParamsId] = useState<string>('');
   const [propertySequence, setPropertySequence] = useState<Array<{ id: number; name: string }>>([]);
   const [applicantName, setApplicantName] = useState('');
@@ -127,6 +129,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     setApplicationLoading(true);
 
     try {
+      const recaptchaToken = await executeRecaptcha('application');
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,6 +150,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
           landlordName,
           landlordPhone,
           additionalInfo,
+          recaptchaToken,
         }),
       });
 
@@ -373,6 +377,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 applicationLoading={applicationLoading}
                 applicationError={applicationError}
                 applicationSuccess={applicationSuccess}
+                recaptchaConfigured={recaptchaConfigured}
                 onSubmit={handleApplyNow}
               />
             )}

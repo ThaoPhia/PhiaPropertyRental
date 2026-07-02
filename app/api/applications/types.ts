@@ -14,6 +14,7 @@ export interface ApplicationPayload {
   landlordName: unknown;
   landlordPhone: unknown;
   additionalInfo: unknown;
+  recaptchaToken: unknown;
 }
 
 export interface ApplicationStatusPayload {

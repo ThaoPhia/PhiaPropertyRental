@@ -1,16 +1,9 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-
-declare global {
-  interface Window {
-    grecaptcha: {
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
-    };
-  }
-}
+import { executeRecaptcha, isRecaptchaConfigured } from '@/lib/recaptcha-client';
 
 export default function CMSLoginForm() {
   const router = useRouter();
@@ -18,24 +11,7 @@ export default function CMSLoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
-  const recaptchaConfigured = recaptchaSiteKey.length > 0;
-
-  useEffect(() => {
-    if (!recaptchaConfigured) return;
-
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [recaptchaSiteKey, recaptchaConfigured]);
+  const recaptchaConfigured = isRecaptchaConfigured();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,9 +30,7 @@ export default function CMSLoginForm() {
     setLoading(true);
 
     try {
-      const recaptchaToken = await window.grecaptcha.execute(recaptchaSiteKey, {
-        action: 'login',
-      });
+      const recaptchaToken = await executeRecaptcha('login');
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',

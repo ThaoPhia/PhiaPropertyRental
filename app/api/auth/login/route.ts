@@ -2,56 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { createAuthSession, setSessionCookie } from '@/lib/auth';
 import { verifyPassword } from '@/lib/password';
+import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 import { AuthUserRecord } from '@/lib/types';
-
-interface RecaptchaVerificationResponse {
-  success: boolean;
-  score?: number;
-  action?: string;
-  challenge_ts?: string;
-  hostname?: string;
-  'error-codes'?: string[];
-}
-
-async function verifyRecaptchaToken(token: string, remoteIp: string | null): Promise<boolean> {
-  const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-
-  if (!recaptchaSecret) {
-    throw new Error('RECAPTCHA_SECRET_KEY is not configured');
-  }
-
-  const payload = new URLSearchParams();
-  payload.set('secret', recaptchaSecret);
-  payload.set('response', token);
-  if (remoteIp) {
-    payload.set('remoteip', remoteIp);
-  }
-
-  const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: payload.toString(),
-    cache: 'no-store',
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to verify reCAPTCHA');
-  }
-
-  const result = (await response.json()) as RecaptchaVerificationResponse;
-  
-  if (!result.success) {
-    return false;
-  }
-
-  const scoreThreshold = 0.5;
-  if (result.score !== undefined && result.score < scoreThreshold) {
-    console.warn(`reCAPTCHA score too low: ${result.score}`);
-    return false;
-  }
-
-  return true;
-}
 
 export async function POST(request: NextRequest) {
   let body: unknown;
@@ -93,7 +45,11 @@ export async function POST(request: NextRequest) {
   const remoteIp = remoteIpHeader ? remoteIpHeader.split(',')[0].trim() : null;
 
   try {
-    const recaptchaValid = await verifyRecaptchaToken(recaptchaToken, remoteIp);
+    const recaptchaValid = await verifyRecaptchaToken({
+      token: recaptchaToken,
+      remoteIp,
+      expectedAction: 'login',
+    });
 
     if (!recaptchaValid) {
       return NextResponse.json({ error: 'reCAPTCHA verification failed' }, { status: 400 });
