@@ -2,36 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import db from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
-
-interface StatusPayload {
-  applicationId: unknown;
-  status: unknown;
-  additionalInfo?: unknown;
-}
+import { escapeHtml } from '@/lib/escape-html';
+import type { ApplicationRecord, ApplicationStatusPayload } from '../types';
 
 const ALLOWED_STATUSES = new Set(['pending', 'deleted']);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-interface Application {
-  id: number;
-  email: string;
-  applicant_name: string;
-  property_name: string;
-  status?: string;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as StatusPayload;
+    const body = (await request.json()) as ApplicationStatusPayload;
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
     const status = String(body.status || '').trim().toLowerCase();
@@ -43,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     const application = db
       .prepare('SELECT * FROM applications WHERE id = ?')
-      .get(applicationId) as Application | undefined;
+      .get(applicationId) as ApplicationRecord | undefined;
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });

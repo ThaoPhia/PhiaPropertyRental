@@ -2,25 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import db from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
+import type { ApplicationDeclinePayload, ApplicationRecord } from '../types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-interface Application {
-  id: number;
-  email: string;
-  applicant_name: string;
-  property_name: string;
-  status?: string;
-}
-
-interface DeclinePayload {
-  applicationId: unknown;
-  reason: unknown;
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as DeclinePayload;
+    const body = (await request.json()) as ApplicationDeclinePayload;
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
     const reason = String(body.reason || '').trim();
@@ -35,7 +23,7 @@ export async function POST(request: NextRequest) {
     // Get application details
     const application = db
       .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
-      .get(applicationId, 'deleted') as Application;
+      .get(applicationId, 'deleted') as ApplicationRecord;
 
     if (!application) {
       return NextResponse.json(

@@ -2,24 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import db from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
+import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '../types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-interface Application {
-  id: number;
-  email: string;
-  applicant_name: string;
-  property_id: number;
-  property_name: string;
-  status?: string;
-}
-
-interface DeclinedApplicantNotificationTarget {
-  id: number;
-  email: string;
-  applicant_name: string;
-  property_name: string;
-}
 
 function resolveRecipientEmail(email: string): string {
   return process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO || email : email;
@@ -46,7 +31,7 @@ function buildEmailHtml(content: string): string {
   `;
 }
 
-function buildApprovalEmailHtml(application: Application): string {
+function buildApprovalEmailHtml(application: ApplicationRecord): string {
   return buildEmailHtml(`
     <h2 style="color: #333; margin-top: 0;">Application Approved!</h2>
     <p style="color: #666; margin: 10px 0;">Hi ${application.applicant_name},</p>
@@ -78,10 +63,10 @@ function buildDeclinedNotificationEmailHtml(applicant: DeclinedApplicantNotifica
   `);
 }
 
-function getApplicationById(applicationId: number): Application | undefined {
+function getApplicationById(applicationId: number): ApplicationRecord | undefined {
   return db
     .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
-    .get(applicationId, 'deleted') as Application | undefined;
+    .get(applicationId, 'deleted') as ApplicationRecord | undefined;
 }
 
 function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId: number): DeclinedApplicantNotificationTarget[] {
@@ -152,8 +137,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const recentlyDeclinedApplicants = getRecentlyDeclinedApplicants(application.property_id, applicationId);
-    updateApplicationStatuses(application.property_id, applicationId);
+    const propertyId = application.property_id;
+    if (typeof propertyId !== 'number') {
+      return NextResponse.json(
+        { error: 'Application property is invalid' },
+        { status: 500 }
+      );
+    }
+
+    const recentlyDeclinedApplicants = getRecentlyDeclinedApplicants(propertyId, applicationId);
+    updateApplicationStatuses(propertyId, applicationId);
 
     for (const declinedApplicant of recentlyDeclinedApplicants) {
       const declinedEmailResult = await sendApplicationStatusEmail(

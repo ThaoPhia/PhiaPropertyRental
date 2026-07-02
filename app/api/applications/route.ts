@@ -1,23 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-
-interface ApplicationPayload {
-  propertyId: unknown;
-  applicantName: unknown;
-  email: unknown;
-  phone: unknown;
-  currentAddressStreet: unknown;
-  currentAddressCity: unknown;
-  currentAddressState: unknown;
-  currentAddressZip: unknown;
-  currentAddressSinceDate: unknown;
-  householdIncome: unknown;
-  moveInDate: unknown;
-  totalOccupancy: unknown;
-  landlordName: unknown;
-  landlordPhone: unknown;
-  additionalInfo: unknown;
-}
+import type { ApplicationPayload } from './types';
 
 export async function GET() {
   try {
