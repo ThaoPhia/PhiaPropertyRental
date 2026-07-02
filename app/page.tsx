@@ -3,6 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
 export default function Home() {
+  const highlights = [
+    { label: 'Modern & Unique', value: 'Thoughtful Layouts' },
+    { label: 'Quality', value: 'Well-Maintained Spaces' },
+    { label: 'Support', value: 'Professional Management' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-slate-50">
       <section className="max-w-[92rem] mx-auto px-4 md:px-6 pt-14 pb-12 md:pt-20 md:pb-16">
@@ -54,18 +60,12 @@ export default function Home() {
 
       <section className="max-w-[92rem] mx-auto px-4 md:px-6 pb-16 md:pb-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Homes</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">Apartments & Duplexes</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Quality</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">Well-Maintained Spaces</p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">Support</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">Professional Management</p>
-          </div>
+          {highlights.map((highlight) => (
+            <div key={highlight.label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm uppercase tracking-wide text-blue-700 font-semibold">{highlight.label}</p>
+              <p className="mt-2 text-2xl font-bold text-slate-900">{highlight.value}</p>
+            </div>
+          ))}
         </div>
       </section>
 
