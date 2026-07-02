@@ -249,6 +249,8 @@ export async function DELETE(
       );
     }
 
+    db.prepare('DELETE FROM applications WHERE property_id = ?').run(id);
+
     const result = db.prepare('DELETE FROM properties WHERE id = ?').run(id);
 
     if (result.changes === 0) {
