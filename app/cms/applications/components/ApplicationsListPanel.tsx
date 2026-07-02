@@ -14,6 +14,10 @@ interface ApplicationsListPanelProps {
   onSelectApplication: (application: Application) => void;
 }
 
+function formatStatusLabel(status: string): string {
+  return status === 'pending' ? 'Pending' : status.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export function ApplicationsListPanel({
   applications,
   selectedApplicationId,
@@ -55,7 +59,7 @@ export function ApplicationsListPanel({
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                   }`}
                 >
-                  {status}
+                  {formatStatusLabel(status)}
                 </button>
               ))}
             </div>
@@ -113,7 +117,7 @@ export function ApplicationsListPanel({
                           : 'bg-red-100 text-red-800'
                     }`}
                   >
-                    {app.status}
+                    {formatStatusLabel(app.status)}
                   </Badge>
                 )}
               </div>

@@ -1,23 +1,228 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { Application } from '../types';
 
 interface ApplicationDetailsPanelProps {
   selectedApplication: Application | null;
-  onApprove: (id: number) => void;
-  onDecline: (id: number) => void;
-  onSetPending: (id: number) => void;
-  onDelete: (id: number) => void;
+  onApplicationsChanged: () => Promise<boolean>;
+}
+
+function formatStatusLabel(status: string): string {
+  return status === 'pending' ? 'Pending' : status.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function ApplicationDetailsPanel({
   selectedApplication,
-  onApprove,
-  onDecline,
-  onSetPending,
-  onDelete,
+  onApplicationsChanged,
 }: ApplicationDetailsPanelProps) {
+  const [showDeclineDialog, setShowDeclineDialog] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPendingDialog, setShowPendingDialog] = useState(false);
+  const [pendingAdditionalInfo, setPendingAdditionalInfo] = useState('');
+  const [selectedPendingNextSteps, setSelectedPendingNextSteps] = useState<number[]>([]);
+  const [pendingNextStepDefaultContents] = useState<string[]>(() => {
+    return [
+      'Your application is under review. We will notify you once a decision has been made.',
+      `Let's schedule a tour. Below are the available times. Please call or email us to confirm your preferred time slot.`,
+      `Background checks are needed for all adults. Please complete the background checks and forward us the reports. If you have any questions, please contact us.`,
+    ];
+  });
+  const [messageDialog, setMessageDialog] = useState<{ open: boolean; title: string; message: string }>({
+    open: false,
+    title: '',
+    message: '',
+  });
+
+  const approveApplication = async (id: number) => {
+    try {
+      const response = await fetch('/api/applications/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationId: id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to approve application: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      await onApplicationsChanged();
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message: 'Application approved and email sent successfully',
+      });
+    } catch (error) {
+      console.error('Error approving application:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to approve application',
+      });
+    }
+  };
+
+  const declineApplication = async (id: number, reason: string) => {
+    try {
+      const response = await fetch('/api/applications/decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: id,
+          reason,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to decline application: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      await onApplicationsChanged();
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message: 'Application declined and email sent successfully',
+      });
+      setShowDeclineDialog(false);
+      setDeclineReason('');
+    } catch (error) {
+      console.error('Error declining application:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to decline application',
+      });
+    }
+  };
+
+  const setApplicationStatus = async (
+    id: number,
+    status: 'pending' | 'deleted',
+    additionalInfo?: string
+  ) => {
+    try {
+      const response = await fetch('/api/applications/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: id,
+          status,
+          additionalInfo,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to update status: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      await onApplicationsChanged();
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message:
+          status === 'deleted'
+            ? 'Application deleted successfully'
+            : 'Application status updated to pending and email sent successfully',
+      });
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to update application status',
+      });
+    }
+  };
+
+  const handleDeclineClick = () => {
+    setDeclineReason('');
+    setShowDeclineDialog(true);
+  };
+
+  const handleDeclineSubmit = async () => {
+    if (!selectedApplication) return;
+    if (!declineReason.trim()) {
+      setMessageDialog({
+        open: true,
+        title: 'Missing Information',
+        message: 'Please select a reason for declining',
+      });
+      return;
+    }
+
+    await declineApplication(selectedApplication.id, declineReason);
+  };
+
+  const handlePendingSubmit = async () => {
+    if (!selectedApplication) return;
+    if (!pendingAdditionalInfo.trim()) {
+      setMessageDialog({
+        open: true,
+        title: 'Missing Information',
+        message: 'Please enter additional information to send to the applicant.',
+      });
+      return;
+    }
+
+    setShowPendingDialog(false);
+    await setApplicationStatus(selectedApplication.id, 'pending', pendingAdditionalInfo);
+    setPendingAdditionalInfo('');
+  };
+
+  const handlePendingNextStepToggle = (index: number) => {
+    const selectedText = pendingNextStepDefaultContents[index];
+    const isChecked = selectedPendingNextSteps.includes(index);
+
+    if (isChecked) {
+      setSelectedPendingNextSteps((prev) => prev.filter((value) => value !== index));
+      setPendingAdditionalInfo((prev) =>
+        prev
+          .replace(selectedText, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim()
+      );
+      return;
+    }
+
+    setSelectedPendingNextSteps((prev) => [...prev, index]);
+    setPendingAdditionalInfo((prev) => {
+      if (!prev.trim()) return selectedText;
+      if (prev.includes(selectedText)) return prev;
+      return `${prev}\n\n${selectedText}`;
+    });
+  };
+
   if (!selectedApplication) {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
@@ -40,7 +245,7 @@ export function ApplicationDetailsPanel({
                   : 'bg-red-100 text-red-800'
             }`}
           >
-            {selectedApplication.status}
+            {formatStatusLabel(selectedApplication.status)}
           </Badge>
         )}
       </div>
@@ -192,30 +397,205 @@ export function ApplicationDetailsPanel({
 
       <div className="border-t pt-6 grid grid-cols-2 gap-3">
         <Button
-          onClick={() => onApprove(selectedApplication.id)}
-          className="bg-green-600 hover:bg-green-700"
+          onClick={() => setShowDeleteDialog(true)}
+          variant="secondary"
         >
-          Approve
+          Delete
         </Button>
         <Button
-          onClick={() => onDecline(selectedApplication.id)}
+          onClick={handleDeclineClick}
           variant="destructive"
         >
           Decline
         </Button>
         <Button
-          onClick={() => onSetPending(selectedApplication.id)}
+          onClick={() => {
+            setPendingAdditionalInfo('');
+            setSelectedPendingNextSteps([]);
+            setShowPendingDialog(true);
+          }}
           variant="outline"
         >
           Pending
         </Button>
         <Button
-          onClick={() => onDelete(selectedApplication.id)}
-          variant="secondary"
+          onClick={() => setShowApproveDialog(true)}
+          className="bg-green-600 hover:bg-green-700"
         >
-          Delete
+          Approve
         </Button>
       </div>
+
+      {/* Delete dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Application</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to mark this application as deleted?<br/>No email will be sent.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                setShowDeleteDialog(false);
+                await setApplicationStatus(selectedApplication.id, 'deleted');
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Decline dialog */}
+      <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Decline Application</DialogTitle>
+            <DialogDescription>
+              Please select a reason for declining this application.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-4">
+            {[
+              'Low household income',
+              'Maxed out occupancy',
+              'Pending approval for another applicant',
+              'Other',
+            ].map((reason) => (
+                <label
+                    key={reason}
+                    className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer"
+                >
+                  <input
+                      type="radio"
+                      name="decline-reason"
+                      value={reason}
+                      checked={declineReason === reason}
+                      onChange={(event) => setDeclineReason(event.target.value)}
+                      className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                  />
+                  <span className="ml-3 text-sm text-gray-900">{reason}</span>
+                </label>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button
+                onClick={() => {
+                  setShowDeclineDialog(false);
+                  setDeclineReason('');
+                }}
+                variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleDeclineSubmit} variant="destructive" disabled={!declineReason.trim()}>
+              Decline
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pending dialog */}
+      <Dialog open={showPendingDialog} onOpenChange={setShowPendingDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Pending Status</DialogTitle>
+            <DialogDescription>
+              Add additional information to send to the applicant before setting this application to pending.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">Next Step Actions</p>
+            {pendingNextStepDefaultContents.map((content, index) => (
+              <label key={content} className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedPendingNextSteps.includes(index)}
+                  onChange={() => handlePendingNextStepToggle(index)}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">{content}</span>
+              </label>
+            ))}
+          </div>
+
+          <textarea
+            value={pendingAdditionalInfo}
+            onChange={(event) => setPendingAdditionalInfo(event.target.value)}
+            rows={6}
+            placeholder="Enter additional information for the applicant..."
+            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPendingDialog(false);
+                setPendingAdditionalInfo('');
+                setSelectedPendingNextSteps([]);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handlePendingSubmit} disabled={!pendingAdditionalInfo.trim()}>
+              Set Pending & Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approve dialog */}
+      <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Approve Application</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to approve this application?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowApproveDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+                onClick={async () => {
+                  setShowApproveDialog(false);
+                  await approveApplication(selectedApplication.id);
+                }}
+            >
+              Approve
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Message dialog */}
+      <Dialog
+        open={messageDialog.open}
+        onOpenChange={(open) => setMessageDialog((prev) => ({ ...prev, open }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{messageDialog.title}</DialogTitle>
+          </DialogHeader>
+          <p className="text-gray-700">{messageDialog.message}</p>
+          <DialogFooter>
+            <Button onClick={() => setMessageDialog((prev) => ({ ...prev, open: false }))}>
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

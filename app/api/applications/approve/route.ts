@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import db from '@/lib/db';
+import { getEmailFooterHtml } from '@/lib/email-footer';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -68,10 +69,7 @@ export async function POST(request: NextRequest) {
                 If you have any questions in the meantime, please don't hesitate to reach out to us.
               </p>
 
-              <p style="color: #666; margin: 20px 0 0 0;">
-                Best regards,<br>
-                <strong>The Phia Rental Team</strong>
-              </p>
+              ${getEmailFooterHtml()}
             </div>
 
             <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">

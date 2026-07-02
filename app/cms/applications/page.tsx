@@ -3,15 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { ApplicationsListPanel } from './components/ApplicationsListPanel';
 import { ApplicationDetailsPanel } from './components/ApplicationDetailsPanel';
@@ -24,30 +15,6 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
-  const [showDeclineDialog, setShowDeclineDialog] = useState(false);
-  const [declineReason, setDeclineReason] = useState('');
-  const [pendingDeclineId, setPendingDeclineId] = useState<number | null>(null);
-  const [messageDialog, setMessageDialog] = useState<{ open: boolean; title: string; message: string }>({
-    open: false,
-    title: '',
-    message: '',
-  });
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean;
-    title: string;
-    description: string;
-    confirmLabel: string;
-    confirmVariant: 'default' | 'destructive';
-  }>({
-    open: false,
-    title: '',
-    description: '',
-    confirmLabel: 'Confirm',
-    confirmVariant: 'default',
-  });
-  const [pendingConfirmAction, setPendingConfirmAction] = useState<
-    { type: 'approve'; id: number } | { type: 'status'; id: number; status: 'pending' | 'deleted' } | null
-  >(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
@@ -108,179 +75,6 @@ export default function ApplicationsPage() {
     return true;
   };
 
-  const approveApplication = async (id: number) => {
-    try {
-      const response = await fetch('/api/applications/approve', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          applicationId: id,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setMessageDialog({
-          open: true,
-          title: 'Error',
-          message: `Failed to approve application: ${error.error || 'Unknown error'}`,
-        });
-        return;
-      }
-
-      await refreshApplications();
-
-      setMessageDialog({
-        open: true,
-        title: 'Success',
-        message: 'Application approved and email sent successfully',
-      });
-    } catch (error) {
-      console.error('Error approving application:', error);
-      setMessageDialog({
-        open: true,
-        title: 'Error',
-        message: 'Failed to approve application',
-      });
-    }
-  };
-
-  const handleApprove = (id: number) => {
-    setPendingConfirmAction({ type: 'approve', id });
-    setConfirmDialog({
-      open: true,
-      title: 'Approve Application',
-      description: 'Are you sure you want to approve this application?',
-      confirmLabel: 'Approve',
-      confirmVariant: 'default',
-    });
-  };
-
-  const handleDeclineClick = (id: number) => {
-    setPendingDeclineId(id);
-    setDeclineReason('');
-    setShowDeclineDialog(true);
-  };
-
-  const handleDeclineSubmit = async () => {
-    if (!declineReason.trim()) {
-      setMessageDialog({
-        open: true,
-        title: 'Missing Information',
-        message: 'Please select a reason for declining',
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/applications/decline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          applicationId: pendingDeclineId,
-          reason: declineReason,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setMessageDialog({
-          open: true,
-          title: 'Error',
-          message: `Failed to decline application: ${error.error || 'Unknown error'}`,
-        });
-        return;
-      }
-
-      await refreshApplications();
-
-      setMessageDialog({
-        open: true,
-        title: 'Success',
-        message: 'Application declined and email sent successfully',
-      });
-      setShowDeclineDialog(false);
-      setDeclineReason('');
-      setPendingDeclineId(null);
-    } catch (error) {
-      console.error('Error declining application:', error);
-      setMessageDialog({
-        open: true,
-        title: 'Error',
-        message: 'Failed to decline application',
-      });
-    }
-  };
-
-  const setApplicationStatus = async (id: number, status: 'pending' | 'deleted') => {
-    try {
-      const response = await fetch('/api/applications/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          applicationId: id,
-          status,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        setMessageDialog({
-          open: true,
-          title: 'Error',
-          message: `Failed to update status: ${error.error || 'Unknown error'}`,
-        });
-        return;
-      }
-
-      await refreshApplications();
-      setMessageDialog({
-        open: true,
-        title: 'Success',
-        message:
-          status === 'deleted'
-            ? 'Application deleted successfully'
-            : 'Application status updated to pending',
-      });
-    } catch (error) {
-      console.error('Error updating application status:', error);
-      setMessageDialog({
-        open: true,
-        title: 'Error',
-        message: 'Failed to update application status',
-      });
-    }
-  };
-
-  const handleSetStatus = (id: number, status: 'pending' | 'deleted') => {
-    const isDelete = status === 'deleted';
-    setPendingConfirmAction({ type: 'status', id, status });
-    setConfirmDialog({
-      open: true,
-      title: isDelete ? 'Delete Application' : 'Set Pending Status',
-      description: isDelete
-        ? 'Are you sure you want to mark this application as deleted?'
-        : 'Are you sure you want to set this application to pending?',
-      confirmLabel: isDelete ? 'Delete' : 'Set Pending',
-      confirmVariant: isDelete ? 'destructive' : 'default',
-    });
-  };
-
-  const handleConfirmAction = async () => {
-    if (!pendingConfirmAction) return;
-
-    const action = pendingConfirmAction;
-    setConfirmDialog((prev) => ({ ...prev, open: false }));
-    setPendingConfirmAction(null);
-
-    if (action.type === 'approve') {
-      await approveApplication(action.id);
-      return;
-    }
-
-    await setApplicationStatus(action.id, action.status);
-  };
-
   if (isAuthLoading) {
     return null;
   }
@@ -336,115 +130,13 @@ export default function ApplicationsPage() {
             />
             <div className="lg:col-span-2">
               <ApplicationDetailsPanel
+                key={selectedApplication?.id ?? 'no-selection'}
                 selectedApplication={selectedApplication}
-                onApprove={handleApprove}
-                onDecline={handleDeclineClick}
-                onSetPending={(id) => handleSetStatus(id, 'pending')}
-                onDelete={(id) => handleSetStatus(id, 'deleted')}
+                onApplicationsChanged={refreshApplications}
               />
             </div>
           </div>
         )}
-
-        {/* Decline Dialog */}
-        <Dialog open={showDeclineDialog} onOpenChange={setShowDeclineDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Decline Application</DialogTitle>
-              <DialogDescription>
-                Please select a reason for declining this application.
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-3 py-4">
-              {[
-                'Low household income',
-                'Maxed out occupancy',
-                'Pending approval for another applicant',
-                'Other'
-              ].map((reason) => (
-                <label key={reason} className="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="decline-reason"
-                    value={reason}
-                    checked={declineReason === reason}
-                    onChange={(e) => setDeclineReason(e.target.value)}
-                    className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                  />
-                  <span className="ml-3 text-sm text-gray-900">{reason}</span>
-                </label>
-              ))}
-            </div>
-
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  setShowDeclineDialog(false);
-                  setDeclineReason('');
-                  setPendingDeclineId(null);
-                }}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleDeclineSubmit}
-                variant="destructive"
-                disabled={!declineReason.trim()}
-              >
-                Decline
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Confirmation Dialog */}
-        <Dialog
-          open={confirmDialog.open}
-          onOpenChange={(open) => {
-            setConfirmDialog((prev) => ({ ...prev, open }));
-            if (!open) {
-              setPendingConfirmAction(null);
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{confirmDialog.title}</DialogTitle>
-              <DialogDescription>{confirmDialog.description}</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setConfirmDialog((prev) => ({ ...prev, open: false }));
-                  setPendingConfirmAction(null);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button variant={confirmDialog.confirmVariant} onClick={handleConfirmAction}>
-                {confirmDialog.confirmLabel}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Message Dialog */}
-        <Dialog open={messageDialog.open} onOpenChange={(open) => setMessageDialog({ ...messageDialog, open })}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{messageDialog.title}</DialogTitle>
-            </DialogHeader>
-            <p className="text-gray-700">{messageDialog.message}</p>
-            <DialogFooter>
-              <Button onClick={() => setMessageDialog({ ...messageDialog, open: false })}>
-                OK
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
