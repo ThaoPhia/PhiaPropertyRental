@@ -55,6 +55,12 @@ export default function SiteNav() {
           >
             Browse Properties
           </Link>
+          <Link
+            href="/contact"
+            className={pathname.startsWith('/contact') ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
+          >
+            Contact Us
+          </Link>
           {admin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

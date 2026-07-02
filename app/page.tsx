@@ -27,7 +27,7 @@ export default function Home() {
                 <Link href="/properties">Browse Properties</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="px-8 font-semibold">
-                <a href="mailto:contact@phiarentalllc.com">Contact Us</a>
+                <Link href="/contact">Contact Us</Link>
               </Button>
             </div>
           </div>
