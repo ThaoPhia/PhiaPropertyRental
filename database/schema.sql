@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS applications (
   landlord_name TEXT,
   landlord_phone TEXT,
   additional_info TEXT,
-  status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'declined', 'deleted')),
+  status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'approve-archived', 'declined', 'deleted')),
   createdAt TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
 );

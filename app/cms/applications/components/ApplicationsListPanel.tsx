@@ -15,7 +15,8 @@ interface ApplicationsListPanelProps {
 }
 
 function formatStatusLabel(status: string): string {
-  return status === 'pending' ? 'Pending' : status.replace(/\b\w/g, (char) => char.toUpperCase());
+  if (status === 'pending') return 'Pending';
+  return status.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export function ApplicationsListPanel({
@@ -49,7 +50,7 @@ export function ApplicationsListPanel({
               >
                 All
               </button>
-              {['pending', 'approved', 'declined', 'deleted'].map((status) => (
+              {['pending', 'approved', 'approve-archived', 'declined', 'deleted'].map((status) => (
                 <button
                   key={status}
                   onClick={() => onStatusFilterChange(status)}
@@ -114,6 +115,8 @@ export function ApplicationsListPanel({
                         ? 'bg-yellow-100 text-yellow-800'
                         : app.status === 'approved'
                           ? 'bg-green-100 text-green-800'
+                          : app.status === 'approve-archived'
+                            ? 'bg-blue-100 text-blue-800'
                           : 'bg-red-100 text-red-800'
                     }`}
                   >

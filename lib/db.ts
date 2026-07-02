@@ -92,6 +92,7 @@ db.exec(`
     landlord_name TEXT NOT NULL,
     landlord_phone TEXT NOT NULL,
     additional_info TEXT,
+    status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'approve-archived', 'declined', 'deleted')),
     createdAt TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
   );
@@ -101,6 +102,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expiresAt);
   CREATE INDEX IF NOT EXISTS idx_applications_property_id ON applications(property_id);
   CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
+  CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
 `);
 
 const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
@@ -120,6 +122,75 @@ function addColumnIfMissing(tableName: string, columnName: string, definition: s
   }
 }
 
+function getTableCreateSql(tableName: string): string {
+  const row = db
+    .prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(tableName) as { sql?: string } | undefined;
+  return row?.sql || '';
+}
+
+function ensureApplicationsStatusConstraint(): void {
+  const applicationsCreateSql = getTableCreateSql('applications');
+  if (applicationsCreateSql.includes('approve-archived')) {
+    return;
+  }
+
+  db.pragma('foreign_keys = OFF');
+  try {
+    db.exec('BEGIN');
+    db.exec('ALTER TABLE applications RENAME TO applications_legacy_status');
+    db.exec(`
+      CREATE TABLE applications (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        property_id INTEGER NOT NULL,
+        property_name TEXT NOT NULL,
+        applicant_name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        current_address_street TEXT,
+        current_address_city TEXT,
+        current_address_state TEXT,
+        current_address_zip TEXT,
+        current_address_since_date TEXT,
+        household_income REAL NOT NULL,
+        move_in_date TEXT NOT NULL,
+        total_occupancy INTEGER,
+        landlord_name TEXT,
+        landlord_phone TEXT,
+        additional_info TEXT,
+        status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'approve-archived', 'declined', 'deleted')),
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
+      );
+    `);
+    db.exec(`
+      INSERT INTO applications (
+        id, property_id, property_name, applicant_name, email, phone,
+        current_address_street, current_address_city, current_address_state, current_address_zip,
+        current_address_since_date, household_income, move_in_date, total_occupancy,
+        landlord_name, landlord_phone, additional_info, status, createdAt
+      )
+      SELECT
+        id, property_id, property_name, applicant_name, email, phone,
+        current_address_street, current_address_city, current_address_state, current_address_zip,
+        current_address_since_date, household_income, move_in_date, total_occupancy,
+        landlord_name, landlord_phone, additional_info, status, createdAt
+      FROM applications_legacy_status;
+    `);
+    db.exec('DROP TABLE applications_legacy_status');
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+
+  db.exec('CREATE INDEX IF NOT EXISTS idx_applications_property_id ON applications(property_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status)');
+}
+
 addColumnIfMissing('properties', 'status', "status TEXT DEFAULT 'available'");
 addColumnIfMissing('properties', 'monthlyRent', 'monthlyRent REAL DEFAULT 0');
 addColumnIfMissing('properties', 'details', 'details TEXT');
@@ -134,6 +205,8 @@ addColumnIfMissing('applications', 'total_occupancy', 'total_occupancy INTEGER')
 addColumnIfMissing('applications', 'landlord_name', 'landlord_name TEXT');
 addColumnIfMissing('applications', 'landlord_phone', 'landlord_phone TEXT');
 addColumnIfMissing('applications', 'additional_info', 'additional_info TEXT');
+addColumnIfMissing('applications', 'status', "status TEXT NOT NULL DEFAULT ''");
+ensureApplicationsStatusConstraint();
 
 db.prepare(`
   UPDATE properties

@@ -47,8 +47,9 @@ export async function GET() {
         CASE status
           WHEN 'pending' THEN 0
           WHEN 'approved' THEN 1
-          WHEN 'declined' THEN 2
-          WHEN 'deleted' THEN 3
+          WHEN 'approve-archived' THEN 2
+          WHEN 'declined' THEN 3
+          WHEN 'deleted' THEN 4
         END,
         createdAt DESC
     `).all();
