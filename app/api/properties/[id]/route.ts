@@ -242,6 +242,13 @@ export async function DELETE(
 
     const currentProperty = getPropertyWithImages(id);
 
+    if (!currentProperty) {
+      return NextResponse.json(
+        { error: 'Property not found' },
+        { status: 404 }
+      );
+    }
+
     const result = db.prepare('DELETE FROM properties WHERE id = ?').run(id);
 
     if (result.changes === 0) {
@@ -252,7 +259,7 @@ export async function DELETE(
     }
 
     await Promise.all(
-      (currentProperty?.images ?? [])
+      (currentProperty.images ?? [])
         .filter(Boolean)
         .map((imageUrl) =>
           deletePropertyImage(imageUrl).catch((cleanupError) => {

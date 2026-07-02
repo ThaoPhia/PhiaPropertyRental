@@ -5,6 +5,14 @@ import Image from 'next/image';
 import { PropertyFormData, Property } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface PropertyFormProps {
   initialData?: Property;
@@ -13,6 +21,8 @@ interface PropertyFormProps {
 export default function PropertyForm({ initialData }: PropertyFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [error, setError] = useState('');
   const initialImages = Array.from(
     new Set([...(initialData?.images ?? []), ...(initialData?.image_url ? [initialData.image_url] : [])])
@@ -156,6 +166,31 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!initialData) {
+      return;
+    }
+
+    setDeleting(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/properties/${initialData.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove property');
+      }
+
+      router.push('/properties');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const toggleImageRemoval = (imageUrl: string) => {
     setRemovedImages((prev) =>
       prev.includes(imageUrl) ? prev.filter((item) => item !== imageUrl) : [...prev, imageUrl]
@@ -178,28 +213,55 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="">
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+    <>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Property</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to permanently delete this property?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                setShowDeleteDialog(false);
+                await handleDelete();
+              }}
+              disabled={deleting}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Name */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Property Name *
-          </label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="">
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Name */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Property Name *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
         {/* Type */}
         <div>
@@ -534,23 +596,36 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-4 mt-6 justify-center">
-        <Button
-          type="submit"
-          disabled={loading}
-          className="h-10 font-medium"
-        >
-          {loading ? 'Saving...' : initialData ? 'Update Property' : 'Create Property'}
-        </Button>
-        <Button
-          type="button"
-          onClick={() => router.back()}
-          variant="secondary"
-          className="h-10 text-gray-800 font-medium"
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-4 mt-6 justify-center">
+          <Button
+            type="submit"
+            disabled={loading || deleting}
+            className="h-10 font-medium"
+          >
+            {loading ? 'Saving...' : initialData ? 'Update Property' : 'Create Property'}
+          </Button>
+          {initialData && (
+            <Button
+              type="button"
+              onClick={() => setShowDeleteDialog(true)}
+              variant="destructive"
+              disabled={loading || deleting}
+              className="h-10 font-medium"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          )}
+          <Button
+            type="button"
+            onClick={() => router.back()}
+            variant="secondary"
+            disabled={loading || deleting}
+            className="h-10 text-gray-800 font-medium"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
