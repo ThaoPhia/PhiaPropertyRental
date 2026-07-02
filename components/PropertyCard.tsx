@@ -18,12 +18,14 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const hasHighlights = highlights.length > 0;
   const availabilityText = property.status === 'occupied'
     ? 'Occupied'
-    : property.dateAvailable
-      ? new Date(property.dateAvailable).toLocaleDateString()
-      : 'Now';
+    : property.status === 'removed'
+      ? 'Removed'
+      : property.dateAvailable
+        ? new Date(property.dateAvailable).toLocaleDateString()
+        : 'Now';
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
+    <article className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-xl">
       <Link
         href={`/properties/${property.id}`}
         className="relative block h-72 md:h-[26rem] w-full overflow-hidden bg-slate-100"
@@ -42,7 +44,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             Property image coming soon
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-5">
+        <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/35 to-transparent p-5">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="card" className="capitalize">
               {property.type}
@@ -103,7 +105,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                   </Link>
                 </Button>
             )}
-            {property.status !== 'occupied' && (
+            {(property.status === 'available' || property.status === 'coming soon') && (
               <Button asChild variant="secondary" className="px-4 text-sm font-semibold text-slate-800">
                 <Link href={`/properties/${property.id}#apply-now`}>
                   Apply Now
@@ -118,6 +120,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </div>
       </div>
+      {property.status === 'removed' && (
+        <div className="absolute inset-0 z-20 rounded-3xl bg-slate-700/30 pointer-events-none" aria-hidden />
+      )}
     </article>
   );
 }

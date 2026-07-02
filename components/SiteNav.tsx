@@ -54,7 +54,7 @@ export default function SiteNav() {
             className={propertiesActive ? 'text-blue-600 font-semibold' : 'text-gray-600 hover:text-blue-600'}
           >
             Browse Properties
-          </Link> 
+          </Link>
           {admin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

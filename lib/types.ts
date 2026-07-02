@@ -2,7 +2,7 @@ export interface Property {
   id: number;
   name: string;
   type: 'duplex' | 'apartment' | 'other';
-  status: 'available' | 'occupied' | 'coming soon';
+  status: 'available' | 'occupied' | 'coming soon' | 'removed';
   address: string;
   city: string;
   state: string;
@@ -23,7 +23,7 @@ export interface Property {
 export interface PropertyFormData {
   name: string;
   type: 'duplex' | 'apartment' | 'other';
-  status: 'available' | 'occupied' | 'coming soon';
+  status: 'available' | 'occupied' | 'coming soon' | 'removed';
   address: string;
   city: string;
   state: string;

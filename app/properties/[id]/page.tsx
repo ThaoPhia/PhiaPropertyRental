@@ -209,6 +209,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
   const availabilityText = property.status === 'occupied'
     ? 'Currently occupied'
+    : property.status === 'removed'
+      ? 'Removed'
     : property.dateAvailable
       ? new Date(property.dateAvailable).toLocaleDateString()
       : 'Soon';
@@ -335,7 +337,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
               </div>
             )}
 
-            {property.status !== 'occupied' && (
+            {(property.status === 'available' || property.status === 'coming soon') && (
               <ApplyNowForm
                 property={property}
                 applicantName={applicantName}

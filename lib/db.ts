@@ -16,7 +16,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     type TEXT NOT NULL CHECK(type IN ('duplex', 'apartment', 'other')),
-    status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon')),
+    status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon', 'removed')),
     address TEXT NOT NULL,
     city TEXT NOT NULL,
     state TEXT NOT NULL,
@@ -129,9 +129,116 @@ function getTableCreateSql(tableName: string): string {
   return row?.sql || '';
 }
 
+function ensurePropertiesStatusConstraint(): void {
+  const propertiesCreateSql = getTableCreateSql('properties');
+  if (propertiesCreateSql.includes("'removed'")) {
+    return;
+  }
+
+  db.pragma('foreign_keys = OFF');
+  try {
+    db.exec('BEGIN');
+    db.exec(`
+      CREATE TABLE properties_next (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL CHECK(type IN ('duplex', 'apartment', 'other')),
+        status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon', 'removed')),
+        address TEXT NOT NULL,
+        city TEXT NOT NULL,
+        state TEXT NOT NULL,
+        zipCode TEXT NOT NULL,
+        bedrooms INTEGER NOT NULL,
+        bathrooms REAL NOT NULL,
+        squareFeet INTEGER NOT NULL,
+        monthlyRent REAL NOT NULL DEFAULT 0,
+        details TEXT,
+        highlights TEXT NOT NULL DEFAULT '[]',
+        dateAvailable TEXT,
+        image_url TEXT,
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+    db.exec(`
+      INSERT INTO properties_next (
+        id, name, type, status, address, city, state, zipCode, bedrooms, bathrooms,
+        squareFeet, monthlyRent, details, highlights, dateAvailable, image_url, createdAt, updatedAt
+      )
+      SELECT
+        id, name, type, status, address, city, state, zipCode, bedrooms, bathrooms,
+        squareFeet, monthlyRent, details, highlights, dateAvailable, image_url, createdAt, updatedAt
+      FROM properties;
+    `);
+    db.exec('DROP TABLE properties');
+    db.exec('ALTER TABLE properties_next RENAME TO properties');
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+
+  db.exec('CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(type)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthlyRent)');
+  db.exec(`
+    CREATE TRIGGER IF NOT EXISTS trg_properties_updated_at
+    AFTER UPDATE ON properties
+    FOR EACH ROW
+    BEGIN
+      UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
+    END;
+  `);
+}
+
+function ensurePropertyImagesForeignKeyConstraint(): void {
+  const propertyImagesCreateSql = getTableCreateSql('property_images');
+  if (!propertyImagesCreateSql.includes('properties_legacy_status')) {
+    return;
+  }
+
+  db.pragma('foreign_keys = OFF');
+  try {
+    db.exec('BEGIN');
+    db.exec('ALTER TABLE property_images RENAME TO property_images_legacy_fk');
+    db.exec(`
+      CREATE TABLE property_images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        property_id INTEGER NOT NULL,
+        image_url TEXT NOT NULL,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
+        UNIQUE(property_id, image_url)
+      );
+    `);
+    db.exec(`
+      INSERT INTO property_images (id, property_id, image_url, sort_order, createdAt)
+      SELECT id, property_id, image_url, sort_order, createdAt
+      FROM property_images_legacy_fk;
+    `);
+    db.exec('DROP TABLE property_images_legacy_fk');
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
+
+  db.exec('CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id)');
+  db.exec('CREATE INDEX IF NOT EXISTS idx_property_images_sort_order ON property_images(property_id, sort_order, id)');
+}
+
 function ensureApplicationsStatusConstraint(): void {
   const applicationsCreateSql = getTableCreateSql('applications');
-  if (applicationsCreateSql.includes('approve-archived')) {
+  if (
+    applicationsCreateSql.includes('approve-archived') &&
+    !applicationsCreateSql.includes('properties_legacy_status')
+  ) {
     return;
   }
 
@@ -206,6 +313,8 @@ addColumnIfMissing('applications', 'landlord_name', 'landlord_name TEXT');
 addColumnIfMissing('applications', 'landlord_phone', 'landlord_phone TEXT');
 addColumnIfMissing('applications', 'additional_info', 'additional_info TEXT');
 addColumnIfMissing('applications', 'status', "status TEXT NOT NULL DEFAULT ''");
+ensurePropertiesStatusConstraint();
+ensurePropertyImagesForeignKeyConstraint();
 ensureApplicationsStatusConstraint();
 
 db.prepare(`

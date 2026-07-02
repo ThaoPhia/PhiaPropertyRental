@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS properties (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   type TEXT NOT NULL CHECK(type IN ('duplex', 'apartment', 'other')),
-  status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon')),
+  status TEXT NOT NULL DEFAULT 'available' CHECK(status IN ('available', 'occupied', 'coming soon', 'removed')),
   address TEXT NOT NULL,
   city TEXT NOT NULL,
   state TEXT NOT NULL,

@@ -232,6 +232,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             <option value="available">Available</option>
             <option value="occupied">Occupied</option>
             <option value="coming soon">Coming Soon</option>
+            <option value="removed">Removed</option>
           </select>
         </div>
 

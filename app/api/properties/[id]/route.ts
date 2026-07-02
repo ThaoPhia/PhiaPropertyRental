@@ -19,8 +19,16 @@ export async function GET(
     }
 
     const property = getPropertyWithImages(id);
+    const admin = await getAuthenticatedAdminFromRequest(request);
 
     if (!property) {
+      return NextResponse.json(
+        { error: 'Property not found' },
+        { status: 404 }
+      );
+    }
+
+    if (property.status === 'removed' && !admin) {
       return NextResponse.json(
         { error: 'Property not found' },
         { status: 404 }

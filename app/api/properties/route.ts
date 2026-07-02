@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
     const city = searchParams.get('city');
+    const admin = await getAuthenticatedAdminFromRequest(request);
+    const includeRemoved = Boolean(admin);
 
     let query = 'SELECT * FROM properties WHERE 1=1';
     const params: (string | number)[] = [];
@@ -23,6 +25,10 @@ export async function GET(request: NextRequest) {
     if (city) {
       query += ' AND city = ?';
       params.push(city);
+    }
+
+    if (!includeRemoved) {
+      query += " AND status != 'removed'";
     }
 
     const rows = db.prepare(`${query} ORDER BY datetime(createdAt) DESC`).all(...params) as Record<string, unknown>[];
