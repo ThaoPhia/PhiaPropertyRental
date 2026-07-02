@@ -31,6 +31,7 @@ export function ApplicationDetailsPanel({
   const [declineReason, setDeclineReason] = useState('');
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showUndoDeleteDialog, setShowUndoDeleteDialog] = useState(false);
   const [showPendingDialog, setShowPendingDialog] = useState(false);
   const [pendingAdditionalInfo, setPendingAdditionalInfo] = useState('');
   const [selectedPendingNextSteps, setSelectedPendingNextSteps] = useState<number[]>([]);
@@ -161,6 +162,43 @@ export function ApplicationDetailsPanel({
         open: true,
         title: 'Error',
         message: 'Failed to update application status',
+      });
+    }
+  };
+
+  const undoDeleteApplication = async (id: number) => {
+    try {
+      const response = await fetch('/api/applications/status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicationId: id,
+          status: 'pending',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        setMessageDialog({
+          open: true,
+          title: 'Error',
+          message: `Failed to undo delete: ${error.error || 'Unknown error'}`,
+        });
+        return;
+      }
+
+      await onApplicationsChanged();
+      setMessageDialog({
+        open: true,
+        title: 'Success',
+        message: 'Application restored to pending successfully',
+      });
+    } catch (error) {
+      console.error('Error undoing delete:', error);
+      setMessageDialog({
+        open: true,
+        title: 'Error',
+        message: 'Failed to undo delete',
       });
     }
   };
@@ -395,36 +433,44 @@ export function ApplicationDetailsPanel({
         </div>
       </div>
 
-      <div className="border-t pt-6 grid grid-cols-2 gap-3">
-        <Button
-          onClick={() => setShowDeleteDialog(true)}
-          variant="secondary"
-        >
-          Delete
-        </Button>
-        <Button
-          onClick={handleDeclineClick}
-          variant="destructive"
-        >
-          Decline
-        </Button>
-        <Button
-          onClick={() => {
-            setPendingAdditionalInfo('');
-            setSelectedPendingNextSteps([]);
-            setShowPendingDialog(true);
-          }}
-          variant="outline"
-        >
-          Pending
-        </Button>
-        <Button
-          onClick={() => setShowApproveDialog(true)}
-          className="bg-green-600 hover:bg-green-700"
-        >
-          Approve
-        </Button>
-      </div>
+      {selectedApplication.status === 'deleted' ? (
+        <div className="border-t pt-6">
+          <Button onClick={() => setShowUndoDeleteDialog(true)} variant="outline" className="w-full">
+            Undo Delete
+          </Button>
+        </div>
+      ) : (
+        <div className="border-t pt-6 grid grid-cols-2 gap-3">
+          <Button
+            onClick={() => setShowDeleteDialog(true)}
+            variant="secondary"
+          >
+            Delete
+          </Button>
+          <Button
+            onClick={handleDeclineClick}
+            variant="destructive"
+          >
+            Decline
+          </Button>
+          <Button
+            onClick={() => {
+              setPendingAdditionalInfo('');
+              setSelectedPendingNextSteps([]);
+              setShowPendingDialog(true);
+            }}
+            variant="outline"
+          >
+            Pending
+          </Button>
+          <Button
+            onClick={() => setShowApproveDialog(true)}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            Approve
+          </Button>
+        </div>
+      )}
 
       {/* Delete dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -447,6 +493,31 @@ export function ApplicationDetailsPanel({
               }}
             >
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Undo delete dialog */}
+      <Dialog open={showUndoDeleteDialog} onOpenChange={setShowUndoDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Undo Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to restore this application to pending status?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUndoDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                setShowUndoDeleteDialog(false);
+                await undoDeleteApplication(selectedApplication.id);
+              }}
+            >
+              Undo Delete
             </Button>
           </DialogFooter>
         </DialogContent>

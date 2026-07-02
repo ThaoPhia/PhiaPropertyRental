@@ -41,23 +41,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid application ID or status' }, { status: 400 });
     }
 
-    if (status === 'pending' && !additionalInfo) {
-      return NextResponse.json(
-        { error: 'Additional information is required when setting status to pending' },
-        { status: 400 }
-      );
-    }
-
     const application = db
-      .prepare("SELECT * FROM applications WHERE id = ? AND status != 'deleted'")
+      .prepare('SELECT * FROM applications WHERE id = ?')
       .get(applicationId) as Application | undefined;
 
     if (!application) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
+    const isRestoreFromDeleted = application.status === 'deleted' && status === 'pending';
+
+    if (status === 'pending' && !isRestoreFromDeleted && !additionalInfo) {
+      return NextResponse.json(
+        { error: 'Additional information is required when setting status to pending' },
+        { status: 400 }
+      );
+    }
+
     // Send email notification if the status is set to 'pending'. Delete does not need to send any email.
-    if (status === 'pending') {
+    if (status === 'pending' && !isRestoreFromDeleted) {
       const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
       const safeApplicantName = escapeHtml(application.applicant_name);
       const safePropertyName = escapeHtml(application.property_name);
@@ -98,7 +100,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = db
-      .prepare("UPDATE applications SET status = ? WHERE id = ? AND status != 'deleted'")
+      .prepare('UPDATE applications SET status = ? WHERE id = ?')
       .run(status, applicationId);
 
     if (result.changes === 0) {
