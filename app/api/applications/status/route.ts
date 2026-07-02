@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
                 <h2 style="color: #333; margin-top: 0;">Application Update</h2>
                 <p style="color: #666; margin: 10px 0;">Hi ${safeApplicantName},</p>
                 <p style="color: #666; line-height: 1.6;">
-                  Congratulations! Your application for <strong>${safePropertyName}</strong> is currently pending.
+                  We have moved your application to the next stage. Your application for <strong>${safePropertyName}</strong> is currently pending.
                 </p>
                 <div style="background-color: #fff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
                   <p style="color: #333; margin: 0; white-space: pre-wrap;">${safeAdditionalInfo}</p>
