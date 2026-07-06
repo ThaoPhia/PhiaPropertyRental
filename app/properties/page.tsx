@@ -38,7 +38,7 @@ export default function PropertiesPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-slate-50">
       <div className="max-w-[92rem] mx-auto px-4 md:px-6 py-10 md:py-14">
         <div className="mb-10 rounded-3xl border border-slate-200 bg-white/80 p-6 md:p-10 shadow-sm">
-          <p className="text-sm font-semibold tracking-[0.2em] uppercase text-blue-700">Phia Rental LLC</p>
+          <p className="text-sm font-semibold tracking-[0.2em] uppercase text-blue-700">PhiaRental</p>
           <h1 className="mt-3 text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">
             Beautiful Homes, Carefully Maintained
           </h1>

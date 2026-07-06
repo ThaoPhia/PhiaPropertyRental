@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhiaRentalLLC",
+  title: "PhiaRental",
   description: "Property listings and CMS",
   icons: {
     icon: "/images/logos/logo1.png",

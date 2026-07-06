@@ -38,14 +38,14 @@ export default function SiteNav() {
         <Link href="/" className="inline-flex items-center gap-3 md:gap-4">
           <Image
             src="/images/logos/logo.png"
-            alt="Phia Rental LLC"
+            alt="PhiaRental"
             width={300}
             height={76}
             className="h-14 md:h-16 w-auto"
             priority
           />
           <span className="text-xl md:text-2xl font-semibold tracking-tight text-blue-700">
-            Phia Rental LLC
+            PhiaRental
           </span>
         </Link>
         <div className="flex items-center gap-4">

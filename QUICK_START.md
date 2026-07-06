@@ -1,4 +1,4 @@
-# Quick Start Guide - PhiaRentalLLC
+# Quick Start Guide - PhiaRental
 
 Follow these steps to get your application up and running quickly.
 

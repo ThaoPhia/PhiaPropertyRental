@@ -1,12 +1,12 @@
 #!/bin/bash
-# PhiaRentalLLC - Setup Helper Script
+# PhiaRental - Setup Helper Script
 # This script automates the initial setup process
 
 set -e
 
 PROJECT_DIR="/Users/phiathao/Code/Phia/NextJS/PhiaRentalLLC"
 
-echo "🏠 PhiaRentalLLC - Setup Assistant"
+echo "🏠 PhiaRental - Setup Assistant"
 echo "========================================"
 echo ""
 
@@ -105,4 +105,3 @@ echo "  - QUICK_START.md - Quick start guide"
 echo "  - README.md - Full documentation"
 echo "  - PROJECT_SUMMARY.md - Project overview"
 echo ""
-

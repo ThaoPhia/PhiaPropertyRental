@@ -1,4 +1,4 @@
-# File Structure and Descriptions for PhiaRentalLLC
+# File Structure and Descriptions for PhiaRental
 
 ## 📄 Documentation Files
 
@@ -75,7 +75,7 @@
 ## 📁 Directory Structure
 
 ```
-PhiaRentalLLC/
+PhiaRental/
 ├── app/                          # Next.js app directory
 │   ├── api/                      # API routes
 │   │   └── properties/
@@ -180,4 +180,3 @@ PhiaRentalLLC/
 
 Last Updated: June 18, 2026
 Status: ✅ Complete and Ready for Use
-

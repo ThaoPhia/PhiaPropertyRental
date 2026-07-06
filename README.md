@@ -1,4 +1,4 @@
-# PhiaRentalLLC - Next.js Real Estate Management Application
+# PhiaRental - Next.js Real Estate Management Application
 
 A modern Next.js application for managing and displaying properties (apartments and duplexes) with a comprehensive CMS interface and SQLite database integration.
 
@@ -71,7 +71,7 @@ The application will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
-PhiaRentalLLC/
+PhiaRental/
 ├── app/
 │   ├── api/
 │   │   └── properties/
@@ -302,7 +302,7 @@ npm run dev -- -p 3001
 
 ## License
 
-This project is proprietary to PhiaRentalLLC.
+This project is proprietary to PhiaRental.
 
 ## Support
 

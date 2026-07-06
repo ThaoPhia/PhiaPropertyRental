@@ -1,4 +1,4 @@
--- Phia Properties LLC Database Schema (SQLite)
+-- PhiaRental Database Schema (SQLite)
 
 CREATE TABLE IF NOT EXISTS properties (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

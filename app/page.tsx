@@ -14,7 +14,7 @@ export default function Home() {
       <section className="max-w-[92rem] mx-auto px-4 md:px-6 pt-14 pb-12 md:pt-20 md:pb-16">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <Badge>Phia Rental LLC</Badge>
+            <Badge>PhiaRental</Badge>
             <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight text-slate-900">
               Beautiful, Move-In Ready Homes
             </h1>
