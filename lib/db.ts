@@ -3,7 +3,7 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 import { hashPassword } from '@/lib/password';
 
-const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), 'database', 'phiarentalllc.db');
+const dbPath = process.env.SQLITE_DB_PATH || path.join(process.cwd(), 'database', 'phiarental.db');
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
 const db = new Database(dbPath);

@@ -4,7 +4,7 @@
 
 set -e
 
-PROJECT_DIR="/Users/phiathao/Code/Phia/NextJS/PhiaRentalLLC"
+PROJECT_DIR="/Users/phiathao/Code/Phia/NextJS/PhiaRental"
 
 echo "🏠 PhiaRental - Setup Assistant"
 echo "========================================"
@@ -55,10 +55,10 @@ echo ""
 echo "SQLite is file-based, so no external DB server is required."
 echo ""
 echo "On first app run, the database will be auto-created at:"
-echo "  ./database/phiarentalllc.db"
+echo "  ./database/phiarental.db"
 echo ""
 echo "If you need to reset it, run:"
-echo "  rm -f database/phiarentalllc.db"
+echo "  rm -f database/phiarental.db"
 echo ""
 
 # Step 5: Environment setup
@@ -77,7 +77,7 @@ else
     echo ""
     echo "Creating .env.local..."
     cat > .env.local << 'EOF'
-SQLITE_DB_PATH=./database/phiarentalllc.db
+SQLITE_DB_PATH=./database/phiarental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 EOF
     echo "✅ .env.local created with default values"

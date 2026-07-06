@@ -5,7 +5,7 @@
 
 PROJECT SUCCESSFULLY CREATED! ✅
 
-📍 Location: /Users/phiathao/Code/Phia/NextJS/PhiaRentalLLC
+📍 Location: /Users/phiathao/Code/Phia/NextJS/PhiaRental
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -13,7 +13,7 @@ PROJECT SUCCESSFULLY CREATED! ✅
 
 1️⃣  CONFIGURE ENVIRONMENT (Optional)
    Edit .env.local if you want a custom SQLite path:
-   SQLITE_DB_PATH=./database/phiarentalllc.db
+   SQLITE_DB_PATH=./database/phiarental.db
 
 2️⃣  START THE SERVER
    From the project directory:
@@ -119,7 +119,7 @@ The database includes 2 sample properties:
 SQLite Database Issues?
   ✓ Check SQLITE_DB_PATH in `.env.local`
   ✓ Ensure database directory is writable
-  ✓ Reset database: rm -f database/phiarentalllc.db
+  ✓ Reset database: rm -f database/phiarental.db
 
 Port 3000 Already in Use?
   ✓ npm run dev -- -p 3001

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = process.env.SQLITE_DB_PATH || path.join(__dirname, '../database/phiarentalllc.db');
+const dbPath = process.env.SQLITE_DB_PATH || path.join(__dirname, '../database/phiarental.db');
 
 // Ensure directory exists
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });

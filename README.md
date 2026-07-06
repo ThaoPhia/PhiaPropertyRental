@@ -36,7 +36,7 @@ Before you begin, make sure you have:
 
 SQLite is file-based and initialized automatically at startup. By default, the app uses:
 
-- `./database/phiarentalllc.db`
+- `./database/phiarental.db`
 
 If the database is empty, the app creates the `properties` table and inserts sample data.
 
@@ -45,7 +45,7 @@ If the database is empty, the app creates the `properties` table and inserts sam
 Update the `.env.local` file:
 
 ```bash
-SQLITE_DB_PATH=./database/phiarentalllc.db
+SQLITE_DB_PATH=./database/phiarental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
@@ -247,7 +247,7 @@ npm run type-check
 ### Database Connection Failed
 - Check `SQLITE_DB_PATH` in `.env.local`
 - Ensure the `database/` folder is writable
-- Delete `database/phiarentalllc.db` to force a fresh re-initialization
+- Delete `database/phiarental.db` to force a fresh re-initialization
 
 ### Image Not Displaying
 - Verify image URL is accessible
