@@ -1,38 +1,24 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import PropertyCard from '@/components/PropertyCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Property } from '@/lib/types';
+import PropertyCard from '@/components/PropertyCard';
+import { ensureDbReady, getDb } from '@/lib/db';
+import { normalizePropertyRow } from '@/lib/property-fields';
 
-export default function PropertiesPage() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export const dynamic = 'force-static';
+export const revalidate = false;
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/properties');
-        if (!response.ok) {
-          setError('Failed to fetch properties');
-          return;
-        }
+export default async function PropertiesPage() {
+  await ensureDbReady();
+  const db = getDb();
 
-        const data = await response.json();
-        setProperties(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const rows = db.prepare(`
+    SELECT * FROM properties
+    WHERE status != 'removed'
+    ORDER BY datetime(createdAt) DESC
+  `).all() as Record<string, unknown>[];
 
-    fetchProperties();
-  }, []);
+  const properties = rows.map((row) => normalizePropertyRow(row));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-slate-50">
@@ -46,29 +32,16 @@ export default function PropertiesPage() {
             Explore our curated portfolio of rentals with spacious layouts, premium finishes, and
             ready-to-move-in comfort.
           </p>
-          {!loading && properties.length > 0 && (
-           <div className="mt-6">
-             <Badge>
-               {properties.length} {properties.length === 1 ? 'Property Available' : 'Properties Available'}
-             </Badge>
-           </div>
+          {properties.length > 0 && (
+            <div className="mt-6">
+              <Badge>
+                {properties.length} {properties.length === 1 ? 'Property Available' : 'Properties Available'}
+              </Badge>
+            </div>
           )}
         </div>
 
-        {error && (
-          <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="mt-4 text-gray-600">Loading properties...</p>
-          </div>
-        )}
-
-        {!loading && properties.length === 0 ? (
+        {properties.length === 0 ? (
           <div className="text-center py-12 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <p className="text-gray-600 mb-4">No properties found.</p>
             <Button asChild className="px-6">
