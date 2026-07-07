@@ -61,7 +61,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
         index={index}
         slides={slides}
         plugins={[Fullscreen, Thumbnails, Zoom]}
-        zoom={{ maxZoomPixelRatio: 4, zoomInMultiplier: 1.5  }}
+        zoom={{ maxZoomPixelRatio: 3, zoomInMultiplier: 1.5  }}
       />
     </div>
   );
