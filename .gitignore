@@ -38,8 +38,8 @@ yarn-error.log*
 
 # local SQLite database
 /database/*.db
-/database/phiarental.db-shm
-/database/phiarental.db-wal
+/database/phia-property-rental.db-shm
+/database/phia-property-rental.db-wal
 
 # vercel
 .vercel

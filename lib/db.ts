@@ -18,7 +18,7 @@ import {
 
 function resolveDbPath(): string {
   const configuredPath = process.env.SQLITE_DB_PATH?.trim();
-  const runtimeTempPath = path.join(os.tmpdir(), 'phiarental.db');
+  const runtimeTempPath = path.join(os.tmpdir(), 'phia-property-rental.db');
 
   if (configuredPath) {
     const resolvedConfiguredPath = path.isAbsolute(configuredPath)
@@ -37,7 +37,7 @@ function resolveDbPath(): string {
     return runtimeTempPath;
   }
 
-  return path.join(process.cwd(), 'database', 'phiarental.db');
+  return path.join(process.cwd(), 'database', 'phia-property-rental.db');
 }
 
 const dbPath = resolveDbPath();
@@ -773,7 +773,7 @@ async function persistDbToCloudStorageInternal(): Promise<void> {
     return;
   }
 
-  const tempDbPath = path.join(os.tmpdir(), `phiarental-${crypto.randomUUID()}.db`);
+  const tempDbPath = path.join(os.tmpdir(), `phia-property-rental-${crypto.randomUUID()}.db`);
   const database = getDb();
 
   try {

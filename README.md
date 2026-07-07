@@ -1,4 +1,4 @@
-# PhiaRental - Next.js Real Estate Management Application
+# PhiaPropertyRental - Next.js Real Estate Management Application
 
 A modern Next.js application for managing and displaying properties (apartments and duplexes) with a comprehensive CMS interface, SQLite data, and Supabase Storage-backed persistence.
 
@@ -37,7 +37,7 @@ Before you begin, make sure you have:
 
 SQLite is file-based and initialized automatically at startup. By default, the app uses:
 
-- `./database/phiarental.db`
+- `./database/phia-property-rental.db`
 
 If the database is empty, the app creates the `properties` table and inserts sample data.
 
@@ -46,7 +46,7 @@ If the database is empty, the app creates the `properties` table and inserts sam
 Update the `.env.local` file:
 
 ```bash
-SQLITE_DB_PATH=./database/phiarental.db
+SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
@@ -58,7 +58,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_STORAGE_IMAGE_BUCKET=property-images-public
 SUPABASE_STORAGE_IMAGE_PREFIX=images/properties
-SUPABASE_STORAGE_DB_BUCKET=phiarental-private
+SUPABASE_STORAGE_DB_BUCKET=phia-property-rental-private
 ```
 
 Supabase DB object path is automatically derived from `SQLITE_DB_PATH`.
@@ -82,7 +82,7 @@ The application will be available at `http://localhost:3000`
 ## Project Structure
 
 ```
-PhiaRental/
+PhiaPropertyRental/
 ├── app/
 │   ├── api/
 │   │   └── properties/
@@ -258,7 +258,7 @@ npm run type-check
 ### Database Connection Failed
 - Check `SQLITE_DB_PATH` in `.env.local`
 - Ensure the `database/` folder is writable
-- Delete `database/phiarental.db` to force a fresh re-initialization
+- Delete `database/phia-property-rental.db` to force a fresh re-initialization
 
 ### Image Not Displaying
 - Verify `SUPABASE_STORAGE_IMAGE_BUCKET` is public
@@ -313,7 +313,7 @@ npm run dev -- -p 3001
 
 ## License
 
-This project is proprietary to PhiaRental.
+This project is proprietary to PhiaPropertyRental.
 
 ## Support
 

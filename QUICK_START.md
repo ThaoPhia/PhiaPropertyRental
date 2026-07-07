@@ -1,22 +1,22 @@
-# Quick Start Guide - PhiaRental
+# Quick Start Guide - PhiaPropertyRental
 
 Follow these steps to get your application up and running quickly.
 
 ## Step 1: Install Dependencies
 
 ```bash
-cd /Users/phiathao/Code/Phia/NextJS/PhiaRental
+cd /Users/phiathao/Code/Phia/NextJS/PhiaPropertyRental
 npm install
 ```
 
 ## Step 2: Setup SQLite Database
 
-SQLite is file-based. The app will auto-create `database/phiarental.db` and initialize schema/sample data on first run.
+SQLite is file-based. The app will auto-create `database/phia-property-rental.db` and initialize schema/sample data on first run.
 
 Optional: if you want to start fresh later, delete the DB file:
 
 ```bash
-rm -f database/phiarental.db
+rm -f database/phia-property-rental.db
 ```
 
 ## Step 3: Configure Environment Variables
@@ -24,7 +24,7 @@ rm -f database/phiarental.db
 Edit `.env.local` with your SQLite path and CMS admin password:
 
 ```env
-SQLITE_DB_PATH=./database/phiarental.db
+SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 ```
@@ -52,7 +52,7 @@ The application will start at `http://localhost:3000`
 **Solution**:
 1. Check `.env.local` has a valid `SQLITE_DB_PATH`
 2. Ensure the `database` directory exists and is writable
-3. Reset the DB file: `rm -f database/phiarental.db`
+3. Reset the DB file: `rm -f database/phia-property-rental.db`
 
 ### Port 3000 is Already in Use
 
@@ -67,7 +67,7 @@ npm run dev -- -p 3001
 **Solution**:
 ```bash
 # Reset and let app auto-initialize
-rm -f database/phiarental.db
+rm -f database/phia-property-rental.db
 npm run dev
 ```
 

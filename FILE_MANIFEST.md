@@ -1,4 +1,4 @@
-# File Structure and Descriptions for PhiaRental
+# File Structure and Descriptions for PhiaPropertyRental
 
 ## 📄 Documentation Files
 

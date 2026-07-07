@@ -58,13 +58,13 @@ export function getSupabaseDbBucket(): string {
 }
 
 export function getSupabaseDbObjectPath(): string {
-  const sqlitePath = process.env.SQLITE_DB_PATH?.trim() || 'database/phiarental.db';
+  const sqlitePath = process.env.SQLITE_DB_PATH?.trim() || 'database/phia-property-rental.db';
   const normalized = sqlitePath
     .replace(/\\/g, '/')
     .replace(/^\.\/+/, '')
     .replace(/^\/+/, '');
 
-  return trimSlashes(normalized || 'database/phiarental.db');
+  return trimSlashes(normalized || 'database/phia-property-rental.db');
 }
 
 export function buildSupabasePublicObjectUrl(bucket: string, objectPath: string): string {

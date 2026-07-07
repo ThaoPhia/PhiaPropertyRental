@@ -1,12 +1,12 @@
 #!/bin/bash
-# PhiaRental - Setup Helper Script
+# PhiaPropertyRental - Setup Helper Script
 # This script automates the initial setup process
 
 set -e
 
 PROJECT_DIR="/Users/phiathao/Code/Phia/NextJS/PhiaRental"
 
-echo "🏠 PhiaRental - Setup Assistant"
+echo "🏠 PhiaPropertyRental - Setup Assistant"
 echo "========================================"
 echo ""
 
@@ -55,10 +55,10 @@ echo ""
 echo "SQLite is file-based, so no external DB server is required."
 echo ""
 echo "On first app run, the database will be auto-created at:"
-echo "  ./database/phiarental.db"
+echo "  ./database/phia-property-rental.db"
 echo ""
 echo "If you need to reset it, run:"
-echo "  rm -f database/phiarental.db"
+echo "  rm -f database/phia-property-rental.db"
 echo ""
 
 # Step 5: Environment setup
@@ -77,7 +77,7 @@ else
     echo ""
     echo "Creating .env.local..."
     cat > .env.local << 'EOF'
-SQLITE_DB_PATH=./database/phiarental.db
+SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 EOF
     echo "✅ .env.local created with default values"

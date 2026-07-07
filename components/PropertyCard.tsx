@@ -99,7 +99,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         )}
 
         <div className="mt-6 flex items-center justify-between">
-          <span className="text-sm text-slate-500">Professionally managed by PhiaRental</span>
+          <span className="text-sm text-slate-500">Professionally managed by Phia Property Rental</span>
           <div className="flex items-center gap-2">
             {admin && (
               <Button asChild variant="outline" className="px-4 text-sm font-semibold text-slate-800">

@@ -1,4 +1,4 @@
-# Project Summary: PhiaRental
+# Project Summary: PhiaPropertyRental
 
 ## ✅ Project Successfully Created!
 
@@ -6,7 +6,7 @@ Your Next.js real estate management application has been created with all featur
 
 ## 📁 Project Location
 ```
-/Users/phiathao/Code/Phia/NextJS/PhiaRental
+/Users/phiathao/Code/Phia/NextJS/PhiaPropertyRental
 ```
 
 ## 🚀 Quick Start
@@ -15,16 +15,16 @@ Your Next.js real estate management application has been created with all featur
 SQLite database is file-based and auto-initialized on first app run. No manual setup needed.
 
 ### Step 2: Configure Environment (Optional)
-Default SQLite path is `./database/phiarental.db`. Edit `.env.local` if you want to change it:
+Default SQLite path is `./database/phia-property-rental.db`. Edit `.env.local` if you want to change it:
 
 ```bash
-SQLITE_DB_PATH=./database/phiarental.db
+SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 ### Step 3: Start Development Server
 ```bash
-cd /Users/phiathao/Code/Phia/NextJS/PhiaRental
+cd /Users/phiathao/Code/Phia/NextJS/PhiaPropertyRental
 npm run dev
 ```
 
@@ -61,7 +61,7 @@ Access the application at: **http://localhost:3000**
 ## 📂 Project Structure
 
 ```
-PhiaRental/
+PhiaPropertyRental/
 ├── app/
 │   ├── api/properties/          # API routes
 │   ├── cms/                     # CMS pages (create/edit)
@@ -156,7 +156,7 @@ npm run type-check
 
 ## ⚠️ Important Notes
 
-1. **Database Path**: SQLite DB stored in `./database/phiarental.db`
+1. **Database Path**: SQLite DB stored in `./database/phia-property-rental.db`
 2. **Environment Variables**: Never commit `.env.local` to git (already in .gitignore)
 3. **No External Server**: SQLite runs locally without external dependencies
 4. **Sample Data**: Database auto-seeds with 2 sample properties on first run
@@ -183,7 +183,7 @@ See README.md for detailed deployment instructions.
 ### SQLite Database Issues
 - Check `SQLITE_DB_PATH` in `.env.local`
 - Ensure `database/` directory is writable
-- Reset DB: `rm -f database/phiarental.db` and restart app
+- Reset DB: `rm -f database/phia-property-rental.db` and restart app
 
 ### Port 3000 Already in Use
 ```bash
