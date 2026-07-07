@@ -45,7 +45,7 @@ export default function SiteNav() {
             priority
           />
           <span className="text-xl md:text-2xl font-semibold tracking-tight text-blue-700">
-            Phia Property Rental TEST
+            Phia Property Rental
           </span>
         </Link>
         <div className="flex items-center gap-4">
