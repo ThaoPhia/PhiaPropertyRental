@@ -171,7 +171,7 @@ export default function PropertyDetailClient({
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       {admin && (
-        <div className="px-8 pt-8 flex flex-wrap gap-4">
+        <div className="px-8 py-8 flex flex-wrap gap-4">
           <Button asChild size="nav">
             <Link href={`/cms/${property.id}`}>
               Edit Property
