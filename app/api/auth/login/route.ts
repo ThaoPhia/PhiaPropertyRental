@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { ensureDbReady, getDb } from '@/lib/db';
 import { createAuthSession, setSessionCookie } from '@/lib/auth';
 import { verifyPassword } from '@/lib/password';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
 
   const remoteIpHeader = request.headers.get('x-forwarded-for');
   const remoteIp = remoteIpHeader ? remoteIpHeader.split(',')[0].trim() : null;
+  await ensureDbReady();
+  const db = getDb();
 
   try {
     const recaptchaValid = await verifyRecaptchaToken({
@@ -69,7 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   }
 
-  const { token, expiresAt } = createAuthSession(user.id);
+  const { token, expiresAt } = await createAuthSession(user.id);
   const response = NextResponse.json({ success: true, email: user.email });
   setSessionCookie(response, token, expiresAt);
   return response;

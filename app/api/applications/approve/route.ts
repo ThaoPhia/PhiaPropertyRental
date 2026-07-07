@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
 import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '../types';
 
@@ -64,12 +64,14 @@ function buildDeclinedNotificationEmailHtml(applicant: DeclinedApplicantNotifica
 }
 
 function getApplicationById(applicationId: number): ApplicationRecord | undefined {
+  const db = getDb();
   return db
     .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
     .get(applicationId, 'deleted') as ApplicationRecord | undefined;
 }
 
 function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId: number): DeclinedApplicantNotificationTarget[] {
+  const db = getDb();
   return db.prepare(`
     SELECT id, email, applicant_name, property_name
     FROM applications
@@ -78,6 +80,7 @@ function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId
 }
 
 function updateApplicationStatuses(propertyId: number, approvedApplicationId: number): void {
+  const db = getDb();
   // Set declined for all other applications for the same property that are not already deleted, declined, or approved
   db.prepare(`
     UPDATE applications
@@ -103,6 +106,7 @@ async function sendApplicationStatusEmail(email: string, propertyName: string, h
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDbReady();
     const body = (await request.json()) as { applicationId: unknown };
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
@@ -147,6 +151,7 @@ export async function POST(request: NextRequest) {
 
     const recentlyDeclinedApplicants = getRecentlyDeclinedApplicants(propertyId, applicationId);
     updateApplicationStatuses(propertyId, applicationId);
+    await persistDbToCloudStorage();
 
     for (const declinedApplicant of recentlyDeclinedApplicants) {
       const declinedEmailResult = await sendApplicationStatusEmail(

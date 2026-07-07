@@ -38,6 +38,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(min-width: 1024px) 80vw, 100vw"
             priority={false}
+            loading="eager"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-100 text-slate-500">

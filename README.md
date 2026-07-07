@@ -1,6 +1,6 @@
 # PhiaRental - Next.js Real Estate Management Application
 
-A modern Next.js application for managing and displaying properties (apartments and duplexes) with a comprehensive CMS interface and SQLite database integration.
+A modern Next.js application for managing and displaying properties (apartments and duplexes) with a comprehensive CMS interface, SQLite data, and Supabase Storage-backed persistence.
 
 ## Features
 
@@ -9,7 +9,8 @@ A modern Next.js application for managing and displaying properties (apartments 
 - 📝 **CMS Management**: Create, read, update, and delete properties
 - 🖼️ **Property Galleries**: Upload and browse multiple images per property
 - 🔐 **CMS Authentication**: Admin-only CMS login with cookie sessions
-- 🗄️ **SQLite Database**: File-based persistent data storage with proper schema
+- 🗄️ **SQLite Database**: File-based schema with optional cloud file persistence
+- ☁️ **Supabase Storage**: Cloud storage for the SQLite DB file and property images
 - 📱 **Responsive Design**: Beautiful UI with Tailwind CSS
 - 🎯 **Property Details**: Comprehensive property pages with high-quality information
 - 🚀 **Modern Stack**: Built with Next.js 14+, TypeScript, and React
@@ -50,6 +51,15 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
 RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
+
+# Supabase storage (required for cloud SQLite + property images)
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_STORAGE_IMAGE_BUCKET=property-images-public
+SUPABASE_STORAGE_IMAGE_PREFIX=properties
+SUPABASE_STORAGE_DB_BUCKET=phiarental-private
+SUPABASE_STORAGE_DB_OBJECT_PATH=sqlite/phiarental.db
 ```
 
 Admin login email is fixed to: `thoj.phia@gmail.com`
@@ -250,9 +260,9 @@ npm run type-check
 - Delete `database/phiarental.db` to force a fresh re-initialization
 
 ### Image Not Displaying
-- Verify image URL is accessible
-- Check Next.js Image configuration in `next.config.js`
-- For local images, place them in `/public` folder
+- Verify `SUPABASE_STORAGE_IMAGE_BUCKET` is public
+- Check Next.js image remote patterns in `next.config.ts`
+- Verify image URL exists under your configured bucket/prefix
 
 ### Port 3000 Already in Use
 ```bash

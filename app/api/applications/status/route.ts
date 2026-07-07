@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
 import { escapeHtml } from '@/lib/escape-html';
 import type { ApplicationRecord, ApplicationStatusPayload } from '../types';
@@ -10,6 +10,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
+    await ensureDbReady();
+    const db = getDb();
     const body = (await request.json()) as ApplicationStatusPayload;
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
@@ -85,6 +87,7 @@ export async function POST(request: NextRequest) {
     if (result.changes === 0) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
+    await persistDbToCloudStorage();
 
     return NextResponse.json({ success: true, status });
   } catch (error) {

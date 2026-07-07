@@ -1,28 +1,36 @@
 import crypto from 'node:crypto';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { AuthenticatedAdmin } from '@/lib/types';
 
 export const CMS_SESSION_COOKIE = 'cms_session';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
-export function createAuthSession(userId: number): { token: string; expiresAt: Date } {
+export async function createAuthSession(userId: number): Promise<{ token: string; expiresAt: Date }> {
+  await ensureDbReady();
+  const db = getDb();
   const token = crypto.randomBytes(32).toString('hex');
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
   db.prepare(`DELETE FROM auth_sessions WHERE datetime(expiresAt) <= datetime('now')`).run();
   db.prepare(`INSERT INTO auth_sessions (token, user_id, expiresAt) VALUES (?, ?, ?)`)
     .run(token, userId, expiresAt.toISOString());
+  await persistDbToCloudStorage();
 
   return { token, expiresAt };
 }
 
-export function clearAuthSession(token: string): void {
+export async function clearAuthSession(token: string): Promise<void> {
+  await ensureDbReady();
+  const db = getDb();
   db.prepare('DELETE FROM auth_sessions WHERE token = ?').run(token);
+  await persistDbToCloudStorage();
 }
 
-function getAuthenticatedAdminByToken(token: string): AuthenticatedAdmin | null {
+async function getAuthenticatedAdminByToken(token: string): Promise<AuthenticatedAdmin | null> {
+  await ensureDbReady();
+  const db = getDb();
   const user = db.prepare(`
     SELECT u.id, u.email, u.role
     FROM auth_sessions s
@@ -46,7 +54,7 @@ export async function getAuthenticatedAdminFromCookies(): Promise<AuthenticatedA
     return null;
   }
 
-  return getAuthenticatedAdminByToken(token);
+  return await getAuthenticatedAdminByToken(token);
 }
 
 export async function getAuthenticatedAdminFromRequest(
@@ -58,7 +66,7 @@ export async function getAuthenticatedAdminFromRequest(
     return null;
   }
 
-  return getAuthenticatedAdminByToken(token);
+  return await getAuthenticatedAdminByToken(token);
 }
 
 export function setSessionCookie(

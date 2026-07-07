@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { parsePropertyHighlights } from '@/lib/property-fields';
@@ -8,6 +8,8 @@ import { readPropertyInput } from '@/lib/property-input';
 
 export async function GET(request: NextRequest) {
   try {
+    await ensureDbReady();
+    const db = getDb();
     const searchParams = request.nextUrl.searchParams;
     const type = searchParams.get('type');
     const city = searchParams.get('city');
@@ -45,6 +47,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  await ensureDbReady();
+  const db = getDb();
   const admin = await getAuthenticatedAdminFromRequest(request);
 
   if (!admin) {
@@ -132,6 +136,7 @@ export async function POST(request: NextRequest) {
     });
 
     const result = createProperty();
+    await persistDbToCloudStorage();
 
     return NextResponse.json(
       {

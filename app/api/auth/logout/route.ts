@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   const token = request.cookies.get(CMS_SESSION_COOKIE)?.value;
 
   if (token) {
-    clearAuthSession(token);
+    await clearAuthSession(token);
   }
 
   const response = NextResponse.json({ success: true });

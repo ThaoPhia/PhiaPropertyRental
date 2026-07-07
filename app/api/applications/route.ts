@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import type { ApplicationPayload } from './types';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
 export async function GET() {
   try {
+    await ensureDbReady();
+    const db = getDb();
     const applications = db.prepare(`
       SELECT 
         id, 
@@ -49,6 +51,8 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  await ensureDbReady();
+  const db = getDb();
   let body: ApplicationPayload;
 
   try {
@@ -149,6 +153,7 @@ export async function POST(request: NextRequest) {
     landlordPhone,
     additionalInfo
   );
+  await persistDbToCloudStorage();
 
   return NextResponse.json(
     { success: true, applicationId: result.lastInsertRowid },

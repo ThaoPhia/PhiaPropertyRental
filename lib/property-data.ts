@@ -1,8 +1,10 @@
-import db from '@/lib/db';
+import { ensureDbReady, getDb } from '@/lib/db';
 import { Property } from '@/lib/types';
 import { normalizePropertyRow } from '@/lib/property-fields';
 
-export function getPropertyWithImages(id: number): Property | null {
+export async function getPropertyWithImages(id: number): Promise<Property | null> {
+  await ensureDbReady();
+  const db = getDb();
   const propertyRow = db.prepare('SELECT * FROM properties WHERE id = ?').get(id) as
     | Record<string, unknown>
     | undefined;

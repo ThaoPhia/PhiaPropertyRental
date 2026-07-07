@@ -1,9 +1,39 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs/promises';
 import path from 'node:path';
+import {
+  buildSupabasePublicObjectUrl,
+  getSupabaseAdminClient,
+  getSupabaseImageBucket,
+  getSupabaseImagePrefix,
+  getSupabaseUrl,
+  isSupabaseStorageConfigured,
+} from '@/lib/supabase-storage';
 
-const PROPERTY_IMAGES_DIR = path.join(process.cwd(), 'public', 'images', 'properties');
-const PROPERTY_IMAGES_URL_PREFIX = '/images/properties/';
+const LEGACY_LOCAL_IMAGES_PREFIX = '/images/properties/';
+
+function getImageObjectPath(filename: string): string {
+  const prefix = getSupabaseImagePrefix();
+  return prefix ? `${prefix}/${filename}` : filename;
+}
+
+function getImagePublicBaseUrl(): string {
+  return `${getSupabaseUrl()}/storage/v1/object/public/${getSupabaseImageBucket()}/`;
+}
+
+function getImageObjectPathFromPublicUrl(imageUrl: string): string | null {
+  const publicBaseUrl = getImagePublicBaseUrl();
+  if (!imageUrl.startsWith(publicBaseUrl)) {
+    return null;
+  }
+
+  const urlWithoutQuery = imageUrl.split('?')[0];
+  const encodedPath = urlWithoutQuery.slice(publicBaseUrl.length);
+  if (!encodedPath) {
+    return null;
+  }
+
+  return decodeURIComponent(encodedPath);
+}
 
 function getImageExtension(file: File): string {
   const fromName = path.extname(file.name).toLowerCase();
@@ -26,6 +56,10 @@ function getImageExtension(file: File): string {
 }
 
 export async function savePropertyImage(file: File): Promise<string> {
+  if (!isSupabaseStorageConfigured()) {
+    throw new Error('Supabase storage is not configured');
+  }
+
   if (!(file instanceof File) || file.size === 0) {
     throw new Error('An image file is required');
   }
@@ -34,15 +68,26 @@ export async function savePropertyImage(file: File): Promise<string> {
     throw new Error('Uploaded file must be an image');
   }
 
-  await fs.mkdir(PROPERTY_IMAGES_DIR, { recursive: true });
-
   const filename = `${crypto.randomUUID()}${getImageExtension(file)}`;
-  const filePath = path.join(PROPERTY_IMAGES_DIR, filename);
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const objectPath = getImageObjectPath(filename);
+  const contentType = file.type || 'application/octet-stream';
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
 
-  await fs.writeFile(filePath, buffer);
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase
+    .storage
+    .from(getSupabaseImageBucket())
+    .upload(objectPath, fileBuffer, {
+      contentType,
+      upsert: false,
+      cacheControl: '3600',
+    });
 
-  return `${PROPERTY_IMAGES_URL_PREFIX}${filename}`;
+  if (error) {
+    throw new Error(`Failed to upload property image: ${error.message}`);
+  }
+
+  return buildSupabasePublicObjectUrl(getSupabaseImageBucket(), objectPath);
 }
 
 export async function savePropertyImages(files: File[]): Promise<string[]> {
@@ -67,18 +112,22 @@ export async function savePropertyImages(files: File[]): Promise<string[]> {
 }
 
 export async function deletePropertyImage(imageUrl?: string | null): Promise<void> {
-  if (!imageUrl || !imageUrl.startsWith(PROPERTY_IMAGES_URL_PREFIX)) {
+  if (!isSupabaseStorageConfigured() || !imageUrl || imageUrl.startsWith(LEGACY_LOCAL_IMAGES_PREFIX)) {
     return;
   }
 
-  const filename = path.basename(imageUrl);
-  const filePath = path.join(PROPERTY_IMAGES_DIR, filename);
+  const objectPath = getImageObjectPathFromPublicUrl(imageUrl);
+  if (!objectPath) {
+    return;
+  }
 
-  try {
-    await fs.unlink(filePath);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      throw error;
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.storage.from(getSupabaseImageBucket()).remove([objectPath]);
+  if (error) {
+    // Storage returns an error for missing files in some edge cases, keep delete idempotent.
+    const message = error.message.toLowerCase();
+    if (error.statusCode !== '404' && !message.includes('not found')) {
+      throw new Error(`Failed to delete property image: ${error.message}`);
     }
   }
 }

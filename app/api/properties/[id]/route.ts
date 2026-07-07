@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { getPropertyWithImages } from '@/lib/property-data';
@@ -11,6 +11,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDbReady();
     const { id: idParam } = await params;
     const id = parseInt(idParam);
 
@@ -18,7 +19,7 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const property = getPropertyWithImages(id);
+    const property = await getPropertyWithImages(id);
     const admin = await getAuthenticatedAdminFromRequest(request);
 
     if (!property) {
@@ -49,6 +50,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await ensureDbReady();
+  const db = getDb();
   const admin = await getAuthenticatedAdminFromRequest(request);
 
   if (!admin) {
@@ -65,7 +68,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const currentProperty = getPropertyWithImages(id);
+    const currentProperty = await getPropertyWithImages(id);
 
     if (!currentProperty) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
@@ -174,6 +177,7 @@ export async function PUT(
     });
 
     syncGallery();
+    await persistDbToCloudStorage();
 
     if (removedImageUrls.length > 0) {
       await Promise.all(
@@ -226,6 +230,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  await ensureDbReady();
+  const db = getDb();
   const admin = await getAuthenticatedAdminFromRequest(request);
 
   if (!admin) {
@@ -240,7 +246,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid property id' }, { status: 400 });
     }
 
-    const currentProperty = getPropertyWithImages(id);
+    const currentProperty = await getPropertyWithImages(id);
 
     if (!currentProperty) {
       return NextResponse.json(
@@ -259,6 +265,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    await persistDbToCloudStorage();
 
     await Promise.all(
       (currentProperty.images ?? [])
