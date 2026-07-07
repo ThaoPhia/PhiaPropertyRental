@@ -52,12 +52,12 @@ CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
 RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
 
-# Supabase storage (required for cloud SQLite + property images)
+# Supabase storage (optional; without these vars app uses local SQLite + local property files)
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_STORAGE_IMAGE_BUCKET=property-images-public
-SUPABASE_STORAGE_IMAGE_PREFIX=properties
+SUPABASE_STORAGE_IMAGE_PREFIX=images/properties
 SUPABASE_STORAGE_DB_BUCKET=phiarental-private
 SUPABASE_STORAGE_DB_OBJECT_PATH=sqlite/phiarental.db
 ```

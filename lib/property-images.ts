@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
   buildSupabasePublicObjectUrl,
@@ -9,7 +10,15 @@ import {
   isSupabaseStorageConfigured,
 } from '@/lib/supabase-storage';
 
-const LEGACY_LOCAL_IMAGES_PREFIX = '/images/properties/';
+const LOCAL_IMAGES_URL_PREFIX = '/images/properties/';
+
+function getLocalPropertyImagesDir(): string {
+  return path.join(process.cwd(), 'public', LOCAL_IMAGES_URL_PREFIX.replace(/^\/+|\/+$/g, ''));
+}
+
+function getLocalPropertyImagePath(filename: string): string {
+  return path.join(getLocalPropertyImagesDir(), filename);
+}
 
 function getImageObjectPath(filename: string): string {
   const prefix = getSupabaseImagePrefix();
@@ -56,10 +65,6 @@ function getImageExtension(file: File): string {
 }
 
 export async function savePropertyImage(file: File): Promise<string> {
-  if (!isSupabaseStorageConfigured()) {
-    throw new Error('Supabase storage is not configured');
-  }
-
   if (!(file instanceof File) || file.size === 0) {
     throw new Error('An image file is required');
   }
@@ -69,9 +74,16 @@ export async function savePropertyImage(file: File): Promise<string> {
   }
 
   const filename = `${crypto.randomUUID()}${getImageExtension(file)}`;
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+
+  if (!isSupabaseStorageConfigured()) {
+    await fs.mkdir(getLocalPropertyImagesDir(), { recursive: true });
+    await fs.writeFile(getLocalPropertyImagePath(filename), fileBuffer);
+    return `${LOCAL_IMAGES_URL_PREFIX}${filename}`;
+  }
+
   const objectPath = getImageObjectPath(filename);
   const contentType = file.type || 'application/octet-stream';
-  const fileBuffer = Buffer.from(await file.arrayBuffer());
 
   const supabase = getSupabaseAdminClient();
   const { error } = await supabase
@@ -111,8 +123,29 @@ export async function savePropertyImages(files: File[]): Promise<string[]> {
   }
 }
 
+async function deleteLocalPropertyImage(imageUrl: string): Promise<void> {
+  const filename = path.basename(imageUrl.split('?')[0]);
+  const localPath = getLocalPropertyImagePath(filename);
+  try {
+    await fs.unlink(localPath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error;
+    }
+  }
+}
+
 export async function deletePropertyImage(imageUrl?: string | null): Promise<void> {
-  if (!isSupabaseStorageConfigured() || !imageUrl || imageUrl.startsWith(LEGACY_LOCAL_IMAGES_PREFIX)) {
+  if (!imageUrl) {
+    return;
+  }
+
+  if (imageUrl.startsWith(LOCAL_IMAGES_URL_PREFIX)) {
+    await deleteLocalPropertyImage(imageUrl);
+    return;
+  }
+
+  if (!isSupabaseStorageConfigured()) {
     return;
   }
 

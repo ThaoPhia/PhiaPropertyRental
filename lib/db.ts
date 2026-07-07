@@ -532,6 +532,66 @@ function getLegacyLocalImagePathFromUrl(imageUrl: string): string {
   return path.join(process.cwd(), 'public', 'images', 'properties', filename);
 }
 
+function getLocalImageUrlFromSupabaseUrl(imageUrl: string): string | null {
+  if (imageUrl.startsWith('/images/properties/')) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(imageUrl);
+    if (!parsed.pathname.includes('/storage/v1/object/public/')) {
+      return null;
+    }
+
+    const filename = path.basename(parsed.pathname);
+    if (!filename) {
+      return null;
+    }
+
+    return `/images/properties/${filename}`;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeImageUrlsForLocalStorage(): boolean {
+  if (isSupabaseStorageConfigured()) {
+    return false;
+  }
+
+  const database = getDb();
+  const allImageUrls = database.prepare(`
+    SELECT DISTINCT image_url
+    FROM (
+      SELECT image_url FROM properties
+      UNION
+      SELECT image_url FROM property_images
+    )
+    WHERE image_url IS NOT NULL AND image_url != ''
+  `).all() as { image_url: string }[];
+
+  if (allImageUrls.length === 0) {
+    return false;
+  }
+
+  const updatePropertyImage = database.prepare('UPDATE properties SET image_url = ? WHERE image_url = ?');
+  const updateGalleryImage = database.prepare('UPDATE property_images SET image_url = ? WHERE image_url = ?');
+  let updatedAny = false;
+
+  for (const { image_url: currentUrl } of allImageUrls) {
+    const localUrl = getLocalImageUrlFromSupabaseUrl(currentUrl);
+    if (!localUrl) {
+      continue;
+    }
+
+    updatePropertyImage.run(localUrl, currentUrl);
+    updateGalleryImage.run(localUrl, currentUrl);
+    updatedAny = true;
+  }
+
+  return updatedAny;
+}
+
 async function migrateLegacyLocalImagesToSupabase(): Promise<boolean> {
   if (!isSupabaseStorageConfigured()) {
     return false;
@@ -679,6 +739,7 @@ export async function ensureDbReady(): Promise<void> {
   if (!state.ensureReadyPromise) {
     state.ensureReadyPromise = (async () => {
       let downloadedFromCloud = false;
+      let normalizedLocalImageUrls = false;
       let migratedLegacyImages = false;
       if (isSupabaseStorageConfigured() && shouldPullDbFromCloudOnBoot()) {
         if (state.db) {
@@ -690,9 +751,13 @@ export async function ensureDbReady(): Promise<void> {
       }
 
       initializeSchema(getDb());
+      normalizedLocalImageUrls = normalizeImageUrlsForLocalStorage();
       migratedLegacyImages = await migrateLegacyLocalImagesToSupabase();
       if (isSupabaseStorageConfigured() && (!downloadedFromCloud || migratedLegacyImages)) {
         await persistDbToCloudStorageInternal();
+      }
+      if (normalizedLocalImageUrls) {
+        console.info('Normalized Supabase image URLs to local /images/properties paths for local mode.');
       }
       state.ready = true;
     })().finally(() => {
