@@ -59,8 +59,9 @@ NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_STORAGE_IMAGE_BUCKET=property-images-public
 SUPABASE_STORAGE_IMAGE_PREFIX=images/properties
 SUPABASE_STORAGE_DB_BUCKET=phiarental-private
-SUPABASE_STORAGE_DB_OBJECT_PATH=sqlite/phiarental.db
 ```
+
+Supabase DB object path is automatically derived from `SQLITE_DB_PATH`.
 
 Admin login email is fixed to: `thoj.phia@gmail.com`
 

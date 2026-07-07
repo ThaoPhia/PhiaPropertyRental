@@ -58,7 +58,13 @@ export function getSupabaseDbBucket(): string {
 }
 
 export function getSupabaseDbObjectPath(): string {
-  return trimSlashes(process.env.SUPABASE_STORAGE_DB_OBJECT_PATH || 'sqlite/phiarental.db');
+  const sqlitePath = process.env.SQLITE_DB_PATH?.trim() || 'database/phiarental.db';
+  const normalized = sqlitePath
+    .replace(/\\/g, '/')
+    .replace(/^\.\/+/, '')
+    .replace(/^\/+/, '');
+
+  return trimSlashes(normalized || 'database/phiarental.db');
 }
 
 export function buildSupabasePublicObjectUrl(bucket: string, objectPath: string): string {
