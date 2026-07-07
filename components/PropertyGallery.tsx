@@ -46,6 +46,8 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
                 src={slide.src}
                 alt={slide.alt || `${title} image ${photoIndex + 1}`}
                 fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+                loading="eager"
                 className="object-cover"
               />
             </Button>
@@ -59,6 +61,7 @@ export default function PropertyGallery({ images, title }: PropertyGalleryProps)
         index={index}
         slides={slides}
         plugins={[Fullscreen, Thumbnails, Zoom]}
+        zoom={{ maxZoomPixelRatio: 4, zoomInMultiplier: 1.5  }}
       />
     </div>
   );

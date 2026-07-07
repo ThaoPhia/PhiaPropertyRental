@@ -190,6 +190,7 @@ export default function PropertyDetailClient({
                     src={property.image_url}
                     alt={property.name}
                     fill
+                    loading="eager"
                     className="object-cover"
                 />
               </div>
