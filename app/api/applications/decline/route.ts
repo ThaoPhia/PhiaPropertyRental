@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
     const emailResult = await resend.emails.send({
       from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
       to: emailToSend || application.email,
+      replyTo: process.env.SITE_EMAIL_TO,
       subject: `Application Status - ${application.property_name}`,
       html: `
         <html>

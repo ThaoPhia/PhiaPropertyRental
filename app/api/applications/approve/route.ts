@@ -99,6 +99,7 @@ async function sendApplicationStatusEmail(email: string, propertyName: string, h
   return resend.emails.send({
     from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
     to: resolveRecipientEmail(email),
+    replyTo: process.env.SITE_EMAIL_TO,
     subject: `Application Status - ${propertyName}`,
     html,
   });
