@@ -274,10 +274,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                   </Badge>
                 </div>
               </div>
+              { property.status !== 'occupied' && (
               <p className="text-4xl font-bold text-green-600">
                 ${property.monthlyRent.toLocaleString()}
                 <span className="text-lg font-medium text-gray-500">/mo</span>
               </p>
+              )}
             </div>
 
             {/* Address */}

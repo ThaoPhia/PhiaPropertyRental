@@ -53,9 +53,11 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <Badge variant="status" className="capitalize">
               {property.status}
             </Badge>
-            <Badge variant="price">
-              ${property.monthlyRent.toLocaleString()}/mo
-            </Badge>
+            {property.status !== 'occupied' && (
+              <Badge variant="price">
+                ${property.monthlyRent.toLocaleString()}/mo
+              </Badge>
+            )}
           </div>
           <h3 className="mt-3 text-2xl md:text-3xl font-semibold text-white">{property.name}</h3>
           <p className="mt-1 text-sm md:text-base text-white/90">{address}</p>
