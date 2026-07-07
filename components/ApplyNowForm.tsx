@@ -329,7 +329,7 @@ export default function ApplyNowForm({
             className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
           <label htmlFor="quick-application-acknowledgment" className="text-sm text-gray-700">
-            I understand this is phase one of the application. If my application meets the requirements, I will be required to complete additional background checks and provide additional information.
+            I understand if my application is accepted, I will be required to complete additional background checks and provide additional information.
           </label>
         </div>
 
