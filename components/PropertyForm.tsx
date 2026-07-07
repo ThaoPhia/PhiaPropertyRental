@@ -627,6 +627,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             Cancel
           </Button>
         </div>
+        <p className="mt-4 text-sm text-gray-500 text-center">NOTE: Remember to re-deploy for changes to take effect.</p>
       </form>
     </>
   );
