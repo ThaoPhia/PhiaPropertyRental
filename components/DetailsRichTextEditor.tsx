@@ -47,7 +47,26 @@ export default function DetailsRichTextEditor({ value, onChange }: DetailsRichTe
       return;
     }
 
-    editor.chain().focus().extendMarkRange('link').setLink({ href: trimmed }).run();
+    const normalizedUrl = /^(https?:\/\/|mailto:|tel:)/i.test(trimmed)
+      ? trimmed
+      : `https://${trimmed}`;
+    const { empty } = editor.state.selection;
+
+    if (empty) {
+      editor
+        .chain()
+        .focus()
+        .insertContent(`<a href="${normalizedUrl}" target="_blank" rel="noopener noreferrer">${normalizedUrl}</a>`)
+        .run();
+      return;
+    }
+
+    editor
+      .chain()
+      .focus()
+      .extendMarkRange('link')
+      .setLink({ href: normalizedUrl, target: '_blank', rel: 'noopener noreferrer' })
+      .run();
   };
 
   useEffect(() => {
@@ -155,7 +174,7 @@ export default function DetailsRichTextEditor({ value, onChange }: DetailsRichTe
       </div>
       <EditorContent
         editor={editor}
-        className="prose prose-sm max-w-none min-h-40 w-full px-3 py-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-4 [&_h1]:mb-2 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-2"
+        className="prose prose-sm max-w-none min-h-40 w-full px-3 py-2 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-500 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mt-4 [&_h1]:mb-2 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:mt-4 [&_h2]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-2 [&_a]:text-blue-700 [&_a]:underline"
       />
     </div>
   );
