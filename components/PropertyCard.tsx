@@ -1,6 +1,7 @@
  'use client';
 
-import Image from 'next/image';
+import {toEditorHtml} from "@/lib/editor-html";
+ import Image from 'next/image';
 import Link from 'next/link';
 import { Property } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -86,7 +87,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </div>
 
-        <p className="text-slate-700 leading-relaxed md:text-base">{property.details}</p>
+        <div className="text-slate-700 leading-relaxed md:text-base" dangerouslySetInnerHTML={{ __html: toEditorHtml(property.details) }} />
 
         {hasHighlights && (
           <div className="mt-5 flex flex-wrap gap-2">
