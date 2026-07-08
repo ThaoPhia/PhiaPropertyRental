@@ -281,7 +281,10 @@ export default function PropertyDetailClient({
             {property.details && (
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">Details</h2>
-                  <p className="text-gray-700 leading-relaxed">{property.details}</p>
+                  <div
+                    className="text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: property.details }}
+                  />
                 </div>
             )}
 
