@@ -87,7 +87,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </div>
 
-        <div className="text-slate-700 leading-relaxed md:text-base" dangerouslySetInnerHTML={{ __html: toEditorHtml(property.details) }} />
+        <div
+          className="property-details-content text-slate-700 md:text-base"
+          dangerouslySetInnerHTML={{ __html: toEditorHtml(property.details) }}
+        />
 
         {hasHighlights && (
           <div className="mt-5 flex flex-wrap gap-2">
