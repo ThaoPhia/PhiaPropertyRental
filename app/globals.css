@@ -142,3 +142,49 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .property-details-content {
+    @apply leading-relaxed;
+  }
+
+  .property-details-content a {
+    @apply text-blue-700 underline;
+  }
+
+  .property-details-content p {
+    @apply mb-3;
+  }
+
+  .property-details-content p:last-child {
+    @apply mb-0;
+  }
+
+  .property-details-content ul {
+    @apply list-disc pl-6;
+  }
+
+  .property-details-content ol {
+    @apply list-decimal pl-6;
+  }
+
+  .property-details-content li {
+    @apply my-1;
+  }
+
+  .property-details-content h1 {
+    @apply mt-4 mb-2 text-3xl font-bold;
+  }
+
+  .property-details-content h2 {
+    @apply mt-4 mb-2 text-2xl font-semibold;
+  }
+
+  .property-details-content h3 {
+    @apply mt-3 mb-2 text-xl font-semibold;
+  }
+
+  .property-details-content strong {
+    @apply font-semibold;
+  }
+}
