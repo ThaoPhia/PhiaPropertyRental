@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { connection } from 'next/server';
 import PropertyForm from '@/components/PropertyForm';
 import { Button } from '@/components/ui/button';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
@@ -10,7 +11,10 @@ interface CMSEditPageProps {
   params: Promise<{ id: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function CMSEditPage({ params }: CMSEditPageProps) {
+  await connection();
   const admin = await getAuthenticatedAdminFromCookies();
 
   if (!admin) {
@@ -44,7 +48,7 @@ export default async function CMSEditPage({ params }: CMSEditPageProps) {
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Edit Property</h2>
             <p className="text-sm text-gray-600 mb-6">Signed in as {admin.email}</p>
-            <PropertyForm initialData={property} />
+            <PropertyForm key={`${property.id}-${property.updatedAt.toISOString()}`} initialData={property} />
           </div>
         )}
       </div>

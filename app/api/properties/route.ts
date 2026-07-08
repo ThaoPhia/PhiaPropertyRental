@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
@@ -138,9 +137,6 @@ export async function POST(request: NextRequest) {
 
     const result = createProperty();
     await persistDbToCloudStorage();
-    revalidatePath('/cms');
-    revalidatePath('/properties');
-    revalidatePath(`/properties/${result.lastInsertRowid}`);
 
     return NextResponse.json(
       {

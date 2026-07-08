@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
@@ -179,10 +178,6 @@ export async function PUT(
 
     syncGallery();
     await persistDbToCloudStorage();
-    revalidatePath('/cms');
-    revalidatePath(`/cms/${id}`);
-    revalidatePath('/properties');
-    revalidatePath(`/properties/${id}`);
 
     if (removedImageUrls.length > 0) {
       await Promise.all(
@@ -272,10 +267,6 @@ export async function DELETE(
     }
 
     await persistDbToCloudStorage();
-    revalidatePath('/cms');
-    revalidatePath(`/cms/${id}`);
-    revalidatePath('/properties');
-    revalidatePath(`/properties/${id}`);
 
     await Promise.all(
       (currentProperty.images ?? [])
