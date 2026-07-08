@@ -6,6 +6,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import PropertyGallery from '@/components/PropertyGallery';
 import ApplyNowForm from '@/components/ApplyNowForm';
 import { Property } from '@/lib/types';
@@ -44,6 +52,7 @@ export default function PropertyDetailClient({
   const [applicationLoading, setApplicationLoading] = useState(false);
   const [applicationError, setApplicationError] = useState('');
   const [applicationSuccess, setApplicationSuccess] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { admin } = useAdminSession();
 
   useEffect(() => {
@@ -83,10 +92,6 @@ export default function PropertyDetailClient({
   }, []);
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this property?')) {
-      return;
-    }
-
     const response = await fetch(`/api/properties/${property.id}`, {
       method: 'DELETE',
     });
@@ -170,6 +175,31 @@ export default function PropertyDetailClient({
 
   return (
       <div>
+        <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Property</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to permanently delete this property?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  setShowDeleteDialog(false);
+                  await handleDelete();
+                }}
+              >
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {admin && (
             <div className="mb-2 flex flex-wrap gap-4">
               <Button asChild size="nav">
@@ -177,7 +207,7 @@ export default function PropertyDetailClient({
                   Edit Property
                 </Link>
               </Button>
-              <Button onClick={handleDelete} variant="destructive" size="nav">
+              <Button onClick={() => setShowDeleteDialog(true)} variant="destructive" size="nav">
                 Delete Property
               </Button>
             </div>
