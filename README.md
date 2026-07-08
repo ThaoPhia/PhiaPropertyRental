@@ -51,6 +51,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
 RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
+VERCEL_DEPLOY_HOOK_URL=https://api.vercel.com/v1/integrations/deploy/<deploy-hook-id>
 
 # Supabase storage (optional; without these vars app uses local SQLite + local property files)
 SUPABASE_URL=https://<project-ref>.supabase.co

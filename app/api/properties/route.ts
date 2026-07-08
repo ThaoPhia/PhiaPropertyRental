@@ -5,6 +5,7 @@ import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { parsePropertyHighlights } from '@/lib/property-fields';
 import { normalizePropertyRow } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
+import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 export async function GET(request: NextRequest) {
   try {
@@ -137,10 +138,15 @@ export async function POST(request: NextRequest) {
 
     const result = createProperty();
     await persistDbToCloudStorage();
+    const createdPropertyId = Number(result.lastInsertRowid);
+    const redeployResult = await triggerVercelRedeploy(`property-created:${createdPropertyId}`);
+    if (redeployResult.error) {
+      console.error('Vercel redeploy trigger error:', redeployResult.error);
+    }
 
     return NextResponse.json(
       {
-        id: result.lastInsertRowid,
+        id: createdPropertyId,
         name,
         type,
         status,
@@ -157,6 +163,8 @@ export async function POST(request: NextRequest) {
         dateAvailable: dateAvailable || null,
         image_url: imageUrl,
         images: uploadState.imageUrls,
+        redeployTriggered: redeployResult.triggered,
+        redeployError: redeployResult.error ?? null,
       },
       { status: 201 }
     );

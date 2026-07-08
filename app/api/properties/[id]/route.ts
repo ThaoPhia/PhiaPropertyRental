@@ -5,6 +5,7 @@ import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { getPropertyWithImages } from '@/lib/property-data';
 import { parsePropertyHighlights } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
+import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 export async function GET(
   request: NextRequest,
@@ -178,6 +179,10 @@ export async function PUT(
 
     syncGallery();
     await persistDbToCloudStorage();
+    const redeployResult = await triggerVercelRedeploy(`property-updated:${id}`);
+    if (redeployResult.error) {
+      console.error('Vercel redeploy trigger error:', redeployResult.error);
+    }
 
     if (removedImageUrls.length > 0) {
       await Promise.all(
@@ -207,6 +212,8 @@ export async function PUT(
       dateAvailable: dateAvailable || null,
       image_url: nextImageUrl,
       images: finalOrderedImages,
+      redeployTriggered: redeployResult.triggered,
+      redeployError: redeployResult.error ?? null,
     });
   } catch (error) {
     if (uploadState.imageUrls.length > 0) {
@@ -267,6 +274,10 @@ export async function DELETE(
     }
 
     await persistDbToCloudStorage();
+    const redeployResult = await triggerVercelRedeploy(`property-deleted:${id}`);
+    if (redeployResult.error) {
+      console.error('Vercel redeploy trigger error:', redeployResult.error);
+    }
 
     await Promise.all(
       (currentProperty.images ?? [])
@@ -278,7 +289,11 @@ export async function DELETE(
         )
     );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      redeployTriggered: redeployResult.triggered,
+      redeployError: redeployResult.error ?? null,
+    });
   } catch (error) {
     console.error('Database error:', error);
     return NextResponse.json(
