@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { PropertyFormData, Property } from '@/lib/types';
+import DetailsRichTextEditor from '@/components/DetailsRichTextEditor';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -567,18 +568,16 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           )}
         </div>
 
-        {/* Description */}
+        {/* Details */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Details
           </label>
-          <textarea
-            name="details"
+          <DetailsRichTextEditor
             value={formData.details}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(details) => setFormData((prev) => ({ ...prev, details }))}
           />
+          <input type="hidden" name="details" value={formData.details} />
         </div>
 
         <div className="md:col-span-2">
