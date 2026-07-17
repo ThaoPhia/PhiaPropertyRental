@@ -597,6 +597,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                         src={image.url}
                         alt={image.description || `${initialData?.name || 'Property'} image ${index + 1}`}
                         fill
+                        sizes="(min-width: 768px) 33vw, 50vw"
+                        loading="eager"
                         className="object-cover"
                       />
                       {initialData && (
