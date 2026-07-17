@@ -115,7 +115,7 @@ async function getAuthenticatedAdminByUserId(userId: number): Promise<Authentica
   await ensureDbReady();
   const db = getDb();
   const user = db.prepare(`
-    SELECT id, email, role
+    SELECT id, name, email, role
     FROM users
     WHERE id = ?
   `).get(userId) as AuthenticatedAdmin | undefined;
@@ -131,7 +131,7 @@ async function getLegacyAuthenticatedAdminByToken(token: string): Promise<Authen
   await ensureDbReady();
   const db = getDb();
   const user = db.prepare(`
-    SELECT u.id, u.email, u.role
+    SELECT u.id, u.name, u.email, u.role
     FROM auth_sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token = ?

@@ -52,12 +52,14 @@ export type UserRole = 'admin' | 'user';
 
 export interface AuthenticatedAdmin {
   id: number;
+  name: string;
   email: string;
   role: UserRole;
 }
 
 export interface AuthUserRecord {
   id: number;
+  name: string;
   email: string;
   password_hash: string;
   role: UserRole;

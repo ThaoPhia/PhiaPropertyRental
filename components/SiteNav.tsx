@@ -18,9 +18,9 @@ export default function SiteNav() {
   const router = useRouter();
   const { admin } = useAdminSession();
   const propertiesActive = pathname.startsWith('/properties');
-  const adminHandle = admin?.email?.split('@')[0] ?? '';
-  const adminInitials = adminHandle
-    .split(/[.\-_]/)
+  const adminLabel = admin?.name?.trim() || admin?.email?.split('@')[0] || '';
+  const adminInitials = adminLabel
+    .split(/[\s.\-_]/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
@@ -79,6 +79,9 @@ export default function SiteNav() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/cms/applications">Applications</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/cms/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

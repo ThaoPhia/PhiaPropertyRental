@@ -318,6 +318,7 @@ function initializeSchema(database: Database.Database): void {
 
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL DEFAULT '',
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
@@ -365,6 +366,7 @@ function initializeSchema(database: Database.Database): void {
 
   const propertyColumns = getTableColumns(database, 'properties');
   const propertyImageColumns = getTableColumns(database, 'property_images');
+  const userColumns = getTableColumns(database, 'users');
   const applicationColumns = getTableColumns(database, 'applications');
 
   addColumnIfMissing(database, propertyColumns, 'properties', 'status', "status TEXT DEFAULT 'available'");
@@ -373,6 +375,7 @@ function initializeSchema(database: Database.Database): void {
   addColumnIfMissing(database, propertyColumns, 'properties', 'highlights', "highlights TEXT DEFAULT '[]'");
   addColumnIfMissing(database, propertyColumns, 'properties', 'dateAvailable', 'dateAvailable TEXT');
   addColumnIfMissing(database, propertyImageColumns, 'property_images', 'description', "description TEXT NOT NULL DEFAULT ''");
+  addColumnIfMissing(database, userColumns, 'users', 'name', "name TEXT NOT NULL DEFAULT ''");
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_street', 'current_address_street TEXT');
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_city', 'current_address_city TEXT');
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_state', 'current_address_state TEXT');
@@ -467,6 +470,7 @@ function initializeSchema(database: Database.Database): void {
   `).run();
 
   const adminEmail = 'thoj.phia@gmail.com';
+  const adminName = 'Admin';
   const adminPassword = process.env.CMS_ADMIN_PASSWORD || 'ChangeMeNow!123!';
   const globalState = globalThis as typeof globalThis & { cmsPasswordWarningShown?: boolean };
 
@@ -481,9 +485,14 @@ function initializeSchema(database: Database.Database): void {
     globalState.cmsPasswordWarningShown = true;
   }
 
-  database.prepare('INSERT OR IGNORE INTO users (email, password_hash, role) VALUES (?, ?, ?)')
-    .run(adminEmail, hashPassword(adminPassword), 'admin');
+  database.prepare('INSERT OR IGNORE INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)')
+    .run(adminName, adminEmail, hashPassword(adminPassword), 'admin');
   database.prepare('UPDATE users SET role = ? WHERE email = ?').run('admin', adminEmail);
+  database.prepare(`
+    UPDATE users
+    SET name = COALESCE(NULLIF(name, ''), ?)
+    WHERE email = ?
+  `).run(adminName, adminEmail);
 
   if (process.env.CMS_ADMIN_PASSWORD) {
     database.prepare('UPDATE users SET password_hash = ? WHERE email = ?')

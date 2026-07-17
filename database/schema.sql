@@ -49,6 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_property_images_sort_order ON property_images(pro
 
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL DEFAULT '',
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
