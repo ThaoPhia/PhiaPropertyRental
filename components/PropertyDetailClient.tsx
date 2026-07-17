@@ -173,6 +173,11 @@ export default function PropertyDetailClient({
       : property.dateAvailable
         ? new Date(property.dateAvailable).toLocaleDateString()
         : 'Soon';
+  const galleryImages = property.galleryImages ?? (property.images ?? []).map((url) => ({
+    url,
+    description: '',
+  }));
+  const primaryImageDescription = galleryImages.find((image) => image.url === property.image_url)?.description;
 
   return (
       <div>
@@ -219,7 +224,7 @@ export default function PropertyDetailClient({
               <div className="relative w-full h-96">
                 <Image
                     src={property.image_url}
-                    alt={property.name}
+                    alt={primaryImageDescription || property.name}
                     fill
                     loading="eager"
                     className="object-cover"
@@ -277,7 +282,7 @@ export default function PropertyDetailClient({
               </div>
             </div>
 
-            <PropertyGallery images={property.images ?? []} title={property.name} />
+            <PropertyGallery images={galleryImages} title={property.name} />
 
             {property.details && (
                 <div className="mb-8">

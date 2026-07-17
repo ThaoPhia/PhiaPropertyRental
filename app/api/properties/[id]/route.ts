@@ -94,15 +94,34 @@ export async function PUT(
       imageFiles,
       imageOrder,
       removedImageUrls,
+      existingImageDescriptions,
+      newImageDescriptions,
     } = body;
 
-    const existingImages = currentProperty.images ?? [];
+    const existingImages = currentProperty.galleryImages ?? (currentProperty.images ?? []).map((url) => ({
+      url,
+      description: '',
+    }));
     const removedImageSet = new Set(removedImageUrls);
-    const retainedExistingImages = existingImages.filter((imageUrl) => !removedImageSet.has(imageUrl));
-    const retainedImageSet = new Set(retainedExistingImages);
+    const retainedExistingImages = existingImages.filter((image) => !removedImageSet.has(image.url));
+    const retainedImageSet = new Set(retainedExistingImages.map((image) => image.url));
     const orderedRetainedExistingImages = imageOrder
       .filter((imageUrl: string) => retainedImageSet.has(imageUrl))
-      .concat(retainedExistingImages.filter((imageUrl: string) => !imageOrder.includes(imageUrl)));
+      .map((imageUrl) => {
+        const matchingImage = retainedExistingImages.find((image) => image.url === imageUrl);
+        return {
+          url: imageUrl,
+          description: existingImageDescriptions[imageUrl] ?? matchingImage?.description ?? '',
+        };
+      })
+      .concat(
+        retainedExistingImages
+          .filter((image) => !imageOrder.includes(image.url))
+          .map((image) => ({
+            url: image.url,
+            description: existingImageDescriptions[image.url] ?? image.description ?? '',
+          }))
+      );
 
     let parsedHighlights = [];
     try {
@@ -118,8 +137,14 @@ export async function PUT(
       uploadState.imageUrls = await savePropertyImages(imageFiles);
     }
 
-    const finalOrderedImages = [...orderedRetainedExistingImages, ...uploadState.imageUrls];
-    const nextImageUrl = finalOrderedImages[0] || null;
+    const finalOrderedImages = [
+      ...orderedRetainedExistingImages,
+      ...uploadState.imageUrls.map((url, index) => ({
+        url,
+        description: newImageDescriptions[index] ?? '',
+      })),
+    ];
+    const nextImageUrl = finalOrderedImages[0]?.url || null;
 
     const result = db.prepare(
       `UPDATE properties 
@@ -159,9 +184,11 @@ export async function PUT(
     }
 
     const upsertPropertyImage = db.prepare(
-      `INSERT INTO property_images (property_id, image_url, sort_order)
-       VALUES (?, ?, ?)
-       ON CONFLICT(property_id, image_url) DO UPDATE SET sort_order = excluded.sort_order`
+      `INSERT INTO property_images (property_id, image_url, description, sort_order)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(property_id, image_url) DO UPDATE SET
+         description = excluded.description,
+         sort_order = excluded.sort_order`
     );
 
     const deletePropertyImageRow = db.prepare(
@@ -169,8 +196,8 @@ export async function PUT(
     );
 
     const syncGallery = db.transaction(() => {
-      finalOrderedImages.forEach((imageUrl, index) => {
-        upsertPropertyImage.run(id, imageUrl, index);
+      finalOrderedImages.forEach((image, index) => {
+        upsertPropertyImage.run(id, image.url, image.description, index);
       });
       removedImageUrls.forEach((imageUrl) => {
         deletePropertyImageRow.run(id, imageUrl);
@@ -211,7 +238,8 @@ export async function PUT(
       highlights: parsedHighlights,
       dateAvailable: dateAvailable || null,
       image_url: nextImageUrl,
-      images: finalOrderedImages,
+      images: finalOrderedImages.map((image) => image.url),
+      galleryImages: finalOrderedImages,
       redeployTriggered: redeployResult.triggered,
       redeployError: redeployResult.error ?? null,
     });

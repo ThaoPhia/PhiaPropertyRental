@@ -1,4 +1,4 @@
-import { Property, PropertyHighlight } from '@/lib/types';
+import { Property, PropertyHighlight, PropertyImage } from '@/lib/types';
 
 const DEFAULT_STATUS: Property['status'] = 'available';
 const legacyIconNameByPath: Record<string, string> = {
@@ -16,6 +16,15 @@ function isPropertyHighlight(value: unknown): value is PropertyHighlight {
     value !== null &&
     typeof (value as { icon?: unknown }).icon === 'string' &&
     typeof (value as { text?: unknown }).text === 'string'
+  );
+}
+
+function isPropertyImage(value: unknown): value is PropertyImage {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as { url?: unknown }).url === 'string' &&
+    typeof (value as { description?: unknown }).description === 'string'
   );
 }
 
@@ -67,6 +76,13 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     }
   }
 
+  const galleryImagesValue = row.galleryImages;
+  const galleryImages = Array.isArray(galleryImagesValue)
+    ? galleryImagesValue
+        .filter(isPropertyImage)
+        .map((image) => ({ url: image.url, description: image.description.trim() }))
+    : undefined;
+
   return {
     id: Number(row.id),
     name: String(row.name ?? ''),
@@ -85,6 +101,7 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     dateAvailable,
     image_url: typeof row.image_url === 'string' ? row.image_url : undefined,
     images: Array.isArray(row.images) ? (row.images as string[]) : undefined,
+    galleryImages,
     createdAt: row.createdAt ? new Date(String(row.createdAt)) : new Date(),
     updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : new Date(),
   };

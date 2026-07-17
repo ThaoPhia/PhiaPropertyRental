@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
       details,
       highlights,
       imageFiles,
+      newImageDescriptions,
     } = body;
 
     // Validation
@@ -106,8 +107,8 @@ export async function POST(request: NextRequest) {
     );
 
     const insertPropertyImage = db.prepare(
-      `INSERT INTO property_images (property_id, image_url, sort_order)
-       VALUES (?, ?, ?)`
+      `INSERT INTO property_images (property_id, image_url, description, sort_order)
+       VALUES (?, ?, ?, ?)`
     );
 
     const createProperty = db.transaction(() => {
@@ -130,7 +131,12 @@ export async function POST(request: NextRequest) {
       );
 
       uploadState.imageUrls.forEach((image, index) => {
-        insertPropertyImage.run(result.lastInsertRowid as number, image, index);
+        insertPropertyImage.run(
+          result.lastInsertRowid as number,
+          image,
+          newImageDescriptions[index] ?? '',
+          index
+        );
       });
 
       return result;
@@ -163,6 +169,10 @@ export async function POST(request: NextRequest) {
         dateAvailable: dateAvailable || null,
         image_url: imageUrl,
         images: uploadState.imageUrls,
+        galleryImages: uploadState.imageUrls.map((url, index) => ({
+          url,
+          description: newImageDescriptions[index] ?? '',
+        })),
         redeployTriggered: redeployResult.triggered,
         redeployError: redeployResult.error ?? null,
       },

@@ -16,6 +16,7 @@ export interface Property {
   dateAvailable: string | null;
   image_url?: string;
   images?: string[];
+  galleryImages?: PropertyImage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +41,11 @@ export interface PropertyFormData {
 export interface PropertyHighlight {
   icon: string; // icon component name (e.g., GarageIcon)
   text: string;
+}
+
+export interface PropertyImage {
+  url: string;
+  description: string;
 }
 
 export type UserRole = 'admin' | 'user';

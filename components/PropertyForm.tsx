@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { PropertyFormData, Property } from '@/lib/types';
+import { PropertyFormData, Property, PropertyImage } from '@/lib/types';
 import DetailsRichTextEditor from '@/components/DetailsRichTextEditor';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -19,20 +19,42 @@ interface PropertyFormProps {
   initialData?: Property;
 }
 
+type PendingUploadImage = {
+  id: string;
+  file: File;
+  description: string;
+};
+
 export default function PropertyForm({ initialData }: PropertyFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [error, setError] = useState('');
-  const initialImages = Array.from(
-    new Set([...(initialData?.images ?? []), ...(initialData?.image_url ? [initialData.image_url] : [])])
-  );
-  const [currentImages, setCurrentImages] = useState<string[]>(initialImages);
+  const initialImages = (() => {
+    const galleryImages = initialData?.galleryImages ?? (initialData?.images ?? []).map((url) => ({
+      url,
+      description: '',
+    }));
+    const deduped = new Map<string, PropertyImage>();
+
+    galleryImages.forEach((image) => {
+      if (!deduped.has(image.url)) {
+        deduped.set(image.url, { url: image.url, description: image.description });
+      }
+    });
+
+    if (initialData?.image_url && !deduped.has(initialData.image_url)) {
+      deduped.set(initialData.image_url, { url: initialData.image_url, description: '' });
+    }
+
+    return Array.from(deduped.values());
+  })();
+  const [currentImages, setCurrentImages] = useState<PropertyImage[]>(initialImages);
   const [removedImages, setRemovedImages] = useState<string[]>([]);
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
   const [isDraggingUpload, setIsDraggingUpload] = useState(false);
-  const [selectedUploadFiles, setSelectedUploadFiles] = useState<File[]>([]);
+  const [selectedUploadFiles, setSelectedUploadFiles] = useState<PendingUploadImage[]>([]);
   const [highlightsJson, setHighlightsJson] = useState(
     initialData?.highlights?.length
       ? JSON.stringify(initialData.highlights, null, 2)
@@ -95,29 +117,40 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
   const handleImagesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const nextFiles = Array.from(event.target.files ?? []);
-    setSelectedUploadFiles(nextFiles);
+    setSelectedUploadFiles(nextFiles.map((file) => createPendingUploadImage(file)));
   };
+
+  const createPendingUploadImage = (file: File): PendingUploadImage => ({
+    id: `${file.name}-${file.size}-${file.lastModified}-${globalThis.crypto.randomUUID()}`,
+    file,
+    description: '',
+  });
 
   const mergeUploadFiles = (incomingFiles: File[]) => {
     setSelectedUploadFiles((prev) => {
-      const deduped = new Map<string, File>();
-      [...prev, ...incomingFiles].forEach((file) => {
-        deduped.set(`${file.name}-${file.size}-${file.lastModified}`, file);
+      const deduped = new Map<string, PendingUploadImage>();
+      prev.forEach((image) => {
+        deduped.set(`${image.file.name}-${image.file.size}-${image.file.lastModified}`, image);
+      });
+      incomingFiles.forEach((file) => {
+        const key = `${file.name}-${file.size}-${file.lastModified}`;
+        if (!deduped.has(key)) {
+          deduped.set(key, createPendingUploadImage(file));
+        }
       });
       return Array.from(deduped.values());
     });
   };
 
-  const removeSelectedUploadFile = (targetFile: File) => {
+  const removeSelectedUploadFile = (targetImageId: string) => {
     setSelectedUploadFiles((prev) =>
-      prev.filter(
-        (file) =>
-          !(
-            file.name === targetFile.name &&
-            file.size === targetFile.size &&
-            file.lastModified === targetFile.lastModified
-          )
-      )
+      prev.filter((image) => image.id !== targetImageId)
+    );
+  };
+
+  const updateSelectedUploadDescription = (targetImageId: string, description: string) => {
+    setSelectedUploadFiles((prev) =>
+      prev.map((image) => (image.id === targetImageId ? { ...image, description } : image))
     );
   };
 
@@ -140,11 +173,19 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
     try {
       const submission = new FormData(form);
-      selectedUploadFiles.forEach((file) => submission.append('images', file));
+      selectedUploadFiles.forEach(({ file, description }) => {
+        submission.append('images', file);
+        submission.append('newImageDescriptions', description.trim());
+      });
       removedImages.forEach((imageUrl) => submission.append('removedImages', imageUrl));
-      currentImages
-        .filter((imageUrl) => !removedImages.includes(imageUrl))
-        .forEach((imageUrl) => submission.append('imageOrder', imageUrl));
+      const retainedImages = currentImages.filter((image) => !removedImages.includes(image.url));
+      retainedImages.forEach((image) => submission.append('imageOrder', image.url));
+      submission.append(
+        'existingImageDescriptions',
+        JSON.stringify(
+          Object.fromEntries(retainedImages.map((image) => [image.url, image.description.trim()]))
+        )
+      );
       const url = initialData
         ? `/api/properties/${initialData.id}`
         : '/api/properties';
@@ -200,8 +241,8 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
 
   const moveImageToIndex = (imageUrl: string, targetImageUrl: string) => {
     setCurrentImages((prev) => {
-      const sourceIndex = prev.indexOf(imageUrl);
-      const targetIndex = prev.indexOf(targetImageUrl);
+      const sourceIndex = prev.findIndex((image) => image.url === imageUrl);
+      const targetIndex = prev.findIndex((image) => image.url === targetImageUrl);
       if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
         return prev;
       }
@@ -211,6 +252,12 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       next.splice(targetIndex, 0, moved);
       return next;
     });
+  };
+
+  const updateCurrentImageDescription = (imageUrl: string, description: string) => {
+    setCurrentImages((prev) =>
+      prev.map((image) => (image.url === imageUrl ? { ...image, description } : image))
+    );
   };
 
   return (
@@ -487,21 +534,30 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
                   {selectedUploadFiles.length} new image{selectedUploadFiles.length === 1 ? '' : 's'} selected
                 </p>
                 <ul className="mt-1 space-y-1 text-xs text-slate-600">
-                  {selectedUploadFiles.slice(0, 5).map((file) => (
+                  {selectedUploadFiles.slice(0, 5).map((image) => (
                     <li
-                      key={`${file.name}-${file.lastModified}`}
-                      className="flex items-center justify-between gap-2 rounded px-2 py-1 hover:bg-slate-100 odd:bg-slate-50"
+                      key={image.id}
+                      className="rounded px-2 py-2 hover:bg-slate-100 odd:bg-slate-50"
                     >
-                      <span className="truncate">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="xs"
-                        className="h-auto px-2 py-1 text-xs text-slate-600 hover:text-red-700 cursor-pointer"
-                        onClick={() => removeSelectedUploadFile(file)}
-                      >
-                        Remove
-                      </Button>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="truncate text-sm">{image.file.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="xs"
+                          className="h-auto px-2 py-1 text-xs text-slate-600 hover:text-red-700 cursor-pointer"
+                          onClick={() => removeSelectedUploadFile(image.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                      <input
+                        type="text"
+                        value={image.description}
+                        onChange={(event) => updateSelectedUploadDescription(image.id, event.target.value)}
+                        placeholder="Image description"
+                        className="mt-2 w-full rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
                     </li>
                   ))}
                   {selectedUploadFiles.length > 5 && (
@@ -515,49 +571,60 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             <div className="mt-3">
               <p className="text-sm text-gray-500 mb-2">Current images</p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {currentImages.map((imageUrl, index) => (
+                {currentImages.map((image, index) => (
                   <div
-                    key={`${imageUrl}-${index}`}
-                    draggable={initialData ? !removedImages.includes(imageUrl) : false}
-                    onDragStart={() => setDraggedImage(imageUrl)}
+                    key={`${image.url}-${index}`}
+                    draggable={initialData ? !removedImages.includes(image.url) : false}
+                    onDragStart={() => setDraggedImage(image.url)}
                     onDragOver={(event) => {
-                      if (initialData && draggedImage && draggedImage !== imageUrl) {
+                      if (initialData && draggedImage && draggedImage !== image.url) {
                         event.preventDefault();
                       }
                     }}
                     onDrop={() => {
                       if (initialData && draggedImage) {
-                        moveImageToIndex(draggedImage, imageUrl);
+                        moveImageToIndex(draggedImage, image.url);
                       }
                       setDraggedImage(null);
                     }}
                     onDragEnd={() => setDraggedImage(null)}
-                    className={`relative h-32 w-full overflow-hidden rounded-md border ${
-                      removedImages.includes(imageUrl) ? 'border-red-400 opacity-50' : 'border-gray-200'
-                    } ${draggedImage === imageUrl ? 'ring-2 ring-blue-400' : ''}`}
+                    className={`overflow-hidden rounded-md border ${
+                      removedImages.includes(image.url) ? 'border-red-400 opacity-50' : 'border-gray-200'
+                    } ${draggedImage === image.url ? 'ring-2 ring-blue-400' : ''}`}
                   >
-                    <Image
-                      src={imageUrl}
-                      alt={`${initialData?.name || 'Property'} image ${index + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                    {initialData && (
-                      <div className="absolute inset-x-2 top-2 flex justify-between gap-2">
-                        <span className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
-                          Drag to reorder
-                        </span>
-                        <Button
-                          type="button"
-                          onClick={() => toggleImageRemoval(imageUrl)}
-                          size="xs"
-                          variant="secondary"
-                          className="h-auto bg-black/70 px-2 py-1 text-xs font-medium text-white hover:bg-black/80"
-                        >
-                          {removedImages.includes(imageUrl) ? 'Undo' : 'Remove'}
-                        </Button>
-                      </div>
-                    )}
+                    <div className="relative h-32 w-full">
+                      <Image
+                        src={image.url}
+                        alt={image.description || `${initialData?.name || 'Property'} image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                      {initialData && (
+                        <div className="absolute inset-x-2 top-2 flex justify-between gap-2">
+                          <span className="rounded bg-black/70 px-2 py-1 text-xs font-medium text-white">
+                            Drag to reorder
+                          </span>
+                          <Button
+                            type="button"
+                            onClick={() => toggleImageRemoval(image.url)}
+                            size="xs"
+                            variant="secondary"
+                            className="h-auto bg-black/70 px-2 py-1 text-xs font-medium text-white hover:bg-black/80"
+                          >
+                            {removedImages.includes(image.url) ? 'Undo' : 'Remove'}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t border-gray-200 bg-white p-2">
+                      <input
+                        type="text"
+                        value={image.description}
+                        onChange={(event) => updateCurrentImageDescription(image.url, event.target.value)}
+                        placeholder="Image description"
+                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

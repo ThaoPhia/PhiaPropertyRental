@@ -173,6 +173,7 @@ function ensurePropertyImagesForeignKeyConstraint(database: Database.Database): 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         property_id INTEGER NOT NULL,
         image_url TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
         sort_order INTEGER NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
@@ -180,8 +181,8 @@ function ensurePropertyImagesForeignKeyConstraint(database: Database.Database): 
       );
     `);
     database.exec(`
-      INSERT INTO property_images (id, property_id, image_url, sort_order, createdAt)
-      SELECT id, property_id, image_url, sort_order, createdAt
+      INSERT INTO property_images (id, property_id, image_url, description, sort_order, createdAt)
+      SELECT id, property_id, image_url, '', sort_order, createdAt
       FROM property_images_legacy_fk;
     `);
     database.exec('DROP TABLE property_images_legacy_fk');
@@ -305,6 +306,7 @@ function initializeSchema(database: Database.Database): void {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       property_id INTEGER NOT NULL,
       image_url TEXT NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0,
       createdAt TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
@@ -362,6 +364,7 @@ function initializeSchema(database: Database.Database): void {
   `);
 
   const propertyColumns = getTableColumns(database, 'properties');
+  const propertyImageColumns = getTableColumns(database, 'property_images');
   const applicationColumns = getTableColumns(database, 'applications');
 
   addColumnIfMissing(database, propertyColumns, 'properties', 'status', "status TEXT DEFAULT 'available'");
@@ -369,6 +372,7 @@ function initializeSchema(database: Database.Database): void {
   addColumnIfMissing(database, propertyColumns, 'properties', 'details', 'details TEXT');
   addColumnIfMissing(database, propertyColumns, 'properties', 'highlights', "highlights TEXT DEFAULT '[]'");
   addColumnIfMissing(database, propertyColumns, 'properties', 'dateAvailable', 'dateAvailable TEXT');
+  addColumnIfMissing(database, propertyImageColumns, 'property_images', 'description', "description TEXT NOT NULL DEFAULT ''");
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_street', 'current_address_street TEXT');
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_city', 'current_address_city TEXT');
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_state', 'current_address_state TEXT');

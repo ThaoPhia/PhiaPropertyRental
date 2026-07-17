@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS property_images (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   property_id INTEGER NOT NULL,
   image_url TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
   sort_order INTEGER NOT NULL DEFAULT 0,
   createdAt TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,

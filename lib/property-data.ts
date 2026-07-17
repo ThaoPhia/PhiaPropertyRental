@@ -1,5 +1,5 @@
 import { ensureDbReady, getDb } from '@/lib/db';
-import { Property } from '@/lib/types';
+import { Property, PropertyImage } from '@/lib/types';
 import { normalizePropertyRow } from '@/lib/property-fields';
 
 export async function getPropertyWithImages(id: number): Promise<Property | null> {
@@ -16,22 +16,34 @@ export async function getPropertyWithImages(id: number): Promise<Property | null
   const property = normalizePropertyRow(propertyRow);
   const imageRows = db
     .prepare(
-      `SELECT image_url
+     `SELECT image_url, description
        FROM property_images
        WHERE property_id = ?
        ORDER BY sort_order ASC, id ASC`
     )
-    .all(id) as { image_url: string }[];
+    .all(id) as { image_url: string; description: string | null }[];
 
-  const orderedImages = imageRows.map((row) => row.image_url).filter(Boolean);
-  if (property.image_url && !orderedImages.includes(property.image_url)) {
-    orderedImages.unshift(property.image_url);
+  const orderedGalleryImages = imageRows
+    .filter((row) => Boolean(row.image_url))
+    .map((row) => ({
+     url: row.image_url,
+     description: row.description ?? '',
+    }));
+
+  if (property.image_url && !orderedGalleryImages.some((image) => image.url === property.image_url)) {
+    orderedGalleryImages.unshift({ url: property.image_url, description: '' });
   }
-  const uniqueImages = Array.from(new Set(orderedImages));
+  const uniqueGalleryImages = orderedGalleryImages.reduce<PropertyImage[]>((acc, image) => {
+    if (!acc.some((entry) => entry.url === image.url)) {
+     acc.push(image);
+    }
+    return acc;
+  }, []);
 
   return {
     ...property,
-    image_url: uniqueImages[0] || property.image_url,
-    images: uniqueImages,
+    image_url: uniqueGalleryImages[0]?.url || property.image_url,
+    images: uniqueGalleryImages.map((image) => image.url),
+    galleryImages: uniqueGalleryImages,
   };
 }

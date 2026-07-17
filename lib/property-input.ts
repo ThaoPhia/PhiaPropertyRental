@@ -18,6 +18,8 @@ export interface PropertyInput {
   imageFiles: File[];
   imageOrder: string[];
   removedImageUrls: string[];
+  existingImageDescriptions: Record<string, string>;
+  newImageDescriptions: string[];
 }
 
 function parseNumber(value: unknown): number {
@@ -30,6 +32,25 @@ function parseString(value: unknown): string {
 
 function parseStringArray(values: unknown[]): string[] {
   return values.map((value) => String(value)).filter((value) => value.length > 0);
+}
+
+function parseLooseStringArray(values: unknown[]): string[] {
+  return values.map((value) => String(value ?? ''));
+}
+
+function parseDescriptionMap(value: unknown): Record<string, string> {
+  if (typeof value !== 'string' || value.trim() === '') {
+    return {};
+  }
+
+  const parsed = JSON.parse(value);
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    throw new Error('Image descriptions must be an object');
+  }
+
+  return Object.fromEntries(
+    Object.entries(parsed).map(([key, entryValue]) => [key, String(entryValue ?? '').trim()])
+  );
 }
 
 export async function readPropertyInput(request: NextRequest): Promise<PropertyInput> {
@@ -58,6 +79,8 @@ export async function readPropertyInput(request: NextRequest): Promise<PropertyI
         .filter((value): value is File => value instanceof File && value.size > 0),
       imageOrder: parseStringArray(formData.getAll('imageOrder')),
       removedImageUrls: parseStringArray(formData.getAll('removedImages')),
+      existingImageDescriptions: parseDescriptionMap(formData.get('existingImageDescriptions')),
+      newImageDescriptions: parseLooseStringArray(formData.getAll('newImageDescriptions')),
     };
   }
 
@@ -81,5 +104,7 @@ export async function readPropertyInput(request: NextRequest): Promise<PropertyI
     imageFiles: [],
     imageOrder: Array.isArray(body.imageOrder) ? parseStringArray(body.imageOrder) : [],
     removedImageUrls: [],
+    existingImageDescriptions: parseDescriptionMap(JSON.stringify(body.existingImageDescriptions || {})),
+    newImageDescriptions: Array.isArray(body.newImageDescriptions) ? parseLooseStringArray(body.newImageDescriptions) : [],
   };
 }
