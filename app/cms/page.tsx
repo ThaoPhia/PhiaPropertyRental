@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import PropertyForm from '@/components/PropertyForm';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 
 export default async function CMSCreatePage() {
@@ -37,10 +36,12 @@ export default async function CMSCreatePage() {
               <p className="text-sm text-gray-600">View and manage all properties</p>
             </div>
           </Link>
-          <div className="p-4 bg-blue-50 rounded-lg shadow border-2 border-blue-600">
-            <h3 className="font-semibold text-gray-900">Create New</h3>
-            <p className="text-sm text-gray-600">Add a new property listing</p>
-          </div>
+          <Link href="/cms/create">
+            <div className="p-4 bg-blue-50 rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-blue-600">
+              <h3 className="font-semibold text-gray-900">Create New</h3>
+              <p className="text-sm text-gray-600">Add a new property listing</p>
+            </div>
+          </Link>
           <div className="p-4 bg-white rounded-lg shadow border-2 border-gray-200">
             <h3 className="font-semibold text-gray-900">Admin Profile</h3>
             <dl className="mt-3 space-y-2 text-sm text-gray-600">
@@ -61,11 +62,6 @@ export default async function CMSCreatePage() {
               Update profile
             </Link>
           </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Property</h2>
-          <PropertyForm />
         </div>
       </div>
     </div>
