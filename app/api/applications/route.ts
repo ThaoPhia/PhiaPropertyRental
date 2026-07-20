@@ -27,7 +27,7 @@ export async function GET() {
         property_id as propertyId,
         property_name as propertyName,
         status,
-        createdAt
+        created_at as createdAt
       FROM applications
       ORDER BY 
         CASE status
@@ -37,7 +37,7 @@ export async function GET() {
           WHEN 'declined' THEN 3
           WHEN 'deleted' THEN 4
         END,
-        createdAt DESC
+        datetime(created_at) DESC
     `).all();
 
     return NextResponse.json(applications);

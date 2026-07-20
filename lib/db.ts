@@ -95,7 +95,17 @@ function getTableCreateSql(database: Database.Database, tableName: string): stri
 
 function ensurePropertiesStatusConstraint(database: Database.Database): void {
   const propertiesCreateSql = getTableCreateSql(database, 'properties');
-  if (propertiesCreateSql.includes("'removed'")) {
+  const needsStatusMigration = !propertiesCreateSql.includes("'removed'");
+  const needsSnakeCaseMigration = [
+    'zipCode',
+    'squareFeet',
+    'monthlyRent',
+    'dateAvailable',
+    'createdAt',
+    'updatedAt',
+  ].some((columnName) => propertiesCreateSql.includes(columnName));
+
+  if (!needsStatusMigration && !needsSnakeCaseMigration) {
     return;
   }
 
@@ -111,27 +121,42 @@ function ensurePropertiesStatusConstraint(database: Database.Database): void {
         address TEXT NOT NULL,
         city TEXT NOT NULL,
         state TEXT NOT NULL,
-        zipCode TEXT NOT NULL,
+        zip_code TEXT NOT NULL,
         bedrooms INTEGER NOT NULL,
         bathrooms REAL NOT NULL,
-        squareFeet INTEGER NOT NULL,
-        monthlyRent REAL NOT NULL DEFAULT 0,
+        square_feet INTEGER NOT NULL,
+        monthly_rent REAL NOT NULL DEFAULT 0,
         details TEXT,
         highlights TEXT NOT NULL DEFAULT '[]',
-        dateAvailable TEXT,
+        date_available TEXT,
         image_url TEXT,
-        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-        updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
     `);
+    const sourceColumns = getTableColumns(database, 'properties');
+    const zipCodeColumn = sourceColumns.has('zip_code') ? 'zip_code' : 'zipCode';
+    const squareFeetColumn = sourceColumns.has('square_feet') ? 'square_feet' : 'squareFeet';
+    const monthlyRentColumn = sourceColumns.has('monthly_rent') ? 'monthly_rent' : 'monthlyRent';
+    const dateAvailableColumn = sourceColumns.has('date_available') ? 'date_available' : 'dateAvailable';
+    const createdAtColumn = sourceColumns.has('created_at')
+      ? 'created_at'
+      : sourceColumns.has('createdAt')
+        ? 'createdAt'
+        : "datetime('now')";
+    const updatedAtColumn = sourceColumns.has('updated_at')
+      ? 'updated_at'
+      : sourceColumns.has('updatedAt')
+        ? 'updatedAt'
+        : "datetime('now')";
     database.exec(`
       INSERT INTO properties_next (
-        id, name, type, status, address, city, state, zipCode, bedrooms, bathrooms,
-        squareFeet, monthlyRent, details, highlights, dateAvailable, image_url, createdAt, updatedAt
+        id, name, type, status, address, city, state, zip_code, bedrooms, bathrooms,
+        square_feet, monthly_rent, details, highlights, date_available, image_url, created_at, updated_at
       )
       SELECT
-        id, name, type, status, address, city, state, zipCode, bedrooms, bathrooms,
-        squareFeet, monthlyRent, details, highlights, dateAvailable, image_url, createdAt, updatedAt
+        id, name, type, status, address, city, state, ${zipCodeColumn}, bedrooms, bathrooms,
+        ${squareFeetColumn}, ${monthlyRentColumn}, details, highlights, ${dateAvailableColumn}, image_url, ${createdAtColumn}, ${updatedAtColumn}
       FROM properties;
     `);
     database.exec('DROP TABLE properties');
@@ -147,20 +172,22 @@ function ensurePropertiesStatusConstraint(database: Database.Database): void {
   database.exec('CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(type)');
   database.exec('CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city)');
   database.exec('CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status)');
-  database.exec('CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthlyRent)');
+  database.exec('CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthly_rent)');
   database.exec(`
     CREATE TRIGGER IF NOT EXISTS trg_properties_updated_at
     AFTER UPDATE ON properties
     FOR EACH ROW
     BEGIN
-      UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
+      UPDATE properties SET updated_at = datetime('now') WHERE id = NEW.id;
     END;
   `);
 }
 
 function ensurePropertyImagesForeignKeyConstraint(database: Database.Database): void {
   const propertyImagesCreateSql = getTableCreateSql(database, 'property_images');
-  if (!propertyImagesCreateSql.includes('properties_legacy_status')) {
+  const needsFkMigration = propertyImagesCreateSql.includes('properties_legacy_status');
+  const needsSnakeCaseMigration = propertyImagesCreateSql.includes('createdAt');
+  if (!needsFkMigration && !needsSnakeCaseMigration) {
     return;
   }
 
@@ -175,14 +202,21 @@ function ensurePropertyImagesForeignKeyConstraint(database: Database.Database): 
         image_url TEXT NOT NULL,
         description TEXT NOT NULL DEFAULT '',
         sort_order INTEGER NOT NULL DEFAULT 0,
-        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
         UNIQUE(property_id, image_url)
       );
     `);
+    const sourceColumns = getTableColumns(database, 'property_images_legacy_fk');
+    const createdAtColumn = sourceColumns.has('created_at')
+      ? 'created_at'
+      : sourceColumns.has('createdAt')
+        ? 'createdAt'
+        : "datetime('now')";
+    const descriptionColumn = sourceColumns.has('description') ? 'description' : "''";
     database.exec(`
-      INSERT INTO property_images (id, property_id, image_url, description, sort_order, createdAt)
-      SELECT id, property_id, image_url, '', sort_order, createdAt
+      INSERT INTO property_images (id, property_id, image_url, description, sort_order, created_at)
+      SELECT id, property_id, image_url, ${descriptionColumn}, sort_order, ${createdAtColumn}
       FROM property_images_legacy_fk;
     `);
     database.exec('DROP TABLE property_images_legacy_fk');
@@ -200,9 +234,11 @@ function ensurePropertyImagesForeignKeyConstraint(database: Database.Database): 
 
 function ensureApplicationsStatusConstraint(database: Database.Database): void {
   const applicationsCreateSql = getTableCreateSql(database, 'applications');
+  const needsSnakeCaseMigration = applicationsCreateSql.includes('createdAt');
   if (
     applicationsCreateSql.includes('approve-archived') &&
-    !applicationsCreateSql.includes('properties_legacy_status')
+    !applicationsCreateSql.includes('properties_legacy_status') &&
+    !needsSnakeCaseMigration
   ) {
     return;
   }
@@ -231,22 +267,24 @@ function ensureApplicationsStatusConstraint(database: Database.Database): void {
         landlord_phone TEXT,
         additional_info TEXT,
         status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'approve-archived', 'declined', 'deleted')),
-        createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
       );
     `);
+    const sourceColumns = getTableColumns(database, 'applications_legacy_status');
+    const createdAtColumn = sourceColumns.has('created_at') ? 'created_at' : 'createdAt';
     database.exec(`
       INSERT INTO applications (
         id, property_id, property_name, applicant_name, email, phone,
         current_address_street, current_address_city, current_address_state, current_address_zip,
-        current_address_since_date, household_income, move_in_date, total_occupancy,
-        landlord_name, landlord_phone, additional_info, status, createdAt
+        current_address_since_date, household_income, move_in_date, total_occupancy, landlord_name,
+        landlord_phone, additional_info, status, created_at
       )
       SELECT
         id, property_id, property_name, applicant_name, email, phone,
         current_address_street, current_address_city, current_address_state, current_address_zip,
-        current_address_since_date, household_income, move_in_date, total_occupancy,
-        landlord_name, landlord_phone, additional_info, status, createdAt
+        current_address_since_date, household_income, move_in_date, total_occupancy, landlord_name,
+        landlord_phone, additional_info, status, ${createdAtColumn}
       FROM applications_legacy_status;
     `);
     database.exec('DROP TABLE applications_legacy_status');
@@ -263,6 +301,91 @@ function ensureApplicationsStatusConstraint(database: Database.Database): void {
   database.exec('CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status)');
 }
 
+function ensureUsersSnakeCase(database: Database.Database): void {
+  const usersCreateSql = getTableCreateSql(database, 'users');
+  if (!usersCreateSql.includes('createdAt')) {
+    return;
+  }
+
+  database.pragma('foreign_keys = OFF');
+  try {
+    database.exec('BEGIN');
+    database.exec('ALTER TABLE users RENAME TO users_legacy_case');
+    database.exec(`
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL DEFAULT '',
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+    `);
+    const sourceColumns = getTableColumns(database, 'users_legacy_case');
+    const nameColumn = sourceColumns.has('name') ? 'name' : "''";
+    const createdAtColumn = sourceColumns.has('created_at') ? 'created_at' : 'createdAt';
+    database.exec(`
+      INSERT INTO users (id, name, email, password_hash, role, created_at)
+      SELECT id, ${nameColumn}, email, password_hash, role, ${createdAtColumn}
+      FROM users_legacy_case;
+    `);
+    database.exec('DROP TABLE users_legacy_case');
+    database.exec('COMMIT');
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  } finally {
+    database.pragma('foreign_keys = ON');
+  }
+
+  database.exec('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
+}
+
+function ensureAuthSessionsSnakeCase(database: Database.Database): void {
+  const sessionsCreateSql = getTableCreateSql(database, 'auth_sessions');
+  const needsSnakeCaseMigration = sessionsCreateSql.includes('expiresAt') || sessionsCreateSql.includes('createdAt');
+  if (!needsSnakeCaseMigration) {
+    return;
+  }
+
+  database.pragma('foreign_keys = OFF');
+  try {
+    database.exec('BEGIN');
+    database.exec('ALTER TABLE auth_sessions RENAME TO auth_sessions_legacy_case');
+    database.exec(`
+      CREATE TABLE auth_sessions (
+        token TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        expires_at TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+    const sourceColumns = getTableColumns(database, 'auth_sessions_legacy_case');
+    const expiresAtColumn = sourceColumns.has('expires_at') ? 'expires_at' : 'expiresAt';
+    const createdAtColumn = sourceColumns.has('created_at')
+      ? 'created_at'
+      : sourceColumns.has('createdAt')
+        ? 'createdAt'
+        : "datetime('now')";
+    database.exec(`
+      INSERT INTO auth_sessions (token, user_id, expires_at, created_at)
+      SELECT token, user_id, ${expiresAtColumn}, ${createdAtColumn}
+      FROM auth_sessions_legacy_case;
+    `);
+    database.exec('DROP TABLE auth_sessions_legacy_case');
+    database.exec('COMMIT');
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  } finally {
+    database.pragma('foreign_keys = ON');
+  }
+
+  database.exec('CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id)');
+  database.exec('CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at)');
+}
+
 function initializeSchema(database: Database.Database): void {
   if (state.initialized) {
     return;
@@ -277,29 +400,29 @@ function initializeSchema(database: Database.Database): void {
       address TEXT NOT NULL,
       city TEXT NOT NULL,
       state TEXT NOT NULL,
-      zipCode TEXT NOT NULL,
+      zip_code TEXT NOT NULL,
       bedrooms INTEGER NOT NULL,
       bathrooms REAL NOT NULL,
-      squareFeet INTEGER NOT NULL,
-      monthlyRent REAL NOT NULL DEFAULT 0,
+      square_feet INTEGER NOT NULL,
+      monthly_rent REAL NOT NULL DEFAULT 0,
       details TEXT,
       highlights TEXT NOT NULL DEFAULT '[]',
-      dateAvailable TEXT,
+      date_available TEXT,
       image_url TEXT,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-      updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
     CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(type);
     CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
     CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
-    CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthlyRent);
+    CREATE INDEX IF NOT EXISTS idx_properties_monthly_rent ON properties(monthly_rent);
 
     CREATE TRIGGER IF NOT EXISTS trg_properties_updated_at
     AFTER UPDATE ON properties
     FOR EACH ROW
     BEGIN
-      UPDATE properties SET updatedAt = datetime('now') WHERE id = NEW.id;
+      UPDATE properties SET updated_at = datetime('now') WHERE id = NEW.id;
     END;
 
     CREATE TABLE IF NOT EXISTS property_images (
@@ -308,7 +431,7 @@ function initializeSchema(database: Database.Database): void {
       image_url TEXT NOT NULL,
       description TEXT NOT NULL DEFAULT '',
       sort_order INTEGER NOT NULL DEFAULT 0,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
       UNIQUE(property_id, image_url)
     );
@@ -322,14 +445,14 @@ function initializeSchema(database: Database.Database): void {
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
-      createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS auth_sessions (
       token TEXT PRIMARY KEY,
       user_id INTEGER NOT NULL,
-      expiresAt TEXT NOT NULL,
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
@@ -352,17 +475,23 @@ function initializeSchema(database: Database.Database): void {
       landlord_phone TEXT NOT NULL,
       additional_info TEXT,
       status TEXT NOT NULL DEFAULT '' CHECK(status IN ('', 'pending', 'approved', 'approve-archived', 'declined', 'deleted')),
-      createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
     );
 
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_auth_sessions_user_id ON auth_sessions(user_id);
-    CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expiresAt);
+    CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at);
     CREATE INDEX IF NOT EXISTS idx_applications_property_id ON applications(property_id);
     CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
     CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
   `);
+
+  ensurePropertiesStatusConstraint(database);
+  ensurePropertyImagesForeignKeyConstraint(database);
+  ensureUsersSnakeCase(database);
+  ensureAuthSessionsSnakeCase(database);
+  ensureApplicationsStatusConstraint(database);
 
   const propertyColumns = getTableColumns(database, 'properties');
   const propertyImageColumns = getTableColumns(database, 'property_images');
@@ -370,10 +499,10 @@ function initializeSchema(database: Database.Database): void {
   const applicationColumns = getTableColumns(database, 'applications');
 
   addColumnIfMissing(database, propertyColumns, 'properties', 'status', "status TEXT DEFAULT 'available'");
-  addColumnIfMissing(database, propertyColumns, 'properties', 'monthlyRent', 'monthlyRent REAL DEFAULT 0');
+  addColumnIfMissing(database, propertyColumns, 'properties', 'monthly_rent', 'monthly_rent REAL DEFAULT 0');
   addColumnIfMissing(database, propertyColumns, 'properties', 'details', 'details TEXT');
   addColumnIfMissing(database, propertyColumns, 'properties', 'highlights', "highlights TEXT DEFAULT '[]'");
-  addColumnIfMissing(database, propertyColumns, 'properties', 'dateAvailable', 'dateAvailable TEXT');
+  addColumnIfMissing(database, propertyColumns, 'properties', 'date_available', 'date_available TEXT');
   addColumnIfMissing(database, propertyImageColumns, 'property_images', 'description', "description TEXT NOT NULL DEFAULT ''");
   addColumnIfMissing(database, userColumns, 'users', 'name', "name TEXT NOT NULL DEFAULT ''");
   addColumnIfMissing(database, applicationColumns, 'applications', 'current_address_street', 'current_address_street TEXT');
@@ -387,23 +516,19 @@ function initializeSchema(database: Database.Database): void {
   addColumnIfMissing(database, applicationColumns, 'applications', 'additional_info', 'additional_info TEXT');
   addColumnIfMissing(database, applicationColumns, 'applications', 'status', "status TEXT NOT NULL DEFAULT ''");
 
-  ensurePropertiesStatusConstraint(database);
-  ensurePropertyImagesForeignKeyConstraint(database);
-  ensureApplicationsStatusConstraint(database);
-
   database.prepare(`
     UPDATE properties
     SET status = COALESCE(status, ?),
         highlights = COALESCE(NULLIF(highlights, ''), '[]')
   `).run('available');
 
-  database.prepare("UPDATE properties SET dateAvailable = COALESCE(dateAvailable, date('now')) WHERE status = 'available' AND (dateAvailable IS NULL OR dateAvailable = '')").run();
+  database.prepare("UPDATE properties SET date_available = COALESCE(date_available, date('now')) WHERE status = 'available' AND (date_available IS NULL OR date_available = '')").run();
 
   const propertyCount = database.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
   if (propertyCount.count === 0) {
     const seed = database.prepare(`
       INSERT INTO properties (
-        name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url
+        name, type, status, address, city, state, zip_code, bedrooms, bathrooms, square_feet, monthly_rent, details, highlights, date_available, image_url
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
@@ -457,7 +582,7 @@ function initializeSchema(database: Database.Database): void {
 
   database.prepare(`
     UPDATE properties
-    SET dateAvailable = COALESCE(NULLIF(dateAvailable, ''), date('now')),
+    SET date_available = COALESCE(NULLIF(date_available, ''), date('now')),
         highlights = COALESCE(NULLIF(highlights, ''), '[]'),
         status = COALESCE(NULLIF(status, ''), 'available')
   `).run();
@@ -499,7 +624,7 @@ function initializeSchema(database: Database.Database): void {
       .run(hashPassword(adminPassword), adminEmail);
   }
 
-  database.prepare(`DELETE FROM auth_sessions WHERE datetime(expiresAt) <= datetime('now')`).run();
+  database.prepare(`DELETE FROM auth_sessions WHERE datetime(expires_at) <= datetime('now')`).run();
   state.initialized = true;
 }
 

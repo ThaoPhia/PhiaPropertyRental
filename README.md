@@ -196,15 +196,15 @@ CREATE TABLE properties (
   address TEXT NOT NULL,
   city TEXT NOT NULL,
   state TEXT NOT NULL,
-  zipCode TEXT NOT NULL,
+  zip_code TEXT NOT NULL,
   bedrooms INTEGER NOT NULL,
   bathrooms REAL NOT NULL,
-  squareFeet INTEGER NOT NULL,
-  price REAL NOT NULL,
-  description TEXT,
+  square_feet INTEGER NOT NULL,
+  monthly_rent REAL NOT NULL,
+  details TEXT,
   image_url TEXT,
-  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
-  updatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE property_images (
@@ -212,7 +212,7 @@ CREATE TABLE property_images (
   property_id INTEGER NOT NULL,
   image_url TEXT NOT NULL,
   sort_order INTEGER NOT NULL DEFAULT 0,
-  createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE,
   UNIQUE(property_id, image_url)
 );

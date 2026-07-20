@@ -46,9 +46,9 @@ export default async function CMSCreatePage() {
   };
 
   const recentProperties = db.prepare(`
-    SELECT id, name, status, city, state, createdAt
+    SELECT id, name, status, city, state, created_at as createdAt
     FROM properties
-    ORDER BY datetime(createdAt) DESC
+    ORDER BY datetime(created_at) DESC
     LIMIT 5
   `).all() as Array<{
     id: number;
@@ -60,9 +60,9 @@ export default async function CMSCreatePage() {
   }>;
 
   const recentApplications = db.prepare(`
-    SELECT id, applicant_name, property_name, status, createdAt
+    SELECT id, applicant_name, property_name, status, created_at as createdAt
     FROM applications
-    ORDER BY datetime(createdAt) DESC
+    ORDER BY datetime(created_at) DESC
     LIMIT 5
   `).all() as Array<{
     id: number;

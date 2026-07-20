@@ -15,7 +15,7 @@ export default async function PropertiesPage() {
   const rows = db.prepare(`
     SELECT * FROM properties
     WHERE status != 'removed'
-    ORDER BY datetime(createdAt) DESC
+    ORDER BY datetime(created_at) DESC
   `).all() as Record<string, unknown>[];
 
   const properties = rows.map((row) => normalizePropertyRow(row));

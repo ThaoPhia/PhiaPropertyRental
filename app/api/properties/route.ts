@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       query += " AND status != 'removed'";
     }
 
-    const rows = db.prepare(`${query} ORDER BY datetime(createdAt) DESC`).all(...params) as Record<string, unknown>[];
+    const rows = db.prepare(`${query} ORDER BY datetime(created_at) DESC`).all(...params) as Record<string, unknown>[];
     const properties = rows.map((row) => normalizePropertyRow(row));
 
     return NextResponse.json(properties);
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     const insertProperty = db.prepare(
       `INSERT INTO properties 
-       (name, type, status, address, city, state, zipCode, bedrooms, bathrooms, squareFeet, monthlyRent, details, highlights, dateAvailable, image_url)
+       (name, type, status, address, city, state, zip_code, bedrooms, bathrooms, square_feet, monthly_rent, details, highlights, date_available, image_url)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
 

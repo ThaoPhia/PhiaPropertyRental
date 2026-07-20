@@ -19,7 +19,7 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
     SELECT id
     FROM properties
     WHERE status != 'removed'
-    ORDER BY datetime(createdAt) DESC
+    ORDER BY datetime(created_at) DESC
   `).all() as { id: number }[];
 
   return rows.map((row) => ({ id: String(row.id) }));
@@ -45,7 +45,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
     SELECT id, name
     FROM properties
     WHERE status != 'removed'
-    ORDER BY datetime(createdAt) DESC
+    ORDER BY datetime(created_at) DESC
   `).all() as { id: number; name: string }[];
 
   const currentIndex = rows.findIndex((item) => item.id === id);

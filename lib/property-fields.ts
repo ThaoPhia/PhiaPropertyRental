@@ -56,10 +56,14 @@ export function serializePropertyHighlights(highlights: PropertyHighlight[] | st
 }
 
 export function normalizePropertyRow(row: Record<string, unknown>): Property {
-  const monthlyRent = Number(row.monthlyRent ?? 0);
+  const monthlyRent = Number(row.monthlyRent ?? row.monthly_rent ?? 0);
   const details = String(row.details ?? row.description ?? '');
   const status = (row.status as Property['status'] | undefined) || DEFAULT_STATUS;
-  const dateAvailable = row.dateAvailable ? String(row.dateAvailable) : null;
+  const dateAvailable = row.dateAvailable
+    ? String(row.dateAvailable)
+    : row.date_available
+      ? String(row.date_available)
+      : null;
   const highlightsValue = row.highlights;
 
   let highlights: PropertyHighlight[] = [];
@@ -91,10 +95,10 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     address: String(row.address ?? ''),
     city: String(row.city ?? ''),
     state: String(row.state ?? ''),
-    zipCode: String(row.zipCode ?? ''),
+    zipCode: String(row.zipCode ?? row.zip_code ?? ''),
     bedrooms: Number(row.bedrooms ?? 0),
     bathrooms: Number(row.bathrooms ?? 0),
-    squareFeet: Number(row.squareFeet ?? 0),
+    squareFeet: Number(row.squareFeet ?? row.square_feet ?? 0),
     monthlyRent,
     details,
     highlights,
@@ -102,7 +106,15 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     image_url: typeof row.image_url === 'string' ? row.image_url : undefined,
     images: Array.isArray(row.images) ? (row.images as string[]) : undefined,
     galleryImages,
-    createdAt: row.createdAt ? new Date(String(row.createdAt)) : new Date(),
-    updatedAt: row.updatedAt ? new Date(String(row.updatedAt)) : new Date(),
+    createdAt: row.createdAt
+      ? new Date(String(row.createdAt))
+      : row.created_at
+        ? new Date(String(row.created_at))
+        : new Date(),
+    updatedAt: row.updatedAt
+      ? new Date(String(row.updatedAt))
+      : row.updated_at
+        ? new Date(String(row.updated_at))
+        : new Date(),
   };
 }

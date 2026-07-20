@@ -135,7 +135,7 @@ async function getLegacyAuthenticatedAdminByToken(token: string): Promise<Authen
     FROM auth_sessions s
     JOIN users u ON u.id = s.user_id
     WHERE s.token = ?
-      AND datetime(s.expiresAt) > datetime('now')
+      AND datetime(s.expires_at) > datetime('now')
   `).get(token) as AuthenticatedAdmin | undefined;
 
   if (!user || user.role !== 'admin') {

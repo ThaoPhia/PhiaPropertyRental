@@ -16,8 +16,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
-    passwordHash TEXT NOT NULL,
-    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS properties (
@@ -26,15 +26,15 @@ db.exec(`
     location TEXT NOT NULL,
     bedrooms INTEGER,
     bathrooms REAL,
-    squareFeet INTEGER,
+    square_feet INTEGER,
     type TEXT,
     status TEXT DEFAULT 'available',
-    monthlyRent REAL DEFAULT 0,
+    monthly_rent REAL DEFAULT 0,
     details TEXT,
     highlights TEXT DEFAULT '[]',
-    dateAvailable TEXT,
-    imageUrls TEXT NOT NULL DEFAULT '[]',
-    createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+    date_available TEXT,
+    image_urls TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS applications (
@@ -55,7 +55,7 @@ db.exec(`
     landlord_name TEXT NOT NULL,
     landlord_phone TEXT NOT NULL,
     additional_info TEXT,
-    createdAt TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY(property_id) REFERENCES properties(id) ON DELETE CASCADE
   );
 `);
@@ -190,7 +190,7 @@ try {
   if (propertyCount.count === 0) {
     console.log('No properties found. Creating sample properties...');
     const insertProp = db.prepare(`
-      INSERT INTO properties (name, location, bedrooms, bathrooms, squareFeet, type, status, monthlyRent, details, imageUrls)
+      INSERT INTO properties (name, location, bedrooms, bathrooms, square_feet, type, status, monthly_rent, details, image_urls)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '[]')
     `);
 

@@ -148,7 +148,7 @@ export async function PUT(
 
     const result = db.prepare(
       `UPDATE properties 
-       SET name=?, type=?, status=?, address=?, city=?, state=?, zipCode=?, bedrooms=?, bathrooms=?, squareFeet=?, monthlyRent=?, details=?, highlights=?, dateAvailable=?, image_url=?
+       SET name=?, type=?, status=?, address=?, city=?, state=?, zip_code=?, bedrooms=?, bathrooms=?, square_feet=?, monthly_rent=?, details=?, highlights=?, date_available=?, image_url=?
        WHERE id=?`,
     ).run(
       name,
