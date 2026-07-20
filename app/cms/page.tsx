@@ -106,6 +106,20 @@ export default async function CMSCreatePage() {
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Link href="/properties">
+            <div className="p-4 bg-white rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-gray-200 hover:border-blue-600">
+              <h3 className="font-semibold text-gray-900">All Properties</h3>
+              <p className="text-sm text-gray-600">View and manage all properties</p>
+            </div>
+          </Link>
+          <Link href="/cms/create">
+            <div className="p-4 bg-blue-50 rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-blue-600">
+              <h3 className="font-semibold text-gray-900">Create New</h3>
+              <p className="text-sm text-gray-600">Add a new property listing</p>
+            </div>
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
           {propertyStats.map((stat) => (
             <div key={stat.label} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -124,40 +138,7 @@ export default async function CMSCreatePage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href="/properties">
-            <div className="p-4 bg-white rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-gray-200 hover:border-blue-600">
-              <h3 className="font-semibold text-gray-900">All Properties</h3>
-              <p className="text-sm text-gray-600">View and manage all properties</p>
-            </div>
-          </Link>
-          <Link href="/cms/create">
-            <div className="p-4 bg-blue-50 rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-blue-600">
-              <h3 className="font-semibold text-gray-900">Create New</h3>
-              <p className="text-sm text-gray-600">Add a new property listing</p>
-            </div>
-          </Link>
-          <div className="p-4 bg-white rounded-lg shadow border-2 border-gray-200">
-            <h3 className="font-semibold text-gray-900">Admin Profile</h3>
-            <dl className="mt-3 space-y-2 text-sm text-gray-600">
-              <div>
-                <dt className="font-medium text-gray-900">Name</dt>
-                <dd>{admin.name || 'Admin'}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-gray-900">Email</dt>
-                <dd>{admin.email}</dd>
-              </div>
-              <div>
-                <dt className="font-medium text-gray-900">Role</dt>
-                <dd className="capitalize">{admin.role}</dd>
-              </div>
-            </dl>
-            <Link href="/cms/profile" className="mt-4 inline-block text-blue-600 hover:underline">
-              Update profile
-            </Link>
-          </div>
-        </div>
+
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
