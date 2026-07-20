@@ -185,9 +185,9 @@ const sampleProperties = [
 
 try {
   // Check if we need to insert sample properties
-  const propertyCount = db.prepare('SELECT COUNT(*) as count FROM properties').get();
+  const propertyCount = db.prepare('SELECT COUNT(*) FROM properties').pluck().get();
 
-  if (propertyCount.count === 0) {
+  if ((propertyCount ?? 0) === 0) {
     console.log('No properties found. Creating sample properties...');
     const insertProp = db.prepare(`
       INSERT INTO properties (name, location, bedrooms, bathrooms, square_feet, type, status, monthly_rent, details, image_urls)
@@ -209,7 +209,7 @@ try {
     }
     console.log(`✓ Created ${sampleProperties.length} sample properties`);
   } else {
-    console.log(`✓ Found ${propertyCount.count} existing properties`);
+    console.log(`✓ Found ${propertyCount ?? 0} existing properties`);
   }
 
   // Get all properties

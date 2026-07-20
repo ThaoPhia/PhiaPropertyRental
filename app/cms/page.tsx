@@ -13,40 +13,24 @@ export default async function CMSCreatePage() {
   await ensureDbReady();
   const db = getDb();
 
-  const propertySummary = db.prepare(`
-    SELECT
-      COUNT(*) AS total,
-      SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) AS available,
-      SUM(CASE WHEN status = 'occupied' THEN 1 ELSE 0 END) AS occupied,
-      SUM(CASE WHEN status = 'coming soon' THEN 1 ELSE 0 END) AS comingSoon,
-      SUM(CASE WHEN status = 'removed' THEN 1 ELSE 0 END) AS removed
-    FROM properties
-  `).get() as {
-    total: number | null;
-    available: number | null;
-    occupied: number | null;
-    comingSoon: number | null;
-    removed: number | null;
+  const propertySummary = {
+    total: db.prepare('SELECT COUNT(*) FROM properties').pluck().get() as number | null,
+    available: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'available'").pluck().get() as number | null,
+    occupied: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'occupied'").pluck().get() as number | null,
+    comingSoon: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'coming soon'").pluck().get() as number | null,
+    removed: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'removed'").pluck().get() as number | null,
   };
 
-  const applicationSummary = db.prepare(`
-    SELECT
-      COUNT(*) AS total,
-      SUM(CASE WHEN status IN ('', 'pending') THEN 1 ELSE 0 END) AS pending,
-      SUM(CASE WHEN status IN ('approved', 'approve-archived') THEN 1 ELSE 0 END) AS approved,
-      SUM(CASE WHEN status = 'declined' THEN 1 ELSE 0 END) AS declined,
-      SUM(CASE WHEN status = 'deleted' THEN 1 ELSE 0 END) AS deleted
-    FROM applications
-  `).get() as {
-    total: number | null;
-    pending: number | null;
-    approved: number | null;
-    declined: number | null;
-    deleted: number | null;
+  const applicationSummary = {
+    total: db.prepare('SELECT COUNT(*) FROM applications').pluck().get() as number | null,
+    pending: db.prepare("SELECT COUNT(*) FROM applications WHERE status IN ('', 'pending')").pluck().get() as number | null,
+    approved: db.prepare("SELECT COUNT(*) FROM applications WHERE status IN ('approved', 'approve-archived')").pluck().get() as number | null,
+    declined: db.prepare("SELECT COUNT(*) FROM applications WHERE status = 'declined'").pluck().get() as number | null,
+    deleted: db.prepare("SELECT COUNT(*) FROM applications WHERE status = 'deleted'").pluck().get() as number | null,
   };
 
   const recentProperties = db.prepare(`
-    SELECT id, name, status, city, state, created_at as createdAt
+    SELECT id, name, status, city, state, created_at
     FROM properties
     ORDER BY datetime(created_at) DESC
     LIMIT 5
@@ -56,11 +40,11 @@ export default async function CMSCreatePage() {
     status: string;
     city: string;
     state: string;
-    createdAt: string;
+    created_at: string;
   }>;
 
   const recentApplications = db.prepare(`
-    SELECT id, applicant_name, property_name, status, created_at as createdAt
+    SELECT id, applicant_name, property_name, status, created_at
     FROM applications
     ORDER BY datetime(created_at) DESC
     LIMIT 5
@@ -69,7 +53,7 @@ export default async function CMSCreatePage() {
     applicant_name: string;
     property_name: string;
     status: string;
-    createdAt: string;
+    created_at: string;
   }>;
 
   const propertyStats = [
@@ -169,7 +153,7 @@ export default async function CMSCreatePage() {
                     <div className="text-right">
                       <p className="text-sm font-medium capitalize text-gray-700">{property.status}</p>
                       <p className="text-xs text-gray-500">
-                        {new Date(property.createdAt).toLocaleDateString()}
+                        {new Date(property.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -204,7 +188,7 @@ export default async function CMSCreatePage() {
                         {application.status || 'pending'}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {new Date(application.createdAt).toLocaleDateString()}
+                        {new Date(application.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

@@ -170,10 +170,10 @@ export default function PropertyDetailClient({
     ? 'Currently occupied'
     : property.status === 'removed'
       ? 'Removed'
-      : property.dateAvailable
-        ? new Date(property.dateAvailable).toLocaleDateString()
+      : property.date_available
+        ? new Date(property.date_available).toLocaleDateString()
         : 'Soon';
-  const galleryImages = property.galleryImages ?? (property.images ?? []).map((url) => ({
+  const galleryImages = property.gallery_images ?? (property.images ?? []).map((url) => ({
     url,
     description: '',
   }));
@@ -247,7 +247,7 @@ export default function PropertyDetailClient({
               </div>
               {property.status !== 'occupied' && (
                   <p className="text-4xl font-bold text-green-600">
-                    ${property.monthlyRent.toLocaleString()}
+                    ${property.monthly_rent.toLocaleString()}
                     <span className="text-lg font-medium text-gray-500">/mo</span>
                   </p>
               )}
@@ -255,7 +255,7 @@ export default function PropertyDetailClient({
 
             <div className="mb-6">
               <p className="text-lg text-gray-700">
-                {property.address}, {property.city}, {property.state} {property.zipCode}
+                {property.address}, {property.city}, {property.state} {property.zip_code}
               </p>
             </div>
 
@@ -271,7 +271,7 @@ export default function PropertyDetailClient({
               <div>
                 <p className="text-gray-600 text-sm">Square Feet</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {property.squareFeet.toLocaleString()}
+                  {property.square_feet.toLocaleString()}
                 </p>
               </div>
               <div>

@@ -7,27 +7,27 @@ export async function GET() {
   try {
     await ensureDbReady();
     const db = getDb();
-    const applications = db.prepare(`
+    const rows = db.prepare(`
       SELECT 
         id, 
-        applicant_name as applicantName,
+        applicant_name,
         email,
         phone,
-        current_address_street as currentAddressStreet,
-        current_address_city as currentAddressCity,
-        current_address_state as currentAddressState,
-        current_address_zip as currentAddressZip,
-        current_address_since_date as currentAddressSinceDate,
-        household_income as householdIncome,
-        move_in_date as moveInDate,
-        total_occupancy as totalOccupancy,
-        landlord_name as landlordName,
-        landlord_phone as landlordPhone,
-        additional_info as additionalInfo,
-        property_id as propertyId,
-        property_name as propertyName,
+        current_address_street,
+        current_address_city,
+        current_address_state,
+        current_address_zip,
+        current_address_since_date,
+        household_income,
+        move_in_date,
+        total_occupancy,
+        landlord_name,
+        landlord_phone,
+        additional_info,
+        property_id,
+        property_name,
         status,
-        created_at as createdAt
+        created_at
       FROM applications
       ORDER BY 
         CASE status
@@ -39,6 +39,28 @@ export async function GET() {
         END,
         datetime(created_at) DESC
     `).all();
+
+    const applications = (rows as Record<string, unknown>[]).map((row) => ({
+      id: Number(row.id),
+      applicantName: String(row.applicant_name ?? ''),
+      email: String(row.email ?? ''),
+      phone: String(row.phone ?? ''),
+      currentAddressStreet: String(row.current_address_street ?? ''),
+      currentAddressCity: String(row.current_address_city ?? ''),
+      currentAddressState: String(row.current_address_state ?? ''),
+      currentAddressZip: String(row.current_address_zip ?? ''),
+      currentAddressSinceDate: String(row.current_address_since_date ?? ''),
+      householdIncome: Number(row.household_income ?? 0),
+      moveInDate: String(row.move_in_date ?? ''),
+      totalOccupancy: Number(row.total_occupancy ?? 0),
+      landlordName: String(row.landlord_name ?? ''),
+      landlordPhone: String(row.landlord_phone ?? ''),
+      additionalInfo: row.additional_info ? String(row.additional_info) : '',
+      propertyId: Number(row.property_id),
+      propertyName: String(row.property_name ?? ''),
+      status: row.status ? String(row.status) : '',
+      createdAt: String(row.created_at ?? ''),
+    }));
 
     return NextResponse.json(applications);
   } catch (error) {

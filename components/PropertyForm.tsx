@@ -32,7 +32,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [error, setError] = useState('');
   const initialImages = (() => {
-    const galleryImages = initialData?.galleryImages ?? (initialData?.images ?? []).map((url) => ({
+    const galleryImages = initialData?.gallery_images ?? (initialData?.images ?? []).map((url) => ({
       url,
       description: '',
     }));
@@ -76,13 +76,13 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
           address: initialData.address,
           city: initialData.city,
           state: initialData.state,
-          zipCode: initialData.zipCode,
+          zipCode: initialData.zip_code,
           bedrooms: initialData.bedrooms,
           bathrooms: initialData.bathrooms,
-          squareFeet: initialData.squareFeet,
-          monthlyRent: initialData.monthlyRent,
+          squareFeet: initialData.square_feet,
+          monthlyRent: initialData.monthly_rent,
           details: initialData.details,
-          dateAvailable: initialData.dateAvailable ?? '',
+          dateAvailable: initialData.date_available ?? '',
           image_url: initialData.image_url,
         }
       : {

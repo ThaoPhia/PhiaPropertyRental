@@ -44,6 +44,6 @@ export async function getPropertyWithImages(id: number): Promise<Property | null
     ...property,
     image_url: uniqueGalleryImages[0]?.url || property.image_url,
     images: uniqueGalleryImages.map((image) => image.url),
-    galleryImages: uniqueGalleryImages,
+    gallery_images: uniqueGalleryImages,
   };
 }

@@ -6,19 +6,19 @@ export interface Property {
   address: string;
   city: string;
   state: string;
-  zipCode: string;
+  zip_code: string;
   bedrooms: number;
   bathrooms: number;
-  squareFeet: number;
-  monthlyRent: number;
+  square_feet: number;
+  monthly_rent: number;
   details: string;
   highlights: PropertyHighlight[];
-  dateAvailable: string | null;
+  date_available: string | null;
   image_url?: string;
   images?: string[];
-  galleryImages?: PropertyImage[];
-  createdAt: Date;
-  updatedAt: Date;
+  gallery_images?: PropertyImage[];
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface PropertyFormData {

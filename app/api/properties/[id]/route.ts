@@ -98,7 +98,7 @@ export async function PUT(
       newImageDescriptions,
     } = body;
 
-    const existingImages = currentProperty.galleryImages ?? (currentProperty.images ?? []).map((url) => ({
+    const existingImages = currentProperty.gallery_images ?? (currentProperty.images ?? []).map((url) => ({
       url,
       description: '',
     }));
@@ -229,17 +229,17 @@ export async function PUT(
       address,
       city,
       state,
-      zipCode,
+      zip_code: zipCode,
       bedrooms,
       bathrooms,
-      squareFeet,
-      monthlyRent,
+      square_feet: squareFeet,
+      monthly_rent: monthlyRent,
       details,
       highlights: parsedHighlights,
-      dateAvailable: dateAvailable || null,
+      date_available: dateAvailable || null,
       image_url: nextImageUrl,
       images: finalOrderedImages.map((image) => image.url),
-      galleryImages: finalOrderedImages,
+      gallery_images: finalOrderedImages,
       redeployTriggered: redeployResult.triggered,
       redeployError: redeployResult.error ?? null,
     });

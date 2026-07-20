@@ -56,14 +56,10 @@ export function serializePropertyHighlights(highlights: PropertyHighlight[] | st
 }
 
 export function normalizePropertyRow(row: Record<string, unknown>): Property {
-  const monthlyRent = Number(row.monthlyRent ?? row.monthly_rent ?? 0);
+  const monthly_rent = Number(row.monthly_rent ?? 0);
   const details = String(row.details ?? row.description ?? '');
   const status = (row.status as Property['status'] | undefined) || DEFAULT_STATUS;
-  const dateAvailable = row.dateAvailable
-    ? String(row.dateAvailable)
-    : row.date_available
-      ? String(row.date_available)
-      : null;
+  const date_available = row.date_available ? String(row.date_available) : null;
   const highlightsValue = row.highlights;
 
   let highlights: PropertyHighlight[] = [];
@@ -80,8 +76,8 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     }
   }
 
-  const galleryImagesValue = row.galleryImages;
-  const galleryImages = Array.isArray(galleryImagesValue)
+  const galleryImagesValue = row.gallery_images;
+  const gallery_images = Array.isArray(galleryImagesValue)
     ? galleryImagesValue
         .filter(isPropertyImage)
         .map((image) => ({ url: image.url, description: image.description.trim() }))
@@ -95,26 +91,18 @@ export function normalizePropertyRow(row: Record<string, unknown>): Property {
     address: String(row.address ?? ''),
     city: String(row.city ?? ''),
     state: String(row.state ?? ''),
-    zipCode: String(row.zipCode ?? row.zip_code ?? ''),
+    zip_code: String(row.zip_code ?? ''),
     bedrooms: Number(row.bedrooms ?? 0),
     bathrooms: Number(row.bathrooms ?? 0),
-    squareFeet: Number(row.squareFeet ?? row.square_feet ?? 0),
-    monthlyRent,
+    square_feet: Number(row.square_feet ?? 0),
+    monthly_rent,
     details,
     highlights,
-    dateAvailable,
+    date_available,
     image_url: typeof row.image_url === 'string' ? row.image_url : undefined,
     images: Array.isArray(row.images) ? (row.images as string[]) : undefined,
-    galleryImages,
-    createdAt: row.createdAt
-      ? new Date(String(row.createdAt))
-      : row.created_at
-        ? new Date(String(row.created_at))
-        : new Date(),
-    updatedAt: row.updatedAt
-      ? new Date(String(row.updatedAt))
-      : row.updated_at
-        ? new Date(String(row.updated_at))
-        : new Date(),
+    gallery_images,
+    created_at: row.created_at ? new Date(String(row.created_at)) : new Date(),
+    updated_at: row.updated_at ? new Date(String(row.updated_at)) : new Date(),
   };
 }

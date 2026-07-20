@@ -50,7 +50,7 @@ export default async function CMSEditPage({ params }: CMSEditPageProps) {
             <p className="text-sm text-gray-600 mb-6">
               Signed in as {admin.name || 'Admin'} ({admin.email})
             </p>
-            <PropertyForm key={`${property.id}-${property.updatedAt.toISOString()}`} initialData={property} />
+            <PropertyForm key={`${property.id}-${property.updated_at.toISOString()}`} initialData={property} />
           </div>
         )}
       </div>

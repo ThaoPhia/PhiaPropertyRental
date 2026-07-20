@@ -14,15 +14,15 @@ interface PropertyCardProps {
 
 export default function PropertyCard({ property }: PropertyCardProps) {
   const { admin } = useAdminSession();
-  const address = `${property.address}, ${property.city}, ${property.state} ${property.zipCode}`;
+  const address = `${property.address}, ${property.city}, ${property.state} ${property.zip_code}`;
   const highlights = Array.isArray(property.highlights) ? property.highlights : [];
   const hasHighlights = highlights.length > 0;
   const availabilityText = property.status === 'occupied'
     ? 'Occupied'
     : property.status === 'removed'
       ? 'Removed'
-      : property.dateAvailable
-        ? new Date(property.dateAvailable).toLocaleDateString()
+      : property.date_available
+        ? new Date(property.date_available).toLocaleDateString()
         : 'Now';
 
   return (
@@ -56,7 +56,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </Badge>
             {property.status !== 'occupied' && (
               <Badge variant="price">
-                ${property.monthlyRent.toLocaleString()}/mo
+                ${property.monthly_rent.toLocaleString()}/mo
               </Badge>
             )}
           </div>
@@ -77,7 +77,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
           <div className="rounded-xl bg-slate-50 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Sq Ft</p>
-            <p className="text-xl font-semibold text-slate-900">{property.squareFeet.toLocaleString()}</p>
+            <p className="text-xl font-semibold text-slate-900">{property.square_feet.toLocaleString()}</p>
           </div>
           <div className="rounded-xl bg-slate-50 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-500">Availability</p>

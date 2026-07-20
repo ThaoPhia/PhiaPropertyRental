@@ -524,8 +524,8 @@ function initializeSchema(database: Database.Database): void {
 
   database.prepare("UPDATE properties SET date_available = COALESCE(date_available, date('now')) WHERE status = 'available' AND (date_available IS NULL OR date_available = '')").run();
 
-  const propertyCount = database.prepare('SELECT COUNT(*) as count FROM properties').get() as { count: number };
-  if (propertyCount.count === 0) {
+  const propertyCount = database.prepare('SELECT COUNT(*) FROM properties').pluck().get() as number | null;
+  if ((propertyCount ?? 0) === 0) {
     const seed = database.prepare(`
       INSERT INTO properties (
         name, type, status, address, city, state, zip_code, bedrooms, bathrooms, square_feet, monthly_rent, details, highlights, date_available, image_url
