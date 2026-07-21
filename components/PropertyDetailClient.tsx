@@ -178,6 +178,12 @@ export default function PropertyDetailClient({
     description: '',
   }));
   const primaryImageDescription = galleryImages.find((image) => image.url === property.image_url)?.description;
+  const locationAddress = [property.address, property.city, property.state, property.zip_code]
+    .filter((part) => part.length > 0)
+    .join(', ');
+  const mapQuery = encodeURIComponent(locationAddress || property.name);
+  const mapEmbedUrl = `https://www.google.com/maps?q=${mapQuery}&output=embed`;
+  const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
 
   return (
       <div>
@@ -313,6 +319,27 @@ export default function PropertyDetailClient({
                   </div>
                 </div>
             )}
+
+            <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold text-gray-900">Location</h2>
+                <Button asChild variant="secondary">
+                  <a href={mapSearchUrl} target="_blank" rel="noreferrer">
+                    Open in Google Maps
+                  </a>
+                </Button>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-gray-200">
+                <iframe
+                  title={`Map of ${property.name}`}
+                  src={mapEmbedUrl}
+                  className="h-[480px] w-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
 
             {(property.status === PropertyStatus.AVAILABLE || property.status === PropertyStatus.COMING_SOON) && (
                 <ApplyNowForm
