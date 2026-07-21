@@ -42,6 +42,17 @@ export default async function CMSCreatePage() {
     state: string;
     created_at: string;
   }>;
+  const occupiedApplicants = db.prepare(`
+    SELECT property_id, applicant_name
+    FROM applications
+    WHERE status = 'approved'
+  `).all() as Array<{
+    property_id: number;
+    applicant_name: string;
+  }>;
+  const occupiedApplicantByPropertyId = new Map<number, string>(
+    occupiedApplicants.map((row) => [row.property_id, row.applicant_name])
+  );
 
   const recentApplications = db.prepare(`
     SELECT id, applicant_name, property_name, status, created_at
@@ -149,6 +160,11 @@ export default async function CMSCreatePage() {
                       <p className="text-sm text-gray-500">
                         {property.city}, {property.state}
                       </p>
+                      {property.status === 'occupied' && occupiedApplicantByPropertyId.has(property.id) && (
+                        <p className="text-xs text-emerald-700">
+                          Current applicant: {occupiedApplicantByPropertyId.get(property.id)}
+                        </p>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium capitalize text-gray-700">{property.status}</p>
