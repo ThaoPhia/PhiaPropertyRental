@@ -3,7 +3,6 @@ import { Property, PropertyImage } from '@/lib/types';
 import { normalizePropertyRow } from '@/lib/property-fields';
 
 export async function getPropertyWithImages(id: number): Promise<Property | null> {
-  // TEST
   await ensureDbReady();
   const db = getDb();
   const propertyRow = db.prepare('SELECT * FROM properties WHERE id = ?').get(id) as
