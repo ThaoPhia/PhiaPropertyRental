@@ -3,7 +3,10 @@ interface VercelRedeployResult {
   error?: string;
 }
 
-export async function triggerVercelRedeploy(reason: string): Promise<VercelRedeployResult> {
+export async function triggerVercelRedeploy(
+  reason: string,
+  source = 'properties-api'
+): Promise<VercelRedeployResult> {
   const deployHookUrl = process.env.VERCEL_DEPLOY_HOOK_URL?.trim();
 
   if (!deployHookUrl) {
@@ -21,7 +24,7 @@ export async function triggerVercelRedeploy(reason: string): Promise<VercelRedep
       },
       body: JSON.stringify({
         reason,
-        source: 'properties-api',
+        source,
       }),
     });
 

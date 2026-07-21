@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
+import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 function parseString(value: unknown): string {
   return String(value ?? '').trim();
@@ -108,10 +109,13 @@ export async function POST(request: NextRequest) {
 
   const result = createManualApplication();
   await persistDbToCloudStorage();
+  const redeployResult = await triggerVercelRedeploy(`manual-applicant-created:${propertyId}`, 'manual-applicant-api');
 
   return NextResponse.json({
     success: true,
     applicationId: result.lastInsertRowid,
     propertyId,
+    redeployTriggered: redeployResult.triggered,
+    redeployError: redeployResult.error ?? null,
   }, { status: 201 });
 }
