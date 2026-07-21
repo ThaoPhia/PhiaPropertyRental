@@ -5,6 +5,7 @@ import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { parsePropertyHighlights } from '@/lib/property-fields';
 import { normalizePropertyRow } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
+import { PropertyStatus } from '@/lib/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 export async function GET(request: NextRequest) {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!includeRemoved) {
-      query += " AND status != 'removed'";
+      query += ` AND status != '${PropertyStatus.REMOVED}'`;
     }
 
     const rows = db.prepare(`${query} ORDER BY datetime(created_at) DESC`).all(...params) as Record<string, unknown>[];
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
       const result = insertProperty.run(
         name,
         type,
-        status || 'available',
+        status || PropertyStatus.AVAILABLE,
         address,
         city,
         state,

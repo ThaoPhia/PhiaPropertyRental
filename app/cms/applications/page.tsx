@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ApplicationStatus } from '@/lib/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { ApplicationsListPanel } from './components/ApplicationsListPanel';
 import { ApplicationDetailsPanel } from './components/ApplicationDetailsPanel';
@@ -15,7 +16,7 @@ export default function ApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | null>(null);
   const [dateFromFilter, setDateFromFilter] = useState<string>('');
   const [dateToFilter, setDateToFilter] = useState<string>('');
 
@@ -49,7 +50,7 @@ export default function ApplicationsPage() {
 
   const getFilteredApplications = () => {
     return applications.filter((app) => {
-      if (statusFilter === null && app.status === 'deleted') return false;
+      if (statusFilter === null && app.status === ApplicationStatus.DELETED) return false;
       if (statusFilter && app.status !== statusFilter) return false;
       
       if (dateFromFilter) {

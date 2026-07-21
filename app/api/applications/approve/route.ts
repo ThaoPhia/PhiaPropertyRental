@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
+import { ApplicationStatus } from '@/lib/types';
 import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '../types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -67,7 +68,7 @@ function getApplicationById(applicationId: number): ApplicationRecord | undefine
   const db = getDb();
   return db
     .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
-    .get(applicationId, 'deleted') as ApplicationRecord | undefined;
+    .get(applicationId, ApplicationStatus.DELETED) as ApplicationRecord | undefined;
 }
 
 function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId: number): DeclinedApplicantNotificationTarget[] {
@@ -75,7 +76,7 @@ function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId
   return db.prepare(`
     SELECT id, email, applicant_name, property_name
     FROM applications
-    WHERE property_id = ? AND id != ? AND status NOT IN ('deleted', 'declined', 'approved', 'approve-archived')
+    WHERE property_id = ? AND id != ? AND status NOT IN ('${ApplicationStatus.DELETED}', '${ApplicationStatus.DECLINED}', '${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')
   `).all(propertyId, approvedApplicationId) as DeclinedApplicantNotificationTarget[];
 }
 
@@ -84,15 +85,15 @@ function updateApplicationStatuses(propertyId: number, approvedApplicationId: nu
   // Set declined for all other applications for the same property that are not already deleted, declined, or approved
   db.prepare(`
     UPDATE applications
-    SET status = 'declined'
-    WHERE property_id = ? AND id != ? AND status NOT IN ('deleted', 'declined', 'approved', 'approve-archived')
+    SET status = '${ApplicationStatus.DECLINED}'
+    WHERE property_id = ? AND id != ? AND status NOT IN ('${ApplicationStatus.DELETED}', '${ApplicationStatus.DECLINED}', '${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')
   `).run(propertyId, approvedApplicationId);
 
   // Set old approved applicant to approve-archived
   db.prepare('UPDATE applications SET status = ? WHERE property_id = ? AND status = ? AND id != ?')
-      .run('approve-archived', propertyId, 'approved', approvedApplicationId);
+      .run(ApplicationStatus.APPROVE_ARCHIVED, propertyId, ApplicationStatus.APPROVED, approvedApplicationId);
   // Now set the new applicant as approved
-  db.prepare('UPDATE applications SET status = ? WHERE id = ?').run('approved', approvedApplicationId);
+  db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(ApplicationStatus.APPROVED, approvedApplicationId);
 }
 
 async function sendApplicationStatusEmail(email: string, propertyName: string, html: string) {

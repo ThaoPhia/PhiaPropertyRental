@@ -3,7 +3,7 @@
 import {toEditorHtml} from "@/lib/editor-html";
  import Image from 'next/image';
 import Link from 'next/link';
-import { Property } from '@/lib/types';
+import { Property, PropertyStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAdminSession } from '@/hooks/useAdminSession';
@@ -17,9 +17,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const address = `${property.address}, ${property.city}, ${property.state} ${property.zip_code}`;
   const highlights = Array.isArray(property.highlights) ? property.highlights : [];
   const hasHighlights = highlights.length > 0;
-  const availabilityText = property.status === 'occupied'
+  const availabilityText = property.status === PropertyStatus.OCCUPIED
     ? 'Occupied'
-    : property.status === 'removed'
+    : property.status === PropertyStatus.REMOVED
       ? 'Removed'
       : property.date_available
         ? new Date(property.date_available).toLocaleDateString()
@@ -54,7 +54,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             <Badge variant="status" className="capitalize">
               {property.status}
             </Badge>
-            {property.status !== 'occupied' && (
+            {property.status !== PropertyStatus.OCCUPIED && (
               <Badge variant="price">
                 ${property.monthly_rent.toLocaleString()}/mo
               </Badge>
@@ -112,7 +112,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
                 </Link>
               </Button>
             )}
-            {(property.status === 'available' || property.status === 'coming soon') && (
+            {(property.status === PropertyStatus.AVAILABLE || property.status === PropertyStatus.COMING_SOON) && (
               <Button asChild variant="secondary" className="px-4 text-sm font-semibold text-slate-800">
                 <Link href={`/properties/${property.id}#apply-now`}>
                   Apply Now
@@ -127,7 +127,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </div>
       </div>
-      {property.status === 'removed' && (
+      {property.status === PropertyStatus.REMOVED && (
         <div className="absolute inset-0 z-20 rounded-3xl bg-slate-700/30 pointer-events-none" aria-hidden />
       )}
     </article>

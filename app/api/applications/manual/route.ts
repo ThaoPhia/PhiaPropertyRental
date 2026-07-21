@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
+import { ApplicationStatus, PropertyStatus } from '@/lib/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 function parseString(value: unknown): string {
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Property not found' }, { status: 404 });
   }
 
-  if (property.status !== 'available') {
+  if (property.status !== PropertyStatus.AVAILABLE) {
     return NextResponse.json({ error: 'Property is not available' }, { status: 400 });
   }
 
@@ -70,19 +71,19 @@ export async function POST(request: NextRequest) {
 
   const markOtherApplications = db.prepare(`
     UPDATE applications
-    SET status = 'declined'
-    WHERE property_id = ? AND status NOT IN ('deleted', 'declined', 'approved', 'approve-archived')
+    SET status = '${ApplicationStatus.DECLINED}'
+    WHERE property_id = ? AND status NOT IN ('${ApplicationStatus.DELETED}', '${ApplicationStatus.DECLINED}', '${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')
   `);
 
   const archivePriorApproved = db.prepare(`
     UPDATE applications
-    SET status = 'approve-archived'
-    WHERE property_id = ? AND status = 'approved'
+    SET status = '${ApplicationStatus.APPROVE_ARCHIVED}'
+    WHERE property_id = ? AND status = '${ApplicationStatus.APPROVED}'
   `);
 
   const markPropertyOccupied = db.prepare(`
     UPDATE properties
-    SET status = 'occupied'
+    SET status = '${PropertyStatus.OCCUPIED}'
     WHERE id = ?
   `);
 
@@ -100,7 +101,7 @@ export async function POST(request: NextRequest) {
       moveInDate,
       totalOccupancy,
       additionalInfo,
-      'approved'
+      ApplicationStatus.APPROVED
     );
 
     markPropertyOccupied.run(propertyId);

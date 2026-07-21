@@ -1,13 +1,14 @@
 import { Badge } from '@/components/ui/badge';
+import { ApplicationStatus, APPLICATION_STATUS_OPTIONS } from '@/lib/types';
 import type { Application } from '../types';
 
 interface ApplicationsListPanelProps {
   applications: Application[];
   selectedApplicationId: number | null;
-  statusFilter: string | null;
+  statusFilter: ApplicationStatus | null;
   dateFromFilter: string;
   dateToFilter: string;
-  onStatusFilterChange: (status: string | null) => void;
+  onStatusFilterChange: (status: ApplicationStatus | null) => void;
   onDateFromFilterChange: (value: string) => void;
   onDateToFilterChange: (value: string) => void;
   onClearDateFilters: () => void;
@@ -15,7 +16,7 @@ interface ApplicationsListPanelProps {
 }
 
 function formatStatusLabel(status: string): string {
-  if (status === 'pending') return 'Pending';
+  if (status === ApplicationStatus.PENDING) return 'Pending';
   return status.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
@@ -50,7 +51,7 @@ export function ApplicationsListPanel({
               >
                 All
               </button>
-              {['pending', 'approved', 'approve-archived', 'declined', 'deleted'].map((status) => (
+              {APPLICATION_STATUS_OPTIONS.map((status) => (
                 <button
                   key={status}
                   onClick={() => onStatusFilterChange(status)}
@@ -111,11 +112,11 @@ export function ApplicationsListPanel({
                 {app.status && (
                   <Badge
                     className={`px-2 py-1 rounded-full text-xs font-medium border-0 ${
-                      app.status === 'pending'
+                      app.status === ApplicationStatus.PENDING
                         ? 'bg-yellow-100 text-yellow-800'
-                        : app.status === 'approved'
+                        : app.status === ApplicationStatus.APPROVED
                           ? 'bg-green-100 text-green-800'
-                          : app.status === 'approve-archived'
+                          : app.status === ApplicationStatus.APPROVE_ARCHIVED
                             ? 'bg-blue-100 text-blue-800'
                           : 'bg-red-100 text-red-800'
                     }`}

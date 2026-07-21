@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import PropertyCard from '@/components/PropertyCard';
 import { ensureDbReady, getDb } from '@/lib/db';
 import { normalizePropertyRow } from '@/lib/property-fields';
+import { PropertyStatus } from '@/lib/types';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -14,7 +15,7 @@ export default async function PropertiesPage() {
 
   const rows = db.prepare(`
     SELECT * FROM properties
-    WHERE status != 'removed'
+    WHERE status != '${PropertyStatus.REMOVED}'
     ORDER BY datetime(created_at) DESC
   `).all() as Record<string, unknown>[];
 

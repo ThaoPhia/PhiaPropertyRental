@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
+import { ApplicationStatus } from '@/lib/types';
 import type { ApplicationPayload } from './types';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
@@ -31,11 +32,11 @@ export async function GET() {
       FROM applications
       ORDER BY 
         CASE status
-          WHEN 'pending' THEN 0
-          WHEN 'approved' THEN 1
-          WHEN 'approve-archived' THEN 2
-          WHEN 'declined' THEN 3
-          WHEN 'deleted' THEN 4
+          WHEN '${ApplicationStatus.PENDING}' THEN 0
+          WHEN '${ApplicationStatus.APPROVED}' THEN 1
+          WHEN '${ApplicationStatus.APPROVE_ARCHIVED}' THEN 2
+          WHEN '${ApplicationStatus.DECLINED}' THEN 3
+          WHEN '${ApplicationStatus.DELETED}' THEN 4
         END,
         datetime(created_at) DESC
     `).all();
@@ -58,7 +59,7 @@ export async function GET() {
       additionalInfo: row.additional_info ? String(row.additional_info) : '',
       propertyId: Number(row.property_id),
       propertyName: String(row.property_name ?? ''),
-      status: row.status ? String(row.status) : '',
+      status: row.status ? String(row.status) : ApplicationStatus.NONE,
       createdAt: String(row.created_at ?? ''),
     }));
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { PropertyFormData, Property, PropertyImage } from '@/lib/types';
+import { PropertyFormData, Property, PropertyImage, PropertyStatus } from '@/lib/types';
 import DetailsRichTextEditor from '@/components/DetailsRichTextEditor';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -88,7 +88,7 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
       : {
       name: '',
       type: 'apartment',
-      status: 'available',
+      status: PropertyStatus.AVAILABLE,
       address: '',
       city: '',
       state: '',
@@ -339,10 +339,10 @@ export default function PropertyForm({ initialData }: PropertyFormProps) {
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="available">Available</option>
-            <option value="occupied">Occupied</option>
-            <option value="coming soon">Coming Soon</option>
-            <option value="removed">Removed</option>
+            <option value={PropertyStatus.AVAILABLE}>Available</option>
+            <option value={PropertyStatus.OCCUPIED}>Occupied</option>
+            <option value={PropertyStatus.COMING_SOON}>Coming Soon</option>
+            <option value={PropertyStatus.REMOVED}>Removed</option>
           </select>
         </div>
 

@@ -1,3 +1,5 @@
+import { ApplicationStatus } from '@/lib/types';
+
 export interface Application {
   id: number;
   applicantName: string;
@@ -16,6 +18,6 @@ export interface Application {
   additionalInfo?: string;
   propertyName: string;
   propertyId: number;
-  status?: string;
+  status?: ApplicationStatus;
   createdAt: string;
 }

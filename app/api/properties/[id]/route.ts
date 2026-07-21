@@ -5,6 +5,7 @@ import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { getPropertyWithImages } from '@/lib/property-data';
 import { parsePropertyHighlights } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
+import { PropertyStatus } from '@/lib/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 export async function GET(
@@ -30,7 +31,7 @@ export async function GET(
       );
     }
 
-    if (property.status === 'removed' && !admin) {
+    if (property.status === PropertyStatus.REMOVED && !admin) {
       return NextResponse.json(
         { error: 'Property not found' },
         { status: 404 }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ApplicationStatus } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ interface ApplicationDetailsPanelProps {
 }
 
 function formatStatusLabel(status: string): string {
-  if (status === 'pending') return 'Pending';
+  if (status === ApplicationStatus.PENDING) return 'Pending';
   return status.replace(/-/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
@@ -124,7 +125,7 @@ export function ApplicationDetailsPanel({
 
   const setApplicationStatus = async (
     id: number,
-    status: 'pending' | 'deleted',
+    status: ApplicationStatus.PENDING | ApplicationStatus.DELETED,
     additionalInfo?: string
   ) => {
     try {
@@ -153,7 +154,7 @@ export function ApplicationDetailsPanel({
         open: true,
         title: 'Success',
         message:
-          status === 'deleted'
+          status === ApplicationStatus.DELETED
             ? 'Application deleted successfully'
             : 'Application status updated to pending and email sent successfully',
       });
@@ -174,7 +175,7 @@ export function ApplicationDetailsPanel({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           applicationId: id,
-          status: 'pending',
+          status: ApplicationStatus.PENDING,
         }),
       });
 
@@ -235,7 +236,7 @@ export function ApplicationDetailsPanel({
     }
 
     setShowPendingDialog(false);
-    await setApplicationStatus(selectedApplication.id, 'pending', pendingAdditionalInfo);
+    await setApplicationStatus(selectedApplication.id, ApplicationStatus.PENDING, pendingAdditionalInfo);
     setPendingAdditionalInfo('');
   };
 
@@ -277,11 +278,11 @@ export function ApplicationDetailsPanel({
         {selectedApplication.status && (
           <Badge
             className={`px-3 py-1 rounded-full text-sm font-medium capitalize border-0 ${
-              selectedApplication.status === 'pending'
+              selectedApplication.status === ApplicationStatus.PENDING
                 ? 'bg-yellow-100 text-yellow-800'
-                : selectedApplication.status === 'approved'
+                : selectedApplication.status === ApplicationStatus.APPROVED
                   ? 'bg-green-100 text-green-800'
-                  : selectedApplication.status === 'approve-archived'
+                  : selectedApplication.status === ApplicationStatus.APPROVE_ARCHIVED
                     ? 'bg-blue-100 text-blue-800'
                   : 'bg-red-100 text-red-800'
             }`}
@@ -436,7 +437,7 @@ export function ApplicationDetailsPanel({
         </div>
       </div>
 
-      {selectedApplication.status === 'deleted' ? (
+      {selectedApplication.status === ApplicationStatus.DELETED ? (
         <div className="border-t pt-6">
           <Button onClick={() => setShowUndoDeleteDialog(true)} variant="outline" className="w-full">
             Undo Delete
@@ -492,7 +493,7 @@ export function ApplicationDetailsPanel({
               variant="destructive"
               onClick={async () => {
                 setShowDeleteDialog(false);
-                await setApplicationStatus(selectedApplication.id, 'deleted');
+                await setApplicationStatus(selectedApplication.id, ApplicationStatus.DELETED);
               }}
             >
               Delete

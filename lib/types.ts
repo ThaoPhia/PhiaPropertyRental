@@ -1,8 +1,39 @@
+export enum PropertyStatus {
+  AVAILABLE = 'available',
+  OCCUPIED = 'occupied',
+  COMING_SOON = 'coming soon',
+  REMOVED = 'removed',
+}
+
+export const PROPERTY_STATUS_OPTIONS = [
+  PropertyStatus.AVAILABLE,
+  PropertyStatus.OCCUPIED,
+  PropertyStatus.COMING_SOON,
+  PropertyStatus.REMOVED,
+] as const;
+
+export enum ApplicationStatus {
+  NONE = '',
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  APPROVE_ARCHIVED = 'approve-archived',
+  DECLINED = 'declined',
+  DELETED = 'deleted',
+}
+
+export const APPLICATION_STATUS_OPTIONS = [
+  ApplicationStatus.PENDING,
+  ApplicationStatus.APPROVED,
+  ApplicationStatus.APPROVE_ARCHIVED,
+  ApplicationStatus.DECLINED,
+  ApplicationStatus.DELETED,
+] as const;
+
 export interface Property {
   id: number;
   name: string;
   type: 'duplex' | 'apartment' | 'other';
-  status: 'available' | 'occupied' | 'coming soon' | 'removed';
+  status: PropertyStatus;
   address: string;
   city: string;
   state: string;
@@ -24,7 +55,7 @@ export interface Property {
 export interface PropertyFormData {
   name: string;
   type: 'duplex' | 'apartment' | 'other';
-  status: 'available' | 'occupied' | 'coming soon' | 'removed';
+  status: PropertyStatus;
   address: string;
   city: string;
   state: string;

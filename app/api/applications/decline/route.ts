@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
+import { ApplicationStatus } from '@/lib/types';
 import type { ApplicationDeclinePayload, ApplicationRecord } from '../types';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     // Get application details
     const application = db
       .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
-      .get(applicationId, 'deleted') as ApplicationRecord;
+      .get(applicationId, ApplicationStatus.DELETED) as ApplicationRecord;
 
     if (!application) {
       return NextResponse.json(
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    db.prepare('UPDATE applications SET status = ? WHERE id = ?').run('declined', applicationId);
+    db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(ApplicationStatus.DECLINED, applicationId);
     await persistDbToCloudStorage();
 
     return NextResponse.json({

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ensureDbReady, getDb } from '@/lib/db';
 import { getPropertyWithImages } from '@/lib/property-data';
+import { PropertyStatus } from '@/lib/types';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 
 export const dynamic = 'force-static';
@@ -18,7 +19,7 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
   const rows = db.prepare(`
     SELECT id
     FROM properties
-    WHERE status != 'removed'
+    WHERE status != '${PropertyStatus.REMOVED}'
     ORDER BY datetime(created_at) DESC
   `).all() as { id: number }[];
 
@@ -36,7 +37,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
 
   const property = await getPropertyWithImages(id);
 
-  if (!property || property.status === 'removed') {
+  if (!property || property.status === PropertyStatus.REMOVED) {
     notFound();
   }
 
@@ -44,7 +45,7 @@ export default async function PropertyDetailPage({ params }: PropertyDetailPageP
   const rows = db.prepare(`
     SELECT id, name
     FROM properties
-    WHERE status != 'removed'
+    WHERE status != '${PropertyStatus.REMOVED}'
     ORDER BY datetime(created_at) DESC
   `).all() as { id: number; name: string }[];
 

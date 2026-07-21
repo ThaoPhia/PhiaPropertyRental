@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb } from '@/lib/db';
+import { PropertyStatus } from '@/lib/types';
 
 export async function GET(request: NextRequest) {
   await ensureDbReady();
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   const properties = db.prepare(`
     SELECT id, name, city, state, status
     FROM properties
-    WHERE status = 'available'
+    WHERE status = '${PropertyStatus.AVAILABLE}'
     ORDER BY datetime(created_at) DESC
   `).all();
 

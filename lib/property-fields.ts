@@ -1,6 +1,6 @@
-import { Property, PropertyHighlight, PropertyImage } from '@/lib/types';
+import { Property, PropertyHighlight, PropertyImage, PropertyStatus } from '@/lib/types';
 
-const DEFAULT_STATUS: Property['status'] = 'available';
+const DEFAULT_STATUS: Property['status'] = PropertyStatus.AVAILABLE;
 const legacyIconNameByPath: Record<string, string> = {
   '/images/icons/garage-sharp-solid.png': 'GarageIcon',
 };

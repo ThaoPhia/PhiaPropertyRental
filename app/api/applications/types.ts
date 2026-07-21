@@ -1,3 +1,5 @@
+import { ApplicationStatus } from '@/lib/types';
+
 export interface ApplicationPayload {
   propertyId: unknown;
   applicantName: unknown;
@@ -34,7 +36,7 @@ export interface ApplicationRecord {
   applicant_name: string;
   property_name: string;
   property_id?: number;
-  status?: string;
+  status?: ApplicationStatus;
 }
 
 export interface DeclinedApplicantNotificationTarget {

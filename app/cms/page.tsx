@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 import { ensureDbReady, getDb } from '@/lib/db';
+import { ApplicationStatus, PropertyStatus } from '@/lib/types';
 
 export default async function CMSCreatePage() {
   const admin = await getAuthenticatedAdminFromCookies();
@@ -15,18 +16,18 @@ export default async function CMSCreatePage() {
 
   const propertySummary = {
     total: db.prepare('SELECT COUNT(*) FROM properties').pluck().get() as number | null,
-    available: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'available'").pluck().get() as number | null,
-    occupied: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'occupied'").pluck().get() as number | null,
-    comingSoon: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'coming soon'").pluck().get() as number | null,
-    removed: db.prepare("SELECT COUNT(*) FROM properties WHERE status = 'removed'").pluck().get() as number | null,
+    available: db.prepare(`SELECT COUNT(*) FROM properties WHERE status = '${PropertyStatus.AVAILABLE}'`).pluck().get() as number | null,
+    occupied: db.prepare(`SELECT COUNT(*) FROM properties WHERE status = '${PropertyStatus.OCCUPIED}'`).pluck().get() as number | null,
+    comingSoon: db.prepare(`SELECT COUNT(*) FROM properties WHERE status = '${PropertyStatus.COMING_SOON}'`).pluck().get() as number | null,
+    removed: db.prepare(`SELECT COUNT(*) FROM properties WHERE status = '${PropertyStatus.REMOVED}'`).pluck().get() as number | null,
   };
 
   const applicationSummary = {
     total: db.prepare('SELECT COUNT(*) FROM applications').pluck().get() as number | null,
-    pending: db.prepare("SELECT COUNT(*) FROM applications WHERE status IN ('', 'pending')").pluck().get() as number | null,
-    approved: db.prepare("SELECT COUNT(*) FROM applications WHERE status IN ('approved', 'approve-archived')").pluck().get() as number | null,
-    declined: db.prepare("SELECT COUNT(*) FROM applications WHERE status = 'declined'").pluck().get() as number | null,
-    deleted: db.prepare("SELECT COUNT(*) FROM applications WHERE status = 'deleted'").pluck().get() as number | null,
+    pending: db.prepare(`SELECT COUNT(*) FROM applications WHERE status IN ('${ApplicationStatus.NONE}', '${ApplicationStatus.PENDING}')`).pluck().get() as number | null,
+    approved: db.prepare(`SELECT COUNT(*) FROM applications WHERE status IN ('${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')`).pluck().get() as number | null,
+    declined: db.prepare(`SELECT COUNT(*) FROM applications WHERE status = '${ApplicationStatus.DECLINED}'`).pluck().get() as number | null,
+    deleted: db.prepare(`SELECT COUNT(*) FROM applications WHERE status = '${ApplicationStatus.DELETED}'`).pluck().get() as number | null,
   };
 
   const recentProperties = db.prepare(`
@@ -45,7 +46,7 @@ export default async function CMSCreatePage() {
   const occupiedApplicants = db.prepare(`
     SELECT property_id, applicant_name
     FROM applications
-    WHERE status = 'approved'
+    WHERE status = '${ApplicationStatus.APPROVED}'
   `).all() as Array<{
     property_id: number;
     applicant_name: string;
@@ -166,7 +167,7 @@ export default async function CMSCreatePage() {
                       <p className="text-sm text-gray-500">
                         {property.city}, {property.state}
                       </p>
-                      {property.status === 'occupied' && occupiedApplicantByPropertyId.has(property.id) && (
+                      {property.status === PropertyStatus.OCCUPIED && occupiedApplicantByPropertyId.has(property.id) && (
                         <p className="text-xs text-emerald-700">
                           Current applicant: {occupiedApplicantByPropertyId.get(property.id)}
                         </p>
@@ -207,7 +208,7 @@ export default async function CMSCreatePage() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium capitalize text-gray-700">
-                        {application.status || 'pending'}
+                        {application.status || ApplicationStatus.PENDING}
                       </p>
                       <p className="text-xs text-gray-500">
                         {new Date(application.created_at).toLocaleDateString()}

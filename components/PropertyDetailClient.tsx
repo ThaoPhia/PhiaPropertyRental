@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import PropertyGallery from '@/components/PropertyGallery';
 import ApplyNowForm from '@/components/ApplyNowForm';
-import { Property } from '@/lib/types';
+import { Property, PropertyStatus } from '@/lib/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { resolvePropertyHighlightIcon } from '@/components/icons/property-highlight-icons';
 import { executeRecaptcha, isRecaptchaConfigured } from '@/lib/recaptcha-client';
@@ -166,9 +166,9 @@ export default function PropertyDetailClient({
     }
   };
 
-  const availabilityText = property.status === 'occupied'
+  const availabilityText = property.status === PropertyStatus.OCCUPIED
     ? 'Currently occupied'
-    : property.status === 'removed'
+    : property.status === PropertyStatus.REMOVED
       ? 'Removed'
       : property.date_available
         ? new Date(property.date_available).toLocaleDateString()
@@ -245,7 +245,7 @@ export default function PropertyDetailClient({
                   </Badge>
                 </div>
               </div>
-              {property.status !== 'occupied' && (
+              {property.status !== PropertyStatus.OCCUPIED && (
                   <p className="text-4xl font-bold text-green-600">
                     ${property.monthly_rent.toLocaleString()}
                     <span className="text-lg font-medium text-gray-500">/mo</span>
@@ -314,7 +314,7 @@ export default function PropertyDetailClient({
                 </div>
             )}
 
-            {(property.status === 'available' || property.status === 'coming soon') && (
+            {(property.status === PropertyStatus.AVAILABLE || property.status === PropertyStatus.COMING_SOON) && (
                 <ApplyNowForm
                     property={property}
                     applicantName={applicantName}

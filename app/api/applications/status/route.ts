@@ -3,9 +3,13 @@ import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
 import { escapeHtml } from '@/lib/escape-html';
+import { ApplicationStatus } from '@/lib/types';
 import type { ApplicationRecord, ApplicationStatusPayload } from '../types';
 
-const ALLOWED_STATUSES = new Set(['pending', 'deleted']);
+const ALLOWED_STATUSES = new Set<ApplicationStatus>([
+  ApplicationStatus.PENDING,
+  ApplicationStatus.DELETED,
+]);
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
@@ -15,7 +19,7 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as ApplicationStatusPayload;
 
     const applicationId = Number.parseInt(String(body.applicationId || '0'), 10);
-    const status = String(body.status || '').trim().toLowerCase();
+    const status = String(body.status || '').trim().toLowerCase() as ApplicationStatus;
     const additionalInfo = String(body.additionalInfo || '').trim();
 
     if (Number.isNaN(applicationId) || !ALLOWED_STATUSES.has(status)) {
@@ -30,9 +34,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Application not found' }, { status: 404 });
     }
 
-    const isRestoreFromDeleted = application.status === 'deleted' && status === 'pending';
+    const isRestoreFromDeleted =
+      application.status === ApplicationStatus.DELETED && status === ApplicationStatus.PENDING;
 
-    if (status === 'pending' && !isRestoreFromDeleted && !additionalInfo) {
+    if (status === ApplicationStatus.PENDING && !isRestoreFromDeleted && !additionalInfo) {
       return NextResponse.json(
         { error: 'Additional information is required when setting status to pending' },
         { status: 400 }
@@ -40,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email notification if the status is set to 'pending'. Delete does not need to send any email.
-    if (status === 'pending' && !isRestoreFromDeleted) {
+    if (status === ApplicationStatus.PENDING && !isRestoreFromDeleted) {
       const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
       const safeApplicantName = escapeHtml(application.applicant_name);
       const safePropertyName = escapeHtml(application.property_name);
