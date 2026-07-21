@@ -108,6 +108,12 @@ export default async function CMSCreatePage() {
               <p className="text-sm text-gray-600">View and manage all properties</p>
             </div>
           </Link>
+          <Link href="/cms/manual-applicant">
+            <div className="p-4 bg-emerald-50 rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-emerald-600">
+              <h3 className="font-semibold text-gray-900">Manual Applicant</h3>
+              <p className="text-sm text-gray-600">Create and assign a renter to an available property</p>
+            </div>
+          </Link>
           <Link href="/cms/create">
             <div className="p-4 bg-blue-50 rounded-lg shadow hover:shadow-lg cursor-pointer border-2 border-blue-600">
               <h3 className="font-semibold text-gray-900">Create New</h3>
