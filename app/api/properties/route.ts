@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
-import { parsePropertyHighlights } from '@/lib/property-fields';
+import { parsePropertyHighlights, serializePropertyHighlights } from '@/lib/property-fields';
 import { normalizePropertyRow } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
 import { PropertyStatus } from '@/lib/types';
@@ -146,6 +147,10 @@ export async function POST(request: NextRequest) {
     const result = createProperty();
     await persistDbToCloudStorage();
     const createdPropertyId = Number(result.lastInsertRowid);
+
+    revalidatePath('/properties');
+    revalidatePath(`/properties/${createdPropertyId}`);
+
     const redeployResult = await triggerVercelRedeploy(`property-created:${createdPropertyId}`);
     if (redeployResult.error) {
       console.error('Vercel redeploy trigger error:', redeployResult.error);

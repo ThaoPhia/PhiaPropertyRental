@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { getPropertyWithImages } from '@/lib/property-data';
-import { parsePropertyHighlights } from '@/lib/property-fields';
+import { parsePropertyHighlights, serializePropertyHighlights } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
 import { PropertyStatus } from '@/lib/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
@@ -207,6 +208,10 @@ export async function PUT(
 
     syncGallery();
     await persistDbToCloudStorage();
+
+    revalidatePath('/properties');
+    revalidatePath(`/properties/${id}`);
+
     const redeployResult = await triggerVercelRedeploy(`property-updated:${id}`);
     if (redeployResult.error) {
       console.error('Vercel redeploy trigger error:', redeployResult.error);
@@ -303,6 +308,10 @@ export async function DELETE(
     }
 
     await persistDbToCloudStorage();
+
+    revalidatePath('/properties');
+    revalidatePath(`/properties/${id}`);
+
     const redeployResult = await triggerVercelRedeploy(`property-deleted:${id}`);
     if (redeployResult.error) {
       console.error('Vercel redeploy trigger error:', redeployResult.error);

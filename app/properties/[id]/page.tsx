@@ -6,8 +6,7 @@ import { PropertyStatus } from '@/lib/types';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 
 export const dynamic = 'force-static';
-export const revalidate = false;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 interface PropertyDetailPageProps {
   params: Promise<{ id: string }>;

@@ -7,7 +7,6 @@ import { normalizePropertyRow } from '@/lib/property-fields';
 import { PropertyStatus } from '@/lib/types';
 
 export const dynamic = 'force-static';
-export const revalidate = false;
 
 export default async function PropertiesPage() {
   await ensureDbReady();

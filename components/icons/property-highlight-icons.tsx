@@ -3,15 +3,21 @@
 
 import { AirConditionIcon } from '@/components/icons/AirConditionIcon';
 import { BinRecycleIcon } from '@/components/icons/BinRecycleIcon';
+import { BoxIcon } from '@/components/icons/BoxIcon';
+import { EthernetIcon } from '@/components/icons/EthernetIcon';
 import { FenceIcon } from '@/components/icons/FenceIcon';
 import { GarageIcon } from '@/components/icons/GarageIcon';
+import { LightCeilingIcon } from '@/components/icons/LightCeilingIcon';
 import { WashingMachineIcon } from '@/components/icons/WashingMachineIcon';
 
 export const PROPERTY_HIGHLIGHT_ICONS = {
   AirConditionIcon,
   BinRecycleIcon,
+  BoxIcon,
+  EthernetIcon,
   FenceIcon,
   GarageIcon,
+  LightCeilingIcon,
   WashingMachineIcon,
 } as const;
 
