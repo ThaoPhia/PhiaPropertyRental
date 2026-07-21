@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -213,7 +214,10 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
           />
         </label>
 
-        <div className="md:col-span-2 flex items-center justify-end">
+        <div className="md:col-span-2 flex items-center justify-end gap-2">
+          <Button asChild type="button" variant="outline">
+            <Link href="/cms">Cancel</Link>
+          </Button>
           <Button type="submit" disabled={submitting || loadingProperties}>
             {submitting ? 'Creating...' : 'Create Applicant'}
           </Button>
