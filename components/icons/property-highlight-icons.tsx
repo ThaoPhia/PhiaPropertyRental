@@ -9,6 +9,7 @@ import { FenceIcon } from '@/components/icons/FenceIcon';
 import { GarageIcon } from '@/components/icons/GarageIcon';
 import { LightCeilingIcon } from '@/components/icons/LightCeilingIcon';
 import { WashingMachineIcon } from '@/components/icons/WashingMachineIcon';
+import { WindowFrameIcon } from '@/components/icons/WindowFrameIcon';
 
 export const PROPERTY_HIGHLIGHT_ICONS = {
   AirConditionIcon,
@@ -19,6 +20,7 @@ export const PROPERTY_HIGHLIGHT_ICONS = {
   GarageIcon,
   LightCeilingIcon,
   WashingMachineIcon,
+  WindowFrameIcon,
 } as const;
 
 export type PropertyHighlightIconName = keyof typeof PROPERTY_HIGHLIGHT_ICONS;
