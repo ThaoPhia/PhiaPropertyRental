@@ -4,8 +4,7 @@ A modern Next.js application for managing and displaying properties (apartments 
 
 ## Features
 
-- 🏠 **Property Listing**: Display all properties with detailed information
-- 🔍 **Advanced Filtering**: Filter properties by type and city
+- 🏠 **Property Listing**: Display all properties with detailed information 
 - 📝 **CMS Management**: Create, read, update, and delete properties
 - 🖼️ **Property Galleries**: Upload and browse multiple images per property
 - 🔐 **CMS Authentication**: Admin-only CMS login with cookie sessions
