@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import PropertyGallery from '@/components/PropertyGallery';
 import ApplyNowForm from '@/components/ApplyNowForm';
-import { Property, PropertyStatus } from '@/lib/types';
+import { Property, PropertyStatus } from '@/lib/types/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { resolvePropertyHighlightIcon } from '@/components/icons/property-highlight-icons';
 import { executeRecaptcha, isRecaptchaConfigured } from '@/lib/recaptcha-client';

@@ -1,4 +1,4 @@
-import { Property, PropertyHighlight, PropertyImage, PropertyStatus } from '@/lib/types';
+import { Property, PropertyHighlight, PropertyImage, PropertyStatus } from '@/lib/types/types';
 
 const DEFAULT_STATUS: Property['status'] = PropertyStatus.AVAILABLE;
 const legacyIconNameByPath: Record<string, string> = {

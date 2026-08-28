@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
-import { ApplicationStatus } from '@/lib/types';
-import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '../types';
+import { ApplicationStatus } from '@/lib/types/types';
+import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '@/lib/types/apiTypes';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

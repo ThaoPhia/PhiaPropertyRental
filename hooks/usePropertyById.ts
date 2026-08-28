@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Property } from '@/lib/types';
+import { Property } from '@/lib/types/types';
 
 export function usePropertyById(propertyId: string) {
   const [property, setProperty] = useState<Property | null>(null);

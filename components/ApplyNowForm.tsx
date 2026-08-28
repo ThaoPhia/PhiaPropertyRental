@@ -2,7 +2,7 @@
 
 import { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Property } from '@/lib/types';
+import { Property } from '@/lib/types/types';
 
 interface ApplyNowFormProps {
   property: Property;

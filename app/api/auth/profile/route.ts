@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { hashPassword, verifyPassword } from '@/lib/password';
-import { AuthUserRecord } from '@/lib/types';
+import { AuthUserRecord } from '@/lib/types/types';
 
 export async function PUT(request: NextRequest) {
   const admin = await getAuthenticatedAdminFromRequest(request);

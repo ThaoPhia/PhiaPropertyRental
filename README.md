@@ -117,7 +117,9 @@ PhiaPropertyRental/
 │   ├── db.ts                     # SQLite database initialization
 │   ├── auth.ts                   # Session/cookie auth helpers
 │   └── password.ts               # Password hashing/verification
-│   └── types.ts                  # TypeScript interfaces
+│   └── types/
+│       ├── types.ts              # Shared domain interfaces and enums
+│       └── apiTypes.ts           # Application API payload and record types
 ├── database/
 │   └── schema.sql                # Database schema
 ├── public/                       # Static assets

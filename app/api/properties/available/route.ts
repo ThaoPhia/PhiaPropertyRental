@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb } from '@/lib/db';
-import { PropertyStatus } from '@/lib/types';
+import { PropertyStatus } from '@/lib/types/types';
 
 export async function GET(request: NextRequest) {
   await ensureDbReady();

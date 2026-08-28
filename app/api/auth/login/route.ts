@@ -3,7 +3,7 @@ import { ensureDbReady, getDb } from '@/lib/db';
 import { createAuthSession, setSessionCookie } from '@/lib/auth';
 import { verifyPassword } from '@/lib/password';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
-import { AuthUserRecord } from '@/lib/types';
+import { AuthUserRecord } from '@/lib/types/types';
 
 export async function POST(request: NextRequest) {
   let body: unknown;

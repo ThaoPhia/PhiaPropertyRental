@@ -3,8 +3,8 @@ import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getEmailFooterHtml } from '@/lib/email-footer';
 import { escapeHtml } from '@/lib/escape-html';
-import { ApplicationStatus } from '@/lib/types';
-import type { ApplicationRecord, ApplicationStatusPayload } from '../types';
+import { ApplicationStatus } from '@/lib/types/types';
+import type { ApplicationRecord, ApplicationStatusPayload } from '@/lib/types/apiTypes';
 
 const ALLOWED_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.PENDING,

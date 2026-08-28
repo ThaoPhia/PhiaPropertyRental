@@ -6,7 +6,7 @@ import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
 import { getPropertyWithImages } from '@/lib/property-data';
 import { parsePropertyHighlights, serializePropertyHighlights } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
-import { PropertyStatus } from '@/lib/types';
+import { PropertyStatus } from '@/lib/types/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 export async function GET(

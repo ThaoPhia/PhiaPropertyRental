@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApplicationStatus } from '@/lib/types';
-import type { Application } from '@/lib/types';
+import { ApplicationStatus } from '@/lib/types/types';
+import type { Application } from '@/lib/types/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { ApplicationsListPanel } from '@/components/cms/ApplicationsListPanel';
 import { ApplicationDetailsPanel } from '@/components/cms/ApplicationDetailsPanel';

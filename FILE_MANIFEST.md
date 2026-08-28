@@ -35,7 +35,8 @@
 ## 🗂️ Utilities and Types
 
 - **lib/db.ts** - SQLite database initialization and configuration
-- **lib/types.ts** - TypeScript interfaces (Property, PropertyFormData)
+- **lib/types/types.ts** - Shared TypeScript interfaces and enums
+- **lib/types/apiTypes.ts** - Application API payload and record types
 
 ## 🗄️ Database
 
@@ -149,7 +150,7 @@ PhiaRental/
 
 1. **For Styling**: Edit `app/globals.css` or individual component styles
 2. **For Database**: Modify `lib/db.ts` for connection settings
-3. **For Types**: Update `lib/types.ts` for new property fields
+3. **For Types**: Update `lib/types/types.ts` for new shared property fields
 4. **For API Logic**: Edit `app/api/properties/route.ts`
 5. **For UI**: Update component files in `components/`
 
@@ -158,7 +159,8 @@ PhiaRental/
 | Purpose | File |
 |---------|------|
 | Database Connection | `lib/db.ts` |
-| Data Types | `lib/types.ts` |
+| Shared Data Types | `lib/types/types.ts` |
+| Application API Types | `lib/types/apiTypes.ts` |
 | Database Schema | `database/schema.sql` |
 | Environment Setup | `.env.local` |
 | Home Page | `app/page.tsx` |

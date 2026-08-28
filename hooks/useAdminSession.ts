@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { AuthenticatedAdmin } from '@/lib/types';
+import { AuthenticatedAdmin } from '@/lib/types/types';
 
 export function useAdminSession() {
   const pathname = usePathname();

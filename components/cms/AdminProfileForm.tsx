@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { AuthenticatedAdmin } from '@/lib/types';
+import { AuthenticatedAdmin } from '@/lib/types/types';
 
 interface AdminProfileFormProps {
   admin: AuthenticatedAdmin;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
-import { ApplicationStatus, PropertyStatus } from '@/lib/types';
+import { ApplicationStatus, PropertyStatus } from '@/lib/types/types';
 import { triggerVercelRedeploy } from '@/lib/vercel-redeploy';
 
 function parseString(value: unknown): string {

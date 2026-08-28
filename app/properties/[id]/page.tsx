@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ensureDbReady, getDb } from '@/lib/db';
 import { getPropertyWithImages } from '@/lib/property-data';
-import { PropertyStatus } from '@/lib/types';
+import { PropertyStatus } from '@/lib/types/types';
 import PropertyDetailClient from '@/components/PropertyDetailClient';
 
 export const dynamic = 'force-static';

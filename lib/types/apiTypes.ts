@@ -1,4 +1,4 @@
-import { ApplicationStatus } from '@/lib/types';
+import { ApplicationStatus } from './types';
 
 export interface ApplicationPayload {
   propertyId: unknown;

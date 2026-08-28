@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
-import { ApplicationStatus } from '@/lib/types';
-import type { ApplicationPayload } from './types';
+import { ApplicationStatus } from '@/lib/types/types';
+import type { ApplicationPayload } from '@/lib/types/apiTypes';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
 export async function GET() {

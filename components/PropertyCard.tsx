@@ -3,7 +3,7 @@
 import {toEditorHtml} from "@/lib/editor-html";
  import Image from 'next/image';
 import Link from 'next/link';
-import { Property, PropertyStatus } from '@/lib/types';
+import { Property, PropertyStatus } from '@/lib/types/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAdminSession } from '@/hooks/useAdminSession';

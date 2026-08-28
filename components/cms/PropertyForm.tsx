@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { PropertyFormData, Property, PropertyImage, PropertyStatus } from '@/lib/types';
+import { PropertyFormData, Property, PropertyImage, PropertyStatus } from '@/lib/types/types';
 import DetailsRichTextEditor from '@/components/cms/DetailsRichTextEditor';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';

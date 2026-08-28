@@ -1,5 +1,5 @@
 import { ensureDbReady, getDb } from '@/lib/db';
-import { Property, PropertyImage } from '@/lib/types';
+import { Property, PropertyImage } from '@/lib/types/types';
 import { normalizePropertyRow } from '@/lib/property-fields';
 
 export async function getPropertyWithImages(id: number): Promise<Property | null> {

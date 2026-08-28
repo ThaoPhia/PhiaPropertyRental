@@ -94,7 +94,7 @@ npm run dev
 - **Components**: `components/`
 - **Pages**: `app/` (with route-based structure)
 - **Database**: `lib/db.ts` and `database/schema.sql`
-- **Types**: `lib/types.ts`
+- **Types**: `lib/types/types.ts` and `lib/types/apiTypes.ts`
 - **Environment**: `.env.local`
 
 ## Production Deployment

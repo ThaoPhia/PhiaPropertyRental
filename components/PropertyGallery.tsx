@@ -6,7 +6,7 @@ import Lightbox from 'yet-another-react-lightbox';
 import type { SlideImage } from 'yet-another-react-lightbox';
 import { Fullscreen, Thumbnails, Zoom } from 'yet-another-react-lightbox/plugins';
 import { Button } from '@/components/ui/button';
-import { PropertyImage } from '@/lib/types';
+import { PropertyImage } from '@/lib/types/types';
 
 interface PropertyGalleryProps {
   images: PropertyImage[];

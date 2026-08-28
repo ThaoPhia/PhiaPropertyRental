@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import PropertyCard from '@/components/PropertyCard';
 import { ensureDbReady, getDb } from '@/lib/db';
 import { normalizePropertyRow } from '@/lib/property-fields';
-import { PropertyStatus } from '@/lib/types';
+import { PropertyStatus } from '@/lib/types/types';
 
 export const dynamic = 'force-static';
 

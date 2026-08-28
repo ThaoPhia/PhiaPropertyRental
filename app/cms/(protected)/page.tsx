@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 import { ensureDbReady, getDb } from '@/lib/db';
-import { ApplicationStatus, PropertyStatus } from '@/lib/types';
+import { ApplicationStatus, PropertyStatus } from '@/lib/types/types';
 
 export default async function CMSCreatePage() {
   const admin = await getAuthenticatedAdminFromCookies();

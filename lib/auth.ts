@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDbReady, getDb } from '@/lib/db';
-import { AuthenticatedAdmin } from '@/lib/types';
+import { AuthenticatedAdmin } from '@/lib/types/types';
 
 export const CMS_SESSION_COOKIE = 'cms_session';
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;

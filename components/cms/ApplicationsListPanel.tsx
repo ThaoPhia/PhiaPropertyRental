@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import { ApplicationStatus, APPLICATION_STATUS_OPTIONS } from '@/lib/types';
-import type { Application } from '@/lib/types';
+import { ApplicationStatus, APPLICATION_STATUS_OPTIONS } from '@/lib/types/types';
+import type { Application } from '@/lib/types/types';
 
 interface ApplicationsListPanelProps {
   applications: Application[];
