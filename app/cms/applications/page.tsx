@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApplicationStatus } from '@/lib/types';
+import type { Application } from '@/lib/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
 import { ApplicationsListPanel } from './components/ApplicationsListPanel';
 import { ApplicationDetailsPanel } from './components/ApplicationDetailsPanel';
-import type { Application } from './types';
 
 export default function ApplicationsPage() {
   const router = useRouter();

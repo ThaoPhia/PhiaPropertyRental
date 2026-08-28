@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ApplicationStatus } from '@/lib/types';
+import type { Application } from '@/lib/types';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { Application } from '../types';
 
 interface ApplicationDetailsPanelProps {
   selectedApplication: Application | null;
