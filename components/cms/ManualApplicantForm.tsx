@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 
 type AvailableProperty = {
@@ -19,6 +19,11 @@ interface ManualApplicantFormProps {
 export default function ManualApplicantForm({ onCreated }: ManualApplicantFormProps) {
   const [properties, setProperties] = useState<AvailableProperty[]>([]);
   const [loadingProperties, setLoadingProperties] = useState(true);
+  const hasHydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -54,6 +59,10 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
   }, []);
 
   const handleChange = (name: string, value: string) => {
+    const numericPattern = name === 'totalOccupancy' ? /^\d*$/ : /^\d*\.?\d*$/;
+    if (['householdIncome', 'totalOccupancy'].includes(name) && !numericPattern.test(value)) {
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -93,7 +102,10 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
 
       setSuccess('Applicant created and property assigned.');
       resetForm();
+      // Call the onCreated callback if provided
       await onCreated?.();
+
+      // Update available properties list after creating a manual applicant
       const refreshResponse = await fetch('/api/properties/available');
       if (refreshResponse.ok) {
         const refreshed = await refreshResponse.json();
@@ -125,7 +137,7 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
             value={propertyId}
             onChange={(e) => setPropertyId(e.target.value)}
             required
-            disabled={loadingProperties}
+            disabled={hasHydrated && loadingProperties}
             className="w-full rounded-md border border-gray-300 px-3 py-2"
           >
             <option value="">{loadingProperties ? 'Loading properties...' : 'Select a property'}</option>
@@ -171,9 +183,9 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
         <label>
           <span className="mb-1 block text-sm font-medium text-gray-700">Household Income</span>
           <input
-            type="number"
-            min="0"
-            step="0.01"
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]*\.?[0-9]*"
             value={formData.householdIncome}
             onChange={(e) => handleChange('householdIncome', e.target.value)}
             required
@@ -195,10 +207,11 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
         <label>
           <span className="mb-1 block text-sm font-medium text-gray-700">Total Occupancy</span>
           <input
-            type="number"
-            min="1"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={formData.totalOccupancy}
-            onChange={(e) => handleChange('totalOccupancy', e.target.value)}
+            onChange={(e) => handleChange('totalOccupancy', e.target.value)} 
             required
             className="w-full rounded-md border border-gray-300 px-3 py-2"
           />
@@ -218,7 +231,7 @@ export default function ManualApplicantForm({ onCreated }: ManualApplicantFormPr
           <Button asChild type="button" variant="outline">
             <Link href="/cms">Cancel</Link>
           </Button>
-          <Button type="submit" disabled={submitting || loadingProperties}>
+          <Button type="submit" disabled={hasHydrated && (submitting || loadingProperties)}>
             {submitting ? 'Creating...' : 'Create Applicant'}
           </Button>
         </div>
