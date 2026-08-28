@@ -90,8 +90,7 @@ export default async function CMSCreatePage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Property Management System</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Signed in as {admin.name || 'Admin'} ({admin.email})
-              | <Link href="/cms/playground" className="text-blue-600 hover:underline">Playground</Link>
+              Signed in as {admin.name || 'Admin'} ({admin.email}) 
             </p>
           </div>
           <div className="flex gap-2">
