@@ -7,6 +7,7 @@ import { ApplicationStatus, PropertyStatus } from '@/lib/types';
 export default async function CMSCreatePage() {
   const admin = await getAuthenticatedAdminFromCookies();
 
+  // Check again to ensure the admin is authenticated before proceeding because the layout may not re-run on every client-side navigation
   if (!admin) {
     redirect('/cms/login');
   }
