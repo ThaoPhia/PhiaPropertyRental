@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { connection } from 'next/server';
-import PropertyForm from '@/components/PropertyForm';
+import PropertyForm from '@/components/cms/PropertyForm';
 import { Button } from '@/components/ui/button';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 import { ensureDbReady } from '@/lib/db';

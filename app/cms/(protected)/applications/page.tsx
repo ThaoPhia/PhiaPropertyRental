@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { ApplicationStatus } from '@/lib/types';
 import type { Application } from '@/lib/types';
 import { useAdminSession } from '@/hooks/useAdminSession';
-import { ApplicationsListPanel } from './components/ApplicationsListPanel';
-import { ApplicationDetailsPanel } from './components/ApplicationDetailsPanel';
+import { ApplicationsListPanel } from '@/components/cms/ApplicationsListPanel';
+import { ApplicationDetailsPanel } from '@/components/cms/ApplicationDetailsPanel';
 
 export default function ApplicationsPage() {
   const router = useRouter();

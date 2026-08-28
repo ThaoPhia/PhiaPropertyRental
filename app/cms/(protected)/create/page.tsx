@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import PropertyForm from '@/components/PropertyForm';
+import PropertyForm from '@/components/cms/PropertyForm';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 
 export default async function CMSCreatePropertyPage() {

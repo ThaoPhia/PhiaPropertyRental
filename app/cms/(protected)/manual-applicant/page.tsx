@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
-import ManualApplicantForm from '../applications/components/ManualApplicantForm';
+import ManualApplicantForm from '@/components/cms/ManualApplicantForm';
 
 export default async function ManualApplicantPage() {
   const admin = await getAuthenticatedAdminFromCookies();

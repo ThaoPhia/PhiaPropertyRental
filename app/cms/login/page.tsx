@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import CMSLoginForm from '@/components/CMSLoginForm';
+import CMSLoginForm from '@/components/cms/CMSLoginForm';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 
 export default async function CMSLoginPage() {

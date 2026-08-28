@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import AdminProfileForm from '@/components/AdminProfileForm';
+import AdminProfileForm from '@/components/cms/AdminProfileForm';
 import { getAuthenticatedAdminFromCookies } from '@/lib/auth';
 
 export default async function CMSProfilePage() {
