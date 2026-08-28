@@ -12,11 +12,11 @@ A modern Next.js application for managing and displaying properties (apartments 
 - ☁️ **Supabase Storage**: Cloud storage for the SQLite DB file and property images
 - 📱 **Responsive Design**: Beautiful UI with Tailwind CSS
 - 🎯 **Property Details**: Comprehensive property pages with high-quality information
-- 🚀 **Modern Stack**: Built with Next.js 14+, TypeScript, and React
+- 🚀 **Modern Stack**: Built with Next.js 16+, TypeScript, and React 19
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14+, React 18+, TypeScript
+- **Frontend**: Next.js 16+, React 19+, TypeScript
 - **Styling**: Tailwind CSS
 - **Database**: SQLite
 - **Driver**: better-sqlite3
@@ -93,10 +93,15 @@ PhiaPropertyRental/
 │   │       ├── login/route.ts    # Admin login
 │   │       └── logout/route.ts   # Admin logout
 │   ├── cms/
-│   │   ├── login/page.tsx        # CMS login page
-│   │   ├── page.tsx              # CMS dashboard (protected)
-│   │   └── [id]/
-│   │       └── page.tsx          # Edit property page (protected)
+│   │   ├── login/page.tsx        # Public CMS login page
+│   │   └── (protected)/          # Admin-only CMS route group
+│   │       ├── layout.tsx        # Shared admin authentication guard
+│   │       ├── page.tsx          # CMS dashboard
+│   │       ├── applications/     # Application management pages
+│   │       ├── create/page.tsx   # Create property page
+│   │       ├── manual-applicant/ # Create an application manually
+│   │       ├── profile/page.tsx  # Admin profile page
+│   │       └── [id]/             # Edit property page
 │   ├── properties/
 │   │   ├── page.tsx              # Property listing page
 │   │   └── [id]/
@@ -104,9 +109,10 @@ PhiaPropertyRental/
 │   ├── layout.tsx                # Root layout
 │   └── page.tsx                  # Home page
 ├── components/
-│   ├── PropertyCard.tsx          # Property card component
-│   ├── PropertyForm.tsx          # Create/edit form
-│   └── PropertyFilters.tsx       # Filter component
+│   ├── cms/                      # CMS-only forms and application panels
+│   ├── PropertyCard.tsx          # Public property card component
+│   ├── ApplyNowForm.tsx          # Public application form
+│   └── SiteFooter.tsx             # Shared site footer
 ├── lib/
 │   ├── db.ts                     # SQLite database initialization
 │   ├── auth.ts                   # Session/cookie auth helpers
@@ -229,10 +235,14 @@ CREATE TABLE property_images (
 
 1. Navigate to `/cms/login`
 2. Sign in with email `thoj.phia@gmail.com` and your `CMS_ADMIN_PASSWORD`
-3. **Create**: Click "Add Property" to create a new listing
-4. **Read**: View all properties in the list
-5. **Update**: Click "Edit" on any property detail page to add or remove images
-6. **Delete**: Click "Delete" on the property detail page
+3. **Dashboard**: View property and application summaries at `/cms`
+4. **Create**: Use `/cms/create` to add a new listing
+5. **Read and update**: View properties at `/properties` and edit them from `/cms/[id]`
+6. **Applications**: Review and manage renter applications at `/cms/applications`
+7. **Manual applicant**: Create an application directly from `/cms/manual-applicant`
+8. **Profile**: Update the admin account at `/cms/profile`
+
+All CMS pages except `/cms/login` require a valid admin session. The `(protected)` folder is a Next.js route group and is not included in the URLs.
 
 ## Available Scripts
 
@@ -250,7 +260,7 @@ npm start
 npm run lint
 
 # Type checking
-npm run type-check
+npx tsc --noEmit
 ```
 
 ## Common Issues
@@ -279,6 +289,7 @@ npm run dev -- -p 3001
 
 ## Future Enhancements
 
+- [ ] Tests
 - [ ] Multi-user authentication and role management
 - [ ] Photo gallery with multiple images per property
 - [ ] Advanced search with price range and amenities
