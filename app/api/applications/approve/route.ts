@@ -1,110 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
-import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
-import { getEmailFooterHtml } from '@/lib/email-footer';
-import { ApplicationStatus } from '@/lib/types/types';
-import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '@/lib/types/apiTypes';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-function resolveRecipientEmail(email: string): string {
-  return process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO || email : email;
-}
-
-function buildEmailHtml(content: string): string {
-  return `
-    <html>
-      <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #333; margin: 0;">Phia Rental</h1>
-        </div>
-
-        <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-          ${content}
-          ${getEmailFooterHtml()}
-        </div>
-
-        <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-          <p>This is an automated message. Please do not reply to this email.</p>
-        </div>
-      </body>
-    </html>
-  `;
-}
-
-function buildApprovalEmailHtml(application: ApplicationRecord): string {
-  return buildEmailHtml(`
-    <h2 style="color: #333; margin-top: 0;">Application Approved!</h2>
-    <p style="color: #666; margin: 10px 0;">Hi ${application.applicant_name},</p>
-
-    <p style="color: #666; line-height: 1.6;">
-      Congratulations! Your rental application for <strong>${application.property_name}</strong> has been approved.
-    </p>
-
-    <div style="background-color: #fff; padding: 15px; border-left: 4px solid #22c55e; margin: 20px 0;">
-      <p style="color: #333; margin: 0; font-weight: 500;">We're excited to have you as our tenant!</p>
-    </div>
-
-    <p style="color: #666; line-height: 1.6;">
-      Our team will be in touch shortly with next steps and move-in details.
-      If you have any questions in the meantime, please don't hesitate to reach out to us.
-    </p>
-  `);
-}
-
-function buildDeclinedNotificationEmailHtml(applicant: DeclinedApplicantNotificationTarget): string {
-  return buildEmailHtml(`
-    <h2 style="color: #333; margin-top: 0;">Application Decision</h2>
-    <p style="color: #666; margin: 10px 0;">Hi ${applicant.applicant_name},</p>
-
-    <p style="color: #666; line-height: 1.6;">
-      Thank you for your interest in <strong>${applicant.property_name}</strong>.
-      At this time, we decided to move forward with another applicant for this property. Best wishes in your search for a new home!
-    </p>
-  `);
-}
-
-function getApplicationById(applicationId: number): ApplicationRecord | undefined {
-  const db = getDb();
-  return db
-    .prepare('SELECT * FROM applications WHERE id = ? AND status != ?')
-    .get(applicationId, ApplicationStatus.DELETED) as ApplicationRecord | undefined;
-}
-
-function getRecentlyDeclinedApplicants(propertyId: number, approvedApplicationId: number): DeclinedApplicantNotificationTarget[] {
-  const db = getDb();
-  return db.prepare(`
-    SELECT id, email, applicant_name, property_name
-    FROM applications
-    WHERE property_id = ? AND id != ? AND status NOT IN ('${ApplicationStatus.DELETED}', '${ApplicationStatus.DECLINED}', '${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')
-  `).all(propertyId, approvedApplicationId) as DeclinedApplicantNotificationTarget[];
-}
-
-function updateApplicationStatuses(propertyId: number, approvedApplicationId: number): void {
-  const db = getDb();
-  // Set declined for all other applications for the same property that are not already deleted, declined, or approved
-  db.prepare(`
-    UPDATE applications
-    SET status = '${ApplicationStatus.DECLINED}'
-    WHERE property_id = ? AND id != ? AND status NOT IN ('${ApplicationStatus.DELETED}', '${ApplicationStatus.DECLINED}', '${ApplicationStatus.APPROVED}', '${ApplicationStatus.APPROVE_ARCHIVED}')
-  `).run(propertyId, approvedApplicationId);
-
-  // Set old approved applicant to approve-archived
-  db.prepare('UPDATE applications SET status = ? WHERE property_id = ? AND status = ? AND id != ?')
-      .run(ApplicationStatus.APPROVE_ARCHIVED, propertyId, ApplicationStatus.APPROVED, approvedApplicationId);
-  // Now set the new applicant as approved
-  db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(ApplicationStatus.APPROVED, approvedApplicationId);
-}
-
-async function sendApplicationStatusEmail(email: string, propertyName: string, html: string) {
-  return resend.emails.send({
-    from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
-    to: resolveRecipientEmail(email),
-    replyTo: process.env.SITE_EMAIL_TO,
-    subject: `Application Status - ${propertyName}`,
-    html,
-  });
-}
+import { ensureDbReady, persistDbToCloudStorage } from '@/lib/db';
+import {
+  buildApprovalEmailHtml,
+  buildDeclinedNotificationEmailHtml,
+  getApplicationById,
+  getRecentlyDeclinedApplicants,
+  sendApplicationStatusEmail,
+  updateApplicationStatuses,
+} from '@/lib/api/application-helpers';
 
 export async function POST(request: NextRequest) {
   try {
