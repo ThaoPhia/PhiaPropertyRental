@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
-import { getEmailFooterHtml } from '@/lib/email-footer';
+import { buildDeclineEmailHtml } from '@/emails/application-emails';
 import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationDeclinePayload, ApplicationRecord } from '@/lib/types/apiTypes';
 
@@ -43,44 +43,7 @@ export async function POST(request: NextRequest) {
       to: emailToSend || application.email,
       replyTo: process.env.SITE_EMAIL_TO,
       subject: `Application Status - ${application.property_name}`,
-      html: `
-        <html>
-          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #333; margin: 0;">Phia Rental</h1>
-            </div>
-
-            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <h2 style="color: #333; margin-top: 0;">Application Decision</h2>
-              <p style="color: #666; margin: 10px 0;">Hi ${application.applicant_name},</p>
-              
-              <p style="color: #666; line-height: 1.6;">
-                Thank you for submitting your rental application for <strong>${application.property_name}</strong>. 
-                We appreciate your interest in our property.
-              </p>
-
-              <p style="color: #666; line-height: 1.6;">
-                Unfortunately, after careful review, we have decided not to move forward with your application at this time for the following reason:
-              </p>
-
-              <div style="background-color: #fff; padding: 15px; border-left: 4px solid #ef4444; margin: 20px 0;">
-                <p style="color: #333; margin: 0; font-weight: 500;">${reason}</p>
-              </div>
-
-              <p style="color: #666; line-height: 1.6;">
-                We encourage you to apply for other properties that may be a better fit for your situation. 
-                If you have any questions, please don't hesitate to reach out to us.
-              </p>
-
-              ${getEmailFooterHtml()}
-            </div>
-
-            <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-              <p>This is an automated message. Please do not reply to this email.</p>
-            </div>
-          </body>
-        </html>
-      `,
+      html: buildDeclineEmailHtml(application, reason),
     });
 
     if (emailResult.error) {

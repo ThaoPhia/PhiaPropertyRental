@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { escapeHtml } from '@/lib/escape-html';
+import { buildContactEmailHtml } from '@/emails/contact-emails';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -57,20 +57,7 @@ export async function POST(request: NextRequest) {
       to: recipient,
       replyTo: `${process.env.SITE_EMAIL_TO}`,
       subject: `Contact Form Submission - ${name}`,
-      html: `
-        <html>
-          <body style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #1f2937; margin-bottom: 16px;">New Contact Request</h1>
-            <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;">
-              <p style="margin: 0 0 8px; color: #111827;"><strong>Name:</strong> ${escapeHtml(name)}</p>
-              <p style="margin: 0 0 8px; color: #111827;"><strong>Email:</strong> ${escapeHtml(email)}</p>
-              <p style="margin: 0 0 8px; color: #111827;"><strong>Phone:</strong> ${escapeHtml(phone)}</p>
-              <p style="margin: 12px 0 4px; color: #111827;"><strong>Comments:</strong></p>
-              <p style="margin: 0; color: #111827; white-space: pre-wrap;">${escapeHtml(comments)}</p>
-            </div>
-          </body>
-        </html>
-      `,
+      html: buildContactEmailHtml({ name, email, phone, comments }),
     });
 
     if (emailResult.error) {

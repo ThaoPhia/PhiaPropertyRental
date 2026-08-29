@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ensureDbReady, persistDbToCloudStorage } from '@/lib/db';
+import { buildApprovalEmailHtml, buildDeclinedNotificationEmailHtml } from '@/emails/application-emails';
 import {
-  buildApprovalEmailHtml,
-  buildDeclinedNotificationEmailHtml,
   getApplicationById,
   getRecentlyDeclinedApplicants,
   sendApplicationStatusEmail,

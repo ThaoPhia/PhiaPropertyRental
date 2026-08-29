@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
-import { getEmailFooterHtml } from '@/lib/email-footer';
-import { escapeHtml } from '@/lib/escape-html';
+import { buildPendingStatusEmailHtml } from '@/emails/application-emails';
 import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationRecord, ApplicationStatusPayload } from '@/lib/types/apiTypes';
 
@@ -47,37 +46,12 @@ export async function POST(request: NextRequest) {
     // Send email notification if the status is set to 'pending'. Delete does not need to send any email.
     if (status === ApplicationStatus.PENDING && !isRestoreFromDeleted) {
       const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
-      const safeApplicantName = escapeHtml(application.applicant_name);
-      const safePropertyName = escapeHtml(application.property_name);
-      const safeAdditionalInfo = escapeHtml(additionalInfo);
       const emailResult = await resend.emails.send({
         from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
         to: emailToSend || application.email,
         replyTo: process.env.SITE_EMAIL_TO,
-        subject: `Application Status Update - ${safePropertyName}`,
-        html: `
-          <html>
-            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #333; margin: 0;">Phia Rental</h1>
-              </div>
-              <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <h2 style="color: #333; margin-top: 0;">Application Update</h2>
-                <p style="color: #666; margin: 10px 0;">Hi ${safeApplicantName},</p>
-                <p style="color: #666; line-height: 1.6;">
-                  We have moved your application to the next stage. Your application for <strong>${safePropertyName}</strong> is currently pending.
-                </p>
-                <div style="background-color: #fff; padding: 15px; border-left: 4px solid #3b82f6; margin: 20px 0;">
-                  <p style="color: #333; margin: 0; white-space: pre-wrap;">${safeAdditionalInfo}</p>
-                </div>
-                ${getEmailFooterHtml()}
-              </div>
-              <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
-                <p>This is an automated message. Please do not reply to this email.</p>
-              </div>
-            </body>
-          </html>
-        `,
+        subject: `Application Status Update - ${application.property_name}`,
+        html: buildPendingStatusEmailHtml(application, additionalInfo),
       });
 
       if (emailResult.error) {
