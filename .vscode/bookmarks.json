@@ -24,6 +24,26 @@
 					"label": ""
 				}
 			]
+		},
+		{
+			"path": "app/api/auth/login/route.ts",
+			"bookmarks": [
+				{
+					"line": 69,
+					"column": 0,
+					"label": ""
+				}
+			]
+		},
+		{
+			"path": "app/api/properties/[id]/route.ts",
+			"bookmarks": [
+				{
+					"line": 24,
+					"column": 0,
+					"label": ""
+				}
+			]
 		}
 	]
 }

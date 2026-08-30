@@ -19,24 +19,28 @@ export async function GET(request: NextRequest) {
     const admin = await getAuthenticatedAdminFromRequest(request);
     const includeRemoved = Boolean(admin);
 
-    let query = 'SELECT * FROM properties WHERE 1=1';
+    const conditions: string[] = [];
     const params: (string | number)[] = [];
 
     if (type) {
-      query += ' AND type = ?';
+      conditions.push('type = ?');
       params.push(type);
     }
 
     if (city) {
-      query += ' AND city = ?';
+      conditions.push('city = ?');
       params.push(city);
     }
 
     if (!includeRemoved) {
-      query += ` AND status != '${PropertyStatus.REMOVED}'`;
+      conditions.push('status != ?');
+      params.push(PropertyStatus.REMOVED);
     }
 
-    const rows = db.prepare(`${query} ORDER BY datetime(created_at) DESC`).all(...params) as Record<string, unknown>[];
+    const whereClause = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
+    const rows = db
+      .prepare(`SELECT * FROM properties${whereClause} ORDER BY datetime(created_at) DESC`)
+      .all(...params) as Record<string, unknown>[];
     const properties = rows.map((row) => normalizePropertyRow(row));
 
     return NextResponse.json(properties);
