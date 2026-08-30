@@ -3,7 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { deletePropertyImage, savePropertyImages } from '@/lib/property-images';
-import { parsePropertyHighlights, serializePropertyHighlights } from '@/lib/property-fields';
+import { parsePropertyHighlights } from '@/lib/property-fields';
 import { normalizePropertyRow } from '@/lib/property-fields';
 import { readPropertyInput } from '@/lib/property-input';
 import { PropertyStatus } from '@/lib/types/types';
