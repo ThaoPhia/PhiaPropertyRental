@@ -20,6 +20,14 @@ export async function verifyRecaptchaToken({
   expectedAction,
   minimumScore = 0.5,
 }: VerifyRecaptchaOptions): Promise<boolean> {
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    process.env.RECAPTCHA_E2E_TOKEN &&
+    token === process.env.RECAPTCHA_E2E_TOKEN
+  ) {
+    return true;
+  }
+
   const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!recaptchaSecret) {

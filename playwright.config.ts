@@ -12,7 +12,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npx cross-env NEXT_DIST_DIR=.next-playwright next dev --port 3100',
+    command: 'npx cross-env NEXT_DIST_DIR=.next-playwright NEXT_PUBLIC_RECAPTCHA_SITE_KEY=e2e-test-key RECAPTCHA_E2E_TOKEN=e2e-recaptcha-token next dev --port 3100',
     url: 'http://localhost:3100',
     reuseExistingServer: false,
   },

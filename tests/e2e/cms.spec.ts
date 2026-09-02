@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mockRecaptcha } from './helpers';
 
 test('redirects unauthenticated users to the CMS login page', async ({ page }) => {
   await page.goto('/cms');
@@ -8,6 +9,8 @@ test('redirects unauthenticated users to the CMS login page', async ({ page }) =
 });
  
 test('fails to log in to the CMS with invalid credentials', async ({ page }) => {
+  await mockRecaptcha(page);
+
   await page.goto('/cms/login');
   await page.getByLabel('Email').fill('invalid@example.com');
   await page.getByLabel('Password').fill('wrongpassword');
@@ -18,6 +21,8 @@ test('fails to log in to the CMS with invalid credentials', async ({ page }) => 
 });
 
 test('logs in to the CMS with valid admin credentials', async ({ page }) => {
+  await mockRecaptcha(page);
+
   const adminEmail = process.env.CMS_ADMIN_EMAIL;
   const adminPassword = process.env.CMS_ADMIN_PASSWORD;
   if (!adminEmail || !adminPassword) {
