@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const email = emailRaw.trim().toLowerCase();
+  const email = emailRaw.trim().toLowerCase(); // Normalize the email by trimming whitespace and converting to lowercase
   const password = passwordRaw;
-  const recaptchaToken = recaptchaTokenRaw.trim();
+  const recaptchaToken = recaptchaTokenRaw.trim(); // Trim any leading or trailing whitespace from the reCAPTCHA token
 
   if (!email || !password || !recaptchaToken) {
     return NextResponse.json(
