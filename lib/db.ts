@@ -594,7 +594,7 @@ function initializeSchema(database: Database.Database): void {
     WHERE image_url IS NOT NULL AND image_url != ''
   `).run();
 
-  const adminEmail = 'thoj.phia@gmail.com';
+  const adminEmail = process.env.CMS_ADMIN_EMAIL?.trim().toLowerCase() || 'thoj.phia@gmail.com';
   const adminName = 'Admin';
   const adminPassword = process.env.CMS_ADMIN_PASSWORD || 'ChangeMeNow!123!';
   const globalState = globalThis as typeof globalThis & { cmsPasswordWarningShown?: boolean };

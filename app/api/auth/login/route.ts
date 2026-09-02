@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     'SELECT id, email, password_hash, role FROM users WHERE email = ?'
   ).get(email) as AuthUserRecord | undefined;
 
+  // Make sure the user exists, is an admin, and the password is correct
   if (!user || user.role !== 'admin' || !verifyPassword(password, user.password_hash)) {
     return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   }

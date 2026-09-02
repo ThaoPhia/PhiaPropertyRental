@@ -51,3 +51,6 @@ next-env.d.ts
 # bookmarks
 .vscode/*
 !.vscode/settings.json
+
+# playwright
+.next-playwright/

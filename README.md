@@ -47,6 +47,7 @@ Update the `.env.local` file:
 ```bash
 SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
+CMS_ADMIN_EMAIL=thoj.phia@gmail.com
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
 RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
@@ -63,7 +64,7 @@ SUPABASE_STORAGE_DB_BUCKET=phia-property-rental-private
 
 Supabase DB object path is automatically derived from `SQLITE_DB_PATH`.
 
-Admin login email is fixed to: `thoj.phia@gmail.com`
+The admin login email is configured with `CMS_ADMIN_EMAIL`.
 
 ### 3. Install Dependencies
 
@@ -236,7 +237,7 @@ CREATE TABLE property_images (
 ### Managing Properties (CMS)
 
 1. Navigate to `/cms/login`
-2. Sign in with email `thoj.phia@gmail.com` and your `CMS_ADMIN_PASSWORD`
+2. Sign in with your `CMS_ADMIN_EMAIL` and `CMS_ADMIN_PASSWORD`
 3. **Dashboard**: View property and application summaries at `/cms`
 4. **Create**: Use `/cms/create` to add a new listing
 5. **Read and update**: View properties at `/properties` and edit them from `/cms/[id]`

@@ -21,11 +21,12 @@ rm -f database/phia-property-rental.db
 
 ## Step 3: Configure Environment Variables
 
-Edit `.env.local` with your SQLite path and CMS admin password:
+Edit `.env.local` with your SQLite path and CMS admin credentials:
 
 ```env
 SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
+CMS_ADMIN_EMAIL=thoj.phia@gmail.com
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 ```
 
@@ -43,7 +44,7 @@ The application will start at `http://localhost:3000`
 - **Browse Properties**: http://localhost:3000/properties
 - **CMS Login**: http://localhost:3000/cms/login
 - **CMS Dashboard**: http://localhost:3000/cms (requires login)
-- **Admin Username**: `thoj.phia@gmail.com`
+- **Admin Email**: Your configured `CMS_ADMIN_EMAIL`
 
 ## Troubleshooting
 
