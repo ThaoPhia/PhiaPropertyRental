@@ -730,6 +730,56 @@ function normalizeImageUrlsForLocalStorage(): boolean {
   return updatedAny;
 }
 
+function removeMissingLocalImageUrls(): boolean {
+  if (isSupabaseStorageConfigured()) {
+    return false;
+  }
+
+  const database = getDb();
+  const localImageUrls = database.prepare(`
+    SELECT DISTINCT image_url
+    FROM (
+      SELECT image_url FROM properties
+      UNION
+      SELECT image_url FROM property_images
+    )
+    WHERE image_url LIKE '/images/properties/%'
+  `).all() as { image_url: string }[];
+
+  const missingImageUrls = localImageUrls
+    .map((row) => row.image_url)
+    .filter((imageUrl) => !fs.existsSync(getLegacyLocalImagePathFromUrl(imageUrl)));
+
+  if (missingImageUrls.length === 0) {
+    return false;
+  }
+
+  const deleteGalleryImage = database.prepare('DELETE FROM property_images WHERE image_url = ?');
+  const clearMainImage = database.prepare('UPDATE properties SET image_url = NULL WHERE image_url = ?');
+  const refreshMainImages = database.prepare(`
+    UPDATE properties
+    SET image_url = (
+      SELECT image_url
+      FROM property_images
+      WHERE property_images.property_id = properties.id
+      ORDER BY sort_order ASC, id ASC
+      LIMIT 1
+    )
+    WHERE image_url IS NULL OR image_url = ''
+  `);
+
+  const cleanupMissingImages = database.transaction(() => {
+    missingImageUrls.forEach((imageUrl) => {
+      deleteGalleryImage.run(imageUrl);
+      clearMainImage.run(imageUrl);
+    });
+    refreshMainImages.run();
+  });
+
+  cleanupMissingImages();
+  return true;
+}
+
 async function migrateLegacyLocalImagesToSupabase(): Promise<boolean> {
   if (!isSupabaseStorageConfigured()) {
     return false;
@@ -878,6 +928,7 @@ export async function ensureDbReady(): Promise<void> {
     state.ensureReadyPromise = (async () => {
       let downloadedFromCloud = false;
       let normalizedLocalImageUrls = false;
+      let removedMissingLocalImages = false;
       let migratedLegacyImages = false;
       if (isSupabaseStorageConfigured() && shouldPullDbFromCloudOnBoot()) {
         if (state.db) {
@@ -890,12 +941,16 @@ export async function ensureDbReady(): Promise<void> {
 
       initializeSchema(getDb());
       normalizedLocalImageUrls = normalizeImageUrlsForLocalStorage();
+      removedMissingLocalImages = removeMissingLocalImageUrls();
       migratedLegacyImages = await migrateLegacyLocalImagesToSupabase();
       if (isSupabaseStorageConfigured() && (!downloadedFromCloud || migratedLegacyImages)) {
         await persistDbToCloudStorageInternal();
       }
       if (normalizedLocalImageUrls) {
         console.info('Normalized Supabase image URLs to local /images/properties paths for local mode.');
+      }
+      if (removedMissingLocalImages) {
+        console.info('Removed missing local property image URLs from the SQLite database.');
       }
       state.ready = true;
     })().finally(() => {
