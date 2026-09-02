@@ -64,7 +64,7 @@ describe('auth login API route integration', () => {
     const { GET, POST } = await loadLoginRoute();
 
     // Attempt to access the "me" endpoint before logging in.
-    let response = await GET(createGetRequest('http://localhost/api/auth/me') as never);
+    let response: Response = await GET(createGetRequest('http://localhost/api/auth/me') as never);
     let body = await response.json();
 
     expect(response.status).toBe(200);
