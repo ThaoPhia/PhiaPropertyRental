@@ -4,6 +4,7 @@ import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationPayload } from '@/lib/types/apiTypes';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
 
+// Handles fetching all applications from the database, ordered by status and creation date.
 export async function GET() {
   try {
     await ensureDbReady();
@@ -73,6 +74,7 @@ export async function GET() {
   }
 }
 
+// Handles the creation of new applications. Validates input, verifies reCAPTCHA, and inserts the application into the database.
 export async function POST(request: NextRequest) {
   await ensureDbReady();
   const db = getDb();

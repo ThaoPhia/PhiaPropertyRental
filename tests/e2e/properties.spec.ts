@@ -37,33 +37,63 @@ test('opens a property detail page from the listing', async ({ page }) => {
   await expect(page.locator('iframe[title^="Map of"]')).toBeVisible();
 });
 
-test('requires application form fields before submitting', async ({ page }) => {
-  await mockRecaptcha(page);
-
-  let applicationSubmitted = false;
-  // Intercept the API request to track if the application is submitted
-  await page.route('**/api/applications', async (route) => {
-    applicationSubmitted = true;
-    await route.fulfill({ status: 201, json: { success: true, applicationId: 1 } });
+// Test for submitting a property application to a non-existent property
+test('rejects an application for a property that does not exist', async ({ page }) => {
+  const response = await page.request.post('/api/applications', {
+    data: {
+      propertyId: 999999,
+      applicantName: 'Jamie Tenant',
+      email: 'jamie.tenant@example.com',
+      phone: '920-555-0188',
+      currentAddressStreet: '789 Current St',
+      currentAddressCity: 'Menasha',
+      currentAddressState: 'WI',
+      currentAddressZip: '54952',
+      currentAddressSinceDate: addDays(new Date(), -365),
+      householdIncome: '72000',
+      moveInDate: addDays(new Date(), 30),
+      totalOccupancy: '2',
+      landlordName: 'Morgan Manager',
+      landlordPhone: '920-555-0199',
+      additionalInfo: '',
+      recaptchaToken: 'e2e-recaptcha-token',
+    },
   });
 
-  await openFirstPropertyDetail(page);
-  await page.getByLabel(/I understand if my application is accepted/).check();
-  await page.getByRole('button', { name: 'Submit Application' }).click();
-
-  await expect(page.locator('#applicant-name')).toBeFocused();
-  expect(applicationSubmitted).toBe(false);
+  expect(response.status()).toBe(404);
+  await expect(response.json()).resolves.toEqual({ error: 'Property not found' });
 });
 
+// Test for submitting a property application with missing required fields
+test('rejects a property application with missing required fields', async ({ page }) => {
+  const response = await page.request.post('/api/applications', {
+    data: {
+      propertyId: 1,
+      applicantName: '',
+      email: 'jamie.tenant@example.com',
+      phone: '920-555-0188',
+      currentAddressStreet: '789 Current St',
+      currentAddressCity: 'Menasha',
+      currentAddressState: 'WI',
+      currentAddressZip: '54952',
+      currentAddressSinceDate: addDays(new Date(), -365),
+      householdIncome: '72000',
+      moveInDate: addDays(new Date(), 30),
+      totalOccupancy: '2',
+      landlordName: 'Morgan Manager',
+      landlordPhone: '920-555-0199',
+      additionalInfo: '',
+      recaptchaToken: 'e2e-recaptcha-token',
+    },
+  });
+
+  expect(response.status()).toBe(400);
+  await expect(response.json()).resolves.toEqual({ error: 'All application fields are required' });
+}); 
+
+// Test for submitting a property application with all required fields
 test('submits a property application with all required fields', async ({ page }) => {
   await mockRecaptcha(page);
-
-  let applicationPayload: Record<string, unknown> | null = null;
-  // Intercept the API request to capture the application payload
-  await page.route('**/api/applications', async (route) => {
-    applicationPayload = JSON.parse(route.request().postData() ?? '{}') as Record<string, unknown>;
-    await route.fulfill({ status: 201, json: { success: true, applicationId: 123 } });
-  });
 
   await openFirstPropertyDetail(page);
 
@@ -88,20 +118,28 @@ test('submits a property application with all required fields', async ({ page })
   await page.getByRole('button', { name: 'Submit Application' }).click();
 
   await expect(page.getByText('Application submitted successfully. We will contact you soon.')).toBeVisible();
-  expect(applicationPayload).toMatchObject({
-    applicantName: 'Jamie Tenant',
-    email: 'jamie.tenant@example.com',
-    phone: '920-555-0188',
-    currentAddressStreet: '789 Current St',
-    currentAddressCity: 'Menasha',
-    currentAddressState: 'WI',
-    currentAddressZip: '54952',
-    currentAddressSinceDate,
-    householdIncome: '72000',
-    moveInDate,
-    totalOccupancy: '2',
-    landlordName: 'Morgan Manager',
-    landlordPhone: '920-555-0199',
-    recaptchaToken: 'e2e-recaptcha-token',
-  });
+  const applicationsResponse = await page.request.get('/api/applications');
+  expect(applicationsResponse.ok()).toBe(true);
+
+  const applications = await applicationsResponse.json();
+  expect(applications).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      applicantName: 'Jamie Tenant',
+      email: 'jamie.tenant@example.com',
+      phone: '920-555-0188',
+      currentAddressStreet: '789 Current St',
+      currentAddressCity: 'Menasha',
+      currentAddressState: 'WI',
+      currentAddressZip: '54952',
+      currentAddressSinceDate,
+      householdIncome: 72000,
+      moveInDate,
+      totalOccupancy: 2,
+      landlordName: 'Morgan Manager',
+      landlordPhone: '920-555-0199',
+      additionalInfo: '',
+      propertyId: expect.any(Number),
+      propertyName: 'Downtown Duplex',
+    }),
+  ]));
 });
