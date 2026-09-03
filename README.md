@@ -47,7 +47,7 @@ Update the `.env.local` file:
 ```bash
 SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
-CMS_ADMIN_EMAIL=thoj.phia@gmail.com
+CMS_ADMIN_EMAIL=admin@example.com
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
 RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
@@ -186,7 +186,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "thoj.phia@gmail.com",
+  "email": "admin@example.com",
   "password": "your-cms-admin-password",
   "recaptchaToken": "token-from-google-recaptcha"
 }

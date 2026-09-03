@@ -26,7 +26,7 @@ Edit `.env.local` with your SQLite path and CMS admin credentials:
 ```env
 SQLITE_DB_PATH=./database/phia-property-rental.db
 NEXT_PUBLIC_API_URL=http://localhost:3000
-CMS_ADMIN_EMAIL=thoj.phia@gmail.com
+CMS_ADMIN_EMAIL=admin@example.com
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 ```
 

@@ -21,7 +21,7 @@ export async function verifyRecaptchaToken({
   minimumScore = 0.5,
 }: VerifyRecaptchaOptions): Promise<boolean> {
   if (
-    process.env.NODE_ENV !== 'production' &&
+    (process.env.NODE_ENV === 'test' || process.env.NEXT_DIST_DIR === '.next-playwright') &&
     process.env.RECAPTCHA_E2E_TOKEN &&
     token === process.env.RECAPTCHA_E2E_TOKEN
   ) {

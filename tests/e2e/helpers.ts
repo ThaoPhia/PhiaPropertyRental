@@ -13,7 +13,14 @@ export async function openFirstPropertyDetail(page: Page) {
 
 export async function mockRecaptcha(page: Page) {
   await page.addInitScript(() => {
-    window.grecaptcha = {
+    const testWindow = window as Window & {
+      grecaptcha: {
+        ready: (callback: () => void) => void;
+        execute: () => Promise<string>;
+      };
+    };
+
+    testWindow.grecaptcha = {
       ready: (callback: () => void) => callback(),
       execute: async () => 'e2e-recaptcha-token',
     };
