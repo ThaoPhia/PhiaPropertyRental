@@ -95,6 +95,7 @@ describe('application workflow features', () => {
     }) as never);
 
     expect(response.status).toBe(200);
+    // Check that an email was sent for the pending status update
     expect(mockSend).toHaveBeenCalledTimes(1);
     expect(db.prepare('SELECT status FROM applications WHERE id = ?').get(applicationId)).toEqual({
       status: ApplicationStatus.PENDING,
@@ -107,6 +108,7 @@ describe('application workflow features', () => {
     }) as never);
 
     expect(response.status).toBe(200);
+    // Check that no email was sent for the deleted status
     expect(mockSend).not.toHaveBeenCalled();
     expect(db.prepare('SELECT status FROM applications WHERE id = ?').get(applicationId)).toEqual({
       status: ApplicationStatus.DELETED,

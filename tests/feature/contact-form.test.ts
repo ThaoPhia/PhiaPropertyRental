@@ -50,6 +50,7 @@ describe('contact form feature', () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({ success: true });
+    // Check that the contact request email was sent with the correct details
     expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({
       to: 'owner@example.com',
       replyTo: 'owner@example.com',
