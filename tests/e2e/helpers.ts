@@ -13,10 +13,10 @@ export async function openFirstPropertyDetail(page: Page) {
 
 export async function mockRecaptcha(page: Page) {
   await page.addInitScript(() => {
-    const testWindow = window as Window & {
+    const testWindow = window as unknown as Window & {
       grecaptcha: {
         ready: (callback: () => void) => void;
-        execute: () => Promise<string>;
+        execute: (siteKey: string, options: { action: string }) => Promise<string>;
       };
     };
 
