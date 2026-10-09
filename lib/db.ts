@@ -605,7 +605,7 @@ function initializeSchema(database: Database.Database): void {
     !globalState.cmsPasswordWarningShown
   ) {
     console.warn(
-      'CMS_ADMIN_PASSWORD is not set. Using insecure default admin password. Set CMS_ADMIN_PASSWORD in .env.local.'
+      'CMS_ADMIN_PASSWORD is not set. Using insecure default admin password. Set CMS_ADMIN_PASSWORD in .env.'
     );
     globalState.cmsPasswordWarningShown = true;
   }

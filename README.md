@@ -42,7 +42,12 @@ If the database is empty, the app creates the `properties` table and inserts sam
 
 ### 2. Environment Configuration
 
-Update the `.env.local` file:
+Update the `.env` file in the project root:
+
+Next.js loads `.env` automatically. Keep it out of git. Environment-specific
+files such as `.env.production` take precedence over `.env`, and variables
+already set in the process take precedence over all environment files.
+Restart the development server after changing environment variables.
 
 ```bash
 SQLITE_DB_PATH=./database/phia-property-rental.db
@@ -124,7 +129,7 @@ PhiaPropertyRental/
 ├── database/
 │   └── schema.sql                # Database schema
 ├── public/                       # Static assets
-├── .env.local                    # Environment variables
+├── .env                          # Environment variables
 └── package.json
 ```
 
@@ -269,7 +274,7 @@ npx tsc --noEmit
 ## Common Issues
 
 ### Database Connection Failed
-- Check `SQLITE_DB_PATH` in `.env.local`
+- Check `SQLITE_DB_PATH` in `.env`
 - Ensure the `database/` folder is writable
 - Delete `database/phia-property-rental.db` to force a fresh re-initialization
 
@@ -307,7 +312,7 @@ npm run dev -- -p 3001
 - Always sanitize user inputs (already handled by prepared statements)
 - Use HTTPS in production
 - CMS access is restricted to authenticated admin sessions
-- Keep `.env.local` out of git and configure `SQLITE_DB_PATH` per environment
+- Keep `.env` out of git and configure `SQLITE_DB_PATH` per environment
 - Use environment-specific configurations
 
 ## Deployment

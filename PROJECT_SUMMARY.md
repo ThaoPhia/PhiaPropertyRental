@@ -15,7 +15,7 @@ Your Next.js real estate management application has been created with all featur
 SQLite database is file-based and auto-initialized on first app run. No manual setup needed.
 
 ### Step 2: Configure Environment (Optional)
-Default SQLite path is `./database/phia-property-rental.db`. Edit `.env.local` if you want to change it:
+Default SQLite path is `./database/phia-property-rental.db`. Edit `.env` if you want to change it:
 
 ```bash
 SQLITE_DB_PATH=./database/phia-property-rental.db
@@ -80,7 +80,7 @@ PhiaPropertyRental/
 ├── database/
 │   └── schema.sql               # Database schema
 ├── public/                      # Static assets
-├── .env.local                   # Environment variables
+├── .env                         # Environment variables
 ├── tsconfig.json                # TypeScript config
 ├── package.json                 # Dependencies
 └── README.md                    # Full documentation
@@ -157,7 +157,7 @@ npm run type-check
 ## ⚠️ Important Notes
 
 1. **Database Path**: SQLite DB stored in `./database/phia-property-rental.db`
-2. **Environment Variables**: Never commit `.env.local` to git (already in .gitignore)
+2. **Environment Variables**: Never commit `.env` to git (already in .gitignore)
 3. **No External Server**: SQLite runs locally without external dependencies
 4. **Sample Data**: Database auto-seeds with 2 sample properties on first run
 
@@ -181,7 +181,7 @@ See README.md for detailed deployment instructions.
 ## 🆘 Troubleshooting
 
 ### SQLite Database Issues
-- Check `SQLITE_DB_PATH` in `.env.local`
+- Check `SQLITE_DB_PATH` in `.env`
 - Ensure `database/` directory is writable
 - Reset DB: `rm -f database/phia-property-rental.db` and restart app
 
@@ -199,7 +199,7 @@ For detailed help, see README.md in the project directory.
 
 ## ✨ Next Steps
 
-1. (Optional) Configure SQLite path in `.env.local`
+1. (Optional) Configure SQLite path in `.env`
 2. Run `npm run dev` to start the server
 3. Open http://localhost:3000 in your browser
 4. Create and manage properties through the CMS

@@ -21,7 +21,7 @@ rm -f database/phia-property-rental.db
 
 ## Step 3: Configure Environment Variables
 
-Edit `.env.local` with your SQLite path and CMS admin credentials:
+Edit `.env` with your SQLite path and CMS admin credentials:
 
 ```env
 SQLITE_DB_PATH=./database/phia-property-rental.db
@@ -51,7 +51,7 @@ The application will start at `http://localhost:3000`
 ### SQLite Database Issues
 
 **Solution**:
-1. Check `.env.local` has a valid `SQLITE_DB_PATH`
+1. Check `.env` has a valid `SQLITE_DB_PATH`
 2. Ensure the `database` directory exists and is writable
 3. Reset the DB file: `rm -f database/phia-property-rental.db`
 
@@ -96,7 +96,7 @@ npm run dev
 - **Pages**: `app/` (with route-based structure)
 - **Database**: `lib/db.ts` and `database/schema.sql`
 - **Types**: `lib/types/types.ts` and `lib/types/apiTypes.ts`
-- **Environment**: `.env.local`
+- **Environment**: `.env`
 
 ## Production Deployment
 

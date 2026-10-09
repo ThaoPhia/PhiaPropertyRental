@@ -44,7 +44,7 @@
 
 ## ⚙️ Configuration Files
 
-- **.env.local** - Environment variables (database credentials) - CREATE THIS
+- **.env** - Environment variables (database credentials) - CREATE THIS
 - **tsconfig.json** - TypeScript configuration with path aliases
 - **next.config.ts** - Next.js configuration
 - **package.json** - Project dependencies and scripts
@@ -106,7 +106,7 @@ PhiaRental/
 ├── public/                       # Static assets
 ├── node_modules/                 # Dependencies (auto-generated)
 ├── .next/                        # Build output (auto-generated)
-├── .env.local                    # Environment variables (CREATE THIS)
+├── .env                          # Environment variables (CREATE THIS)
 ├── .eslintrc.json
 ├── .gitignore
 ├── next.config.ts
@@ -138,7 +138,7 @@ PhiaRental/
 
 ## 🚀 Getting Started Checklist
 
-- [ ] (Optional) Update `SQLITE_DB_PATH` in `.env.local`
+- [ ] (Optional) Update `SQLITE_DB_PATH` in `.env`
 - [ ] Database auto-initializes on first run
 - [ ] Run `npm install` (already done)
 - [ ] Run `npm run dev` to start server
@@ -162,7 +162,7 @@ PhiaRental/
 | Shared Data Types | `lib/types/types.ts` |
 | Application API Types | `lib/types/apiTypes.ts` |
 | Database Schema | `database/schema.sql` |
-| Environment Setup | `.env.local` |
+| Environment Setup | `.env` |
 | Home Page | `app/page.tsx` |
 | Property List | `app/properties/page.tsx` |
 | Property Detail | `app/properties/[id]/page.tsx` |
