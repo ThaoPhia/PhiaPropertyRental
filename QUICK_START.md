@@ -132,6 +132,17 @@ the browser will show a certificate warning. To use plain HTTP instead, set
 
 This setup uses development mode; it is not a production deployment.
 
+### Local Email Inbox (Mailpit)
+
+Open http://localhost:8025 to view contact requests and application notification
+emails. Docker routes all app email to Mailpit's HTTP API; nothing is delivered
+to real inboxes, and no Resend API key is required. Configure valid
+`SITE_EMAIL_FROM` and `SITE_EMAIL_TO` addresses in `.env`.
+Mailpit messages are temporary and cleared when its container is recreated.
+Native development can use the same inbox with
+`MAILPIT_URL=http://localhost:8025`; leave this variable unset in production
+to retain Resend delivery.
+
 ### Logs and Shutdown
 
 ```bash

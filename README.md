@@ -117,6 +117,15 @@ See [the Docker quick start](./QUICK_START.md#run-locally-with-docker) for domai
 setup, storage persistence, and environment details. This is a local development
 setup, not a production image.
 
+Docker also starts Mailpit at http://localhost:8025. All app emails are captured
+in this local inbox, not delivered to real recipients. The app uses Mailpit's
+HTTP send API (`MAILPIT_URL=http://mailpit:8025` inside Docker); no SMTP library or
+Resend API key is needed locally. Keep `SITE_EMAIL_FROM` and `SITE_EMAIL_TO` set
+to valid email addresses. Mailpit's inbox is temporary and is cleared when the
+container is recreated. Outside Docker, email continues to use Resend unless
+you set `MAILPIT_URL=http://localhost:8025` for native development. Never set
+`MAILPIT_URL` in production; the app rejects it outside development.
+
 ## Project Structure
 
 ```

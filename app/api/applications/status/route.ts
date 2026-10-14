@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { buildPendingStatusEmailHtml } from '@/emails/application-emails';
 import { ApplicationStatus } from '@/lib/types/types';
@@ -9,7 +9,6 @@ const ALLOWED_STATUSES = new Set<ApplicationStatus>([
   ApplicationStatus.PENDING,
   ApplicationStatus.DELETED,
 ]);
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,8 +45,7 @@ export async function POST(request: NextRequest) {
     // Send email notification if the status is set to 'pending'. Delete does not need to send any email.
     if (status === ApplicationStatus.PENDING && !isRestoreFromDeleted) {
       const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
-      const emailResult = await resend.emails.send({
-        from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
+      const emailResult = await sendEmail({
         to: emailToSend || application.email,
         replyTo: process.env.SITE_EMAIL_TO,
         subject: `Application Status Update - ${application.property_name}`,

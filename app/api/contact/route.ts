@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { buildContactEmailHtml } from '@/emails/contact-emails';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface ContactPayload {
   name: unknown;
@@ -52,8 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Site email is not configured' }, { status: 500 });
     }
 
-    const emailResult = await resend.emails.send({
-      from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
+    const emailResult = await sendEmail({
       to: recipient,
       replyTo: `${process.env.SITE_EMAIL_TO}`,
       subject: `Contact Form Submission - ${name}`,

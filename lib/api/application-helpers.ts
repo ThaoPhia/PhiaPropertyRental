@@ -1,9 +1,7 @@
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { getDb } from '@/lib/db';
 import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationRecord, DeclinedApplicantNotificationTarget } from '@/lib/types/apiTypes';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export function resolveRecipientEmail(email: string): string {
   return process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO || email : email;
@@ -49,12 +47,10 @@ export async function sendApplicationStatusEmail(
   propertyName: string,
   html: string
 ) {
-  return resend.emails.send({
-    from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
+  return sendEmail({
     to: resolveRecipientEmail(email),
     replyTo: process.env.SITE_EMAIL_TO,
     subject: `Application Status - ${propertyName}`,
     html,
   });
 }
-

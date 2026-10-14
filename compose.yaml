@@ -17,6 +17,10 @@ services:
       NEXT_DIST_DIR: .next
       NEXT_PUBLIC_API_URL: ${SITE_URL:?Set SITE_URL in .env}
       SQLITE_DB_PATH: /app/database/phia-property-rental.db
+      MAILPIT_URL: http://mailpit:8025
+    depends_on:
+      mailpit:
+        condition: service_healthy
     volumes:
       - .:/app
       - node_modules:/app/node_modules
@@ -29,6 +33,16 @@ services:
       interval: 10s
       timeout: 10s
       start_period: 60s
+      retries: 12
+
+  mailpit:
+    image: axllent/mailpit:v1.29
+    ports:
+      - "127.0.0.1:8025:8025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 5s
       retries: 12
 
 volumes:

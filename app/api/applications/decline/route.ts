@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { buildDeclineEmailHtml } from '@/emails/application-emails';
 import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationDeclinePayload, ApplicationRecord } from '@/lib/types/apiTypes';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,8 +36,7 @@ export async function POST(request: NextRequest) {
     // Send decline email (to site email if local, otherwise to applicant)
     const emailToSend = process.env.NODE_ENV === 'development' ? process.env.SITE_EMAIL_TO : application.email;
     
-    const emailResult = await resend.emails.send({
-      from: `${process.env.SITE_NAME} <${process.env.SITE_EMAIL_FROM}>`,
+    const emailResult = await sendEmail({
       to: emailToSend || application.email,
       replyTo: process.env.SITE_EMAIL_TO,
       subject: `Application Status - ${application.property_name}`,
