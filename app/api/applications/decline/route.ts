@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { buildDeclineEmailHtml } from '@/emails/application-emails';
@@ -7,6 +8,11 @@ import type { ApplicationDeclinePayload, ApplicationRecord } from '@/lib/types/a
 
 export async function POST(request: NextRequest) {
   try {
+    const admin = await getAuthenticatedAdminFromRequest(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await ensureDbReady();
     const db = getDb();
     const body = (await request.json()) as ApplicationDeclinePayload;

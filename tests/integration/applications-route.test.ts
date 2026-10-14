@@ -1,4 +1,4 @@
-import { cleanupIntegrationTests, createJsonRequest, prepareIntegrationTest } from './helpers';
+import { cleanupIntegrationTests, createGetRequest, createJsonRequest, prepareIntegrationTest } from './helpers';
 
 async function loadApplicationsRoute() {
   prepareIntegrationTest('phia-applications-route');
@@ -50,7 +50,11 @@ describe('applications API route integration', () => {
     expect(response.status).toBe(201);
     expect(body).toMatchObject({ success: true, applicationId: expect.any(Number) });
 
-    const listResponse = await GET();
+    const { createAuthSession } = await import('@/lib/auth');
+    const { token } = await createAuthSession(1);
+    const listResponse = await GET(createGetRequest(
+      'http://localhost/api/applications', `cms_session=${token}`,
+    ) as never);
     const applications = await listResponse.json();
 
     expect(listResponse.status).toBe(200);

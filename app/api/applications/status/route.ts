@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { sendEmail } from '@/lib/email';
 import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { buildPendingStatusEmailHtml } from '@/emails/application-emails';
@@ -12,6 +13,11 @@ const ALLOWED_STATUSES = new Set<ApplicationStatus>([
 
 export async function POST(request: NextRequest) {
   try {
+    const admin = await getAuthenticatedAdminFromRequest(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await ensureDbReady();
     const db = getDb();
     const body = (await request.json()) as ApplicationStatusPayload;

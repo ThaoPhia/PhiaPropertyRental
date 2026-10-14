@@ -238,6 +238,22 @@ Content-Type: application/json
 }
 ```
 
+### Application API Access
+
+The following endpoints require a valid CMS session belonging to a user with
+the `admin` role. Missing, invalid, expired, and non-admin sessions return
+`401` with `{ "error": "Unauthorized" }`:
+
+- `GET /api/applications` (applicant personal and financial data)
+- `POST /api/applications/approve`
+- `POST /api/applications/decline`
+- `POST /api/applications/status` (pending, delete, and restore actions)
+- `POST /api/applications/manual`
+
+`POST /api/applications` remains public for renter submissions and requires
+validation and reCAPTCHA. Public property reads and contact submissions remain
+public; CMS page protection does not replace these API-level checks.
+
 ## Database Schema
 
 ### Properties Table

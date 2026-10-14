@@ -24,8 +24,10 @@ async function loadRoute(path: string) {
   const route = await import(path);
   const { ensureDbReady, getDb } = await import('../../lib/db');
   await ensureDbReady();
+  const { createAuthSession } = await import('../../lib/auth');
+  const { token } = await createAuthSession(1);
 
-  return { ...route, db: getDb() };
+  return { ...route, db: getDb(), token, createAuthSession };
 }
 
 // Helper function to insert a new application into the database for testing purposes. Returns the inserted application's ID.
@@ -65,11 +67,11 @@ afterAll(cleanupIntegrationTests);
 
 describe('application workflow features', () => {
   it('approves one applicant, declines the other pending applicants, and sends notifications', async () => {
-    const { POST, db } = await loadRoute('../../app/api/applications/approve/route');
+    const { POST, db, token } = await loadRoute('../../app/api/applications/approve/route');
     const approvedId = insertApplication(db, 'approved@example.com');
     const declinedId = insertApplication(db, 'declined@example.com');
 
-    const response = await POST(createJsonRequest({ applicationId: approvedId }) as never);
+    const response = await POST(createJsonRequest({ applicationId: approvedId }, `cms_session=${token}`) as never);
     const body = await response.json();
     const statuses = db.prepare('SELECT id, status FROM applications ORDER BY id').all();
 
@@ -85,14 +87,14 @@ describe('application workflow features', () => {
   });
 
   it('sends a pending update email but does not send an email when deleting', async () => {
-    const { POST, db } = await loadRoute('../../app/api/applications/status/route');
+    const { POST, db, token } = await loadRoute('../../app/api/applications/status/route');
     const applicationId = insertApplication(db, 'applicant@example.com');
 
     let response = await POST(createJsonRequest({
       applicationId,
       status: ApplicationStatus.PENDING,
       additionalInfo: 'Please provide one more document.',
-    }) as never);
+    }, `cms_session=${token}`) as never);
 
     expect(response.status).toBe(200);
     // Check that an email was sent for the pending status update
@@ -105,7 +107,7 @@ describe('application workflow features', () => {
     response = await POST(createJsonRequest({
       applicationId,
       status: ApplicationStatus.DELETED,
-    }) as never);
+    }, `cms_session=${token}`) as never);
 
     expect(response.status).toBe(200);
     // Check that no email was sent for the deleted status
@@ -114,4 +116,73 @@ describe('application workflow features', () => {
       status: ApplicationStatus.DELETED,
     });
   });
+
+    it('allows an admin to decline an applicant and send a notification', async () => {
+      const { POST, db, token } = await loadRoute('../../app/api/applications/decline/route');
+      const applicationId = insertApplication(db, 'declined@example.com');
+      const response = await POST(createJsonRequest({
+        applicationId, reason: 'Property is no longer available.',
+      }, `cms_session=${token}`) as never);
+
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({ success: true, emailId: 'email-id' });
+      expect(db.prepare('SELECT status FROM applications WHERE id = ?').get(applicationId))
+        .toEqual({ status: ApplicationStatus.DECLINED });
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(expect.objectContaining({ to: 'declined@example.com' }));
+    });
+
+    it('allows an admin to restore a deleted application without sending an email', async () => {
+      const { POST, db, token } = await loadRoute('../../app/api/applications/status/route');
+      const applicationId = insertApplication(db, 'restored@example.com', ApplicationStatus.DELETED);
+      const response = await POST(createJsonRequest({
+        applicationId, status: ApplicationStatus.PENDING,
+      }, `cms_session=${token}`) as never);
+
+      expect(response.status).toBe(200);
+      expect(db.prepare('SELECT status FROM applications WHERE id = ?').get(applicationId))
+        .toEqual({ status: ApplicationStatus.PENDING });
+      expect(mockSend).not.toHaveBeenCalled();
+    });
+
+    describe.each([
+      ['listing', '../../app/api/applications/route', 'GET'],
+      ['approval', '../../app/api/applications/approve/route', 'POST'],
+      ['decline', '../../app/api/applications/decline/route', 'POST'],
+      ['status update', '../../app/api/applications/status/route', 'POST'],
+    ])('%s access control', (_name, path, method) => {
+      it.each(['anonymous', 'forged', 'expired', 'non-admin'])(
+        'rejects %s requests before reading the body, changing data, or sending email',
+        async (identity) => {
+          const route = await loadRoute(path);
+          const applicationId = insertApplication(route.db, 'protected@example.com');
+          const before = route.db.prepare('SELECT * FROM applications').all();
+          let token: string | undefined;
+          if (identity === 'forged') {
+            token = `${route.token}tampered`;
+          } else if (identity === 'expired') {
+            const clock = jest.spyOn(Date, 'now').mockReturnValue(Date.now() - 8 * 86400000);
+            token = (await route.createAuthSession(1)).token;
+            clock.mockRestore();
+          } else if (identity === 'non-admin') {
+            const user = route.db.prepare(
+              'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+            ).run('Tenant', 'user@example.com', 'unused-test-hash', 'user');
+            token = (await route.createAuthSession(Number(user.lastInsertRowid))).token;
+          }
+          const request = createJsonRequest({
+            applicationId, reason: 'Not authorized', status: ApplicationStatus.DELETED,
+          }, token ? `cms_session=${token}` : undefined);
+          const readBody = jest.spyOn(request, 'json');
+
+          const response = await route[method](request);
+
+          expect(response.status).toBe(401);
+          expect(await response.json()).toEqual({ error: 'Unauthorized' });
+          expect(readBody).not.toHaveBeenCalled();
+          expect(route.db.prepare('SELECT * FROM applications').all()).toEqual(before);
+          expect(mockSend).not.toHaveBeenCalled();
+        },
+      );
+    });
 });

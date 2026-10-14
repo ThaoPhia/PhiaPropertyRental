@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 import { ensureDbReady, persistDbToCloudStorage } from '@/lib/db';
 import { buildApprovalEmailHtml, buildDeclinedNotificationEmailHtml } from '@/emails/application-emails';
 import {
@@ -10,6 +11,11 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    const admin = await getAuthenticatedAdminFromRequest(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await ensureDbReady();
     const body = (await request.json()) as { applicationId: unknown };
 

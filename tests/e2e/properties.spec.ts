@@ -118,6 +118,18 @@ test('submits a property application with all required fields', async ({ page })
   await page.getByRole('button', { name: 'Submit Application' }).click();
 
   await expect(page.getByText('Application submitted successfully. We will contact you soon.')).toBeVisible();
+  const unauthorizedListResponse = await page.request.get('/api/applications');
+  expect(unauthorizedListResponse.status()).toBe(401);
+  await expect(unauthorizedListResponse.json()).resolves.toEqual({ error: 'Unauthorized' });
+
+  const loginResponse = await page.request.post('/api/auth/login', {
+    data: {
+      email: process.env.CMS_ADMIN_EMAIL || 'thoj.phia@gmail.com',
+      password: process.env.CMS_ADMIN_PASSWORD || 'ChangeMeNow!123!',
+      recaptchaToken: 'e2e-recaptcha-token',
+    },
+  });
+  expect(loginResponse.ok()).toBe(true);
   const applicationsResponse = await page.request.get('/api/applications');
   expect(applicationsResponse.ok()).toBe(true);
 

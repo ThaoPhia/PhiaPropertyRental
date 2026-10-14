@@ -75,8 +75,11 @@ export function prepareIntegrationTest(prefix: string, env: Record<string, strin
 }
 
 // Creates a mock JSON request object for integration tests.
-export function createJsonRequest(body: Record<string, unknown>) {
+export function createJsonRequest(body: Record<string, unknown>, cookieHeader?: string) {
+  const cookieValue = cookieHeader?.match(/(?:^|;)\s*cms_session=([^;]*)/)?.[1];
+
   return {
+    cookies: { get: () => cookieValue ? { value: cookieValue } : undefined },
     headers: new Headers({ 'Content-Type': 'application/json' }),
     json: async () => body,
   };

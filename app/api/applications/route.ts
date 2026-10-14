@@ -3,10 +3,16 @@ import { ensureDbReady, getDb, persistDbToCloudStorage } from '@/lib/db';
 import { ApplicationStatus } from '@/lib/types/types';
 import type { ApplicationPayload } from '@/lib/types/apiTypes';
 import { verifyRecaptchaToken } from '@/lib/recaptcha-server';
+import { getAuthenticatedAdminFromRequest } from '@/lib/auth';
 
 // Handles fetching all applications from the database, ordered by status and creation date.
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const admin = await getAuthenticatedAdminFromRequest(request);
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     await ensureDbReady();
     const db = getDb();
     const rows = db.prepare(`
