@@ -16,6 +16,7 @@ const imageRemotePatterns = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: process.env.SITE_URL ? [new URL(process.env.SITE_URL).hostname] : [],
   distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     remotePatterns: imageRemotePatterns,

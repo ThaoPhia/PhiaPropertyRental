@@ -51,7 +51,10 @@ Restart the development server after changing environment variables.
 
 ```bash
 SQLITE_DB_PATH=./database/phia-property-rental.db
-NEXT_PUBLIC_API_URL=http://localhost:3000
+SITE_NAME="Phia Rental LLC"
+SITE_PORT=3000
+SITE_URL=https://phiapropertyrental.test:${SITE_PORT}
+NEXT_PUBLIC_API_URL=${SITE_URL}
 CMS_ADMIN_EMAIL=admin@example.com
 CMS_ADMIN_PASSWORD=replace-with-a-strong-password
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
@@ -84,6 +87,35 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:3000`
+
+### Local Docker Development
+
+With Docker Desktop running and `.env` configured, run `npm run docker:restart`
+to build and start the development container, or rebuild and restart it if it
+already exists. No separate down/up commands are needed. This applies environment
+and dependency changes and refreshes only the dependency/build-cache volumes,
+not the database or uploads. `docker:up` remains available with the same behavior. Use
+`npm run docker:logs` for logs and `npm run docker:down` to stop it.
+
+`SITE_PORT` sets Docker's local published port; `SITE_URL` sets the browser URL
+and allowed Next.js development hostname. Set it to an HTTP or HTTPS origin with the same
+port. `${SITE_PORT}` in `.env` is expanded automatically. The container still
+listens on port 3000 internally. Native `npm run dev` uses Next.js's default port;
+pass `-- --port <port>` when using a different `SITE_PORT` outside Docker.
+Native `npm run dev` still serves HTTP unless HTTPS CLI flags are supplied;
+the Docker script selects HTTP or HTTPS automatically from `SITE_URL`.
+
+Docker volume names come from a lowercase, hyphenated `SITE_NAME`: with
+`SITE_NAME="Phia Rental LLC"`, they are `phia-rental-llc-node-modules` and
+`phia-rental-llc-next-cache`. Use `npm run docker:down` before changing `SITE_NAME`
+to remove the old cache volumes. No secrets are stored in the image.
+
+Open `SITE_URL` after adding its hostname to your Mac's hosts file, or use
+the matching protocol at `localhost:<SITE_PORT>`. For HTTPS, the restart script
+generates a self-signed certificate; see the quick start for trusting it locally.
+See [the Docker quick start](./QUICK_START.md#run-locally-with-docker) for domain
+setup, storage persistence, and environment details. This is a local development
+setup, not a production image.
 
 ## Project Structure
 

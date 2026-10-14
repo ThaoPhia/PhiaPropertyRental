@@ -65,24 +65,27 @@ echo ""
 echo "⚙️ Environment Setup"
 echo "====================="
 echo ""
-if [ -f ".env.local" ]; then
-    echo "✅ .env.local already exists"
+if [ -f ".env" ]; then
+    echo "✅ .env already exists"
     echo ""
     echo "Review and update if needed (shown below):"
     echo "---"
-    cat .env.local | sed 's/=.*$/=****/' || true
+    cat .env | sed 's/=.*$/=****/' || true
     echo "---"
 else
-    echo "❌ .env.local not found"
+    echo "❌ .env not found"
     echo ""
-    echo "Creating .env.local..."
-    cat > .env.local << 'EOF'
+    echo "Creating .env..."
+    cat > .env << 'EOF'
 SQLITE_DB_PATH=./database/phia-property-rental.db
-NEXT_PUBLIC_API_URL=http://localhost:3000
+SITE_NAME="Phia Rental LLC"
+SITE_PORT=3000
+SITE_URL=http://phiapropertyrental.test:${SITE_PORT}
+NEXT_PUBLIC_API_URL=${SITE_URL}
 EOF
-    echo "✅ .env.local created with default values"
+    echo "✅ .env created with default values"
     echo ""
-    echo "⚠️ IMPORTANT: Update SQLITE_DB_PATH in .env.local if needed"
+    echo "⚠️ IMPORTANT: Update SQLITE_DB_PATH, SITE_NAME, SITE_PORT and SITE_URL in .env if needed"
 fi
 echo ""
 
@@ -91,7 +94,7 @@ echo "🚀 Ready to Start!"
 echo "==================="
 echo ""
 echo "Next steps:"
-echo "1. Update SQLITE_DB_PATH in .env.local if needed"
+echo "1. Review SQLITE_DB_PATH, SITE_NAME, SITE_PORT and SITE_URL in .env"
 echo "2. Start the app (DB auto-initializes)"
 echo "3. Start development server:"
 echo ""
