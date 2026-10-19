@@ -433,6 +433,27 @@ runs, and verifies a decryption round trip before saving the encrypted file.
 Commit `.env.production.enc`, never the plaintext `.env.production` or key.
 Back up the key securely. Losing it makes the encrypted file unrecoverable.
 
+To decrypt and create the local `.env.production` file for editing:
+
+```bash
+npm run env:decrypt
+```
+
+This reads `PRODUCTION_ENV_KEY` from the environment or the local
+`.env.production.key` file, creates `.env.production` with owner-only
+read/write permissions, and refuses to overwrite an existing file.
+The file remains ignored by Git. After editing, run `npm run env:encrypt`
+to update the encrypted copy.
+
+To display the contents instead, without creating a file:
+
+```bash
+npm run --silent env:decrypt -- --stdout
+```
+
+Terminal output contains plaintext production settings; avoid shared logs
+and screenshots.
+
 1. Connect the repository to your Vercel project.
 2. Copy the contents of `.env.production.key` into **Settings > Environment
    Variables > PRODUCTION_ENV_KEY**, scoped to **Production**. Mark it Sensitive

@@ -42,7 +42,31 @@ test('OpenSSL whole-file encryption interoperates with Node and rejects tamperin
     assert.equal(openssl.status, 0, openssl.stderr);
     assert.equal(openssl.stdout, plaintext);
 
+    const decrypted = spawnSync(process.execPath, [script.pathname, 'decrypt', '--stdout'], {
+      cwd: dir, env, encoding: 'utf8',
+    });
+    assert.equal(decrypted.status, 0, decrypted.stderr);
+    assert.equal(decrypted.stdout, plaintext);
+    assert.equal(fs.readFileSync(path.join(dir, '.env.production'), 'utf8'), plaintext);
+    assert.equal(fs.readFileSync(path.join(dir, '.env.production.enc'), 'utf8'), contents);
+    const wrongKey = spawnSync(process.execPath, [script.pathname, 'decrypt'], {
+      cwd: dir,
+      env: { ...env, PRODUCTION_ENV_KEY: randomBytes(32).toString('hex') },
+      encoding: 'utf8',
+    });
+    assert.notEqual(wrongKey.status, 0);
+    assert.equal(wrongKey.stdout, '');
+    assert.match(wrongKey.stderr, /authentication failed/);
+
     fs.unlinkSync(path.join(dir, '.env.production'));
+    fs.writeFileSync(path.join(dir, '.env.production.key'), password);
+    const localKey = spawnSync(process.execPath, [script.pathname, 'decrypt', '--stdout'], {
+      cwd: dir, env: { PATH: process.env.PATH }, encoding: 'utf8',
+    });
+    assert.equal(localKey.status, 0, localKey.stderr);
+    assert.equal(localKey.stdout, plaintext);
+    assert.ok(!fs.existsSync(path.join(dir, '.env.production')));
+    fs.unlinkSync(path.join(dir, '.env.production.key'));
     const loadScript = `
       import assert from 'node:assert/strict';
       import { loadProductionEnvironment } from ${JSON.stringify(moduleUrl)};
@@ -59,6 +83,27 @@ test('OpenSSL whole-file encryption interoperates with Node and rejects tamperin
     });
     assert.notEqual(missing.status, 0);
     assert.match(missing.stderr, /Set PRODUCTION_ENV_KEY/);
+
+    const failedWrite = spawnSync(process.execPath, [script.pathname, 'decrypt'], {
+      cwd: dir,
+      env: { ...env, PRODUCTION_ENV_KEY: randomBytes(32).toString('hex') },
+      encoding: 'utf8',
+    });
+    assert.notEqual(failedWrite.status, 0);
+    assert.ok(!fs.existsSync(path.join(dir, '.env.production')));
+    const restored = spawnSync(process.execPath, [script.pathname, 'decrypt'], {
+      cwd: dir, env, encoding: 'utf8',
+    });
+    assert.equal(restored.status, 0, restored.stderr);
+    assert.equal(fs.readFileSync(path.join(dir, '.env.production'), 'utf8'), plaintext);
+    assert.equal(fs.statSync(path.join(dir, '.env.production')).mode & 0o777, 0o600);
+    fs.writeFileSync(path.join(dir, '.env.production'), 'unrelated edits');
+    const overwrite = spawnSync(process.execPath, [script.pathname, 'decrypt'], {
+      cwd: dir, env, encoding: 'utf8',
+    });
+    assert.notEqual(overwrite.status, 0);
+    assert.match(overwrite.stderr, /already exists/);
+    assert.equal(fs.readFileSync(path.join(dir, '.env.production'), 'utf8'), 'unrelated edits');
   } finally {
     fs.rmSync(dir, { recursive: true });
   }

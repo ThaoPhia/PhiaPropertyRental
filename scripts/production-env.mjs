@@ -43,6 +43,21 @@ if (command === 'encrypt') {
   }
   fs.writeFileSync('.env.production.enc', contents);
   console.log('Encrypted the entire production file with OpenSSL and authenticated it with HMAC-SHA256.');
+} else if (command === 'decrypt') {
+  if (args.length > 1 || (args.length === 1 && !['--write', '--stdout'].includes(args[0]))) {
+    throw new Error('Usage: npm run env:decrypt -- [--stdout]');
+  }
+  const contents = fs.readFileSync('.env.production.enc', 'utf8');
+  const plaintext = decryptEnvironment(contents, readKey());
+  if (args[0] !== '--stdout') {
+    if (fs.existsSync('.env.production')) {
+      throw new Error('.env.production already exists. Move it aside before restoring the encrypted version.');
+    }
+    fs.writeFileSync('.env.production', plaintext, { mode: 0o600, flag: 'wx' });
+    console.log('Restored .env.production. Keep this plaintext file out of Git.');
+  } else {
+    process.stdout.write(plaintext);
+  }
 } else if (command === 'build' || command === 'start') {
   process.env.PRODUCTION_ENV_KEY = readKey();
   loadProductionEnvironment();
@@ -62,5 +77,5 @@ if (command === 'encrypt') {
     process.exit(code ?? 1);
   });
 } else {
-  throw new Error('Expected encrypt, build, or start.');
+  throw new Error('Expected encrypt, decrypt, build, or start.');
 }

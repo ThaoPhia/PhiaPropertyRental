@@ -11,6 +11,7 @@
     "docker:down": "sh scripts/docker-dev.sh down",
     "docker:logs": "sh scripts/docker-dev.sh logs",
     "env:encrypt": "node scripts/production-env.mjs encrypt",
+    "env:decrypt": "node scripts/production-env.mjs decrypt",
     "build": "npm run generate:icons && node scripts/production-env.mjs build",
     "start": "node scripts/production-env.mjs start",
     "lint": "eslint",
