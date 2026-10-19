@@ -10,6 +10,7 @@ const request = client.get({
   path: '/cms/login',
   ...(secure ? {
     ca: fs.readFileSync('/app/certificates/docker-local.pem'),
+    allowPartialTrustChain: true,
     servername: 'localhost',
   } : {}),
   timeout: 8000,

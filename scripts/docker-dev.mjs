@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { X509Certificate } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 
 const [docker, action] = process.argv.slice(2);
 
@@ -50,25 +51,31 @@ process.env.DOCKER_SITE_NAME = volumePrefix;
 function ensureCertificate() {
   const certPath = 'certificates/docker-local.pem';
   const keyPath = 'certificates/docker-local-key.pem';
+  const caResult = spawnSync('mkcert', ['-CAROOT'], { encoding: 'utf8' });
+  if (caResult.error) throw caResult.error;
+  if (caResult.status !== 0) throw new Error('mkcert is required for local HTTPS. Run mkcert -install first.');
+  const rootPath = path.join(caResult.stdout.trim(), 'rootCA.pem');
+  if (!fs.existsSync(rootPath)) {
+    throw new Error('The mkcert local authority is missing. Run mkcert -install first.');
+  }
+  const root = new X509Certificate(fs.readFileSync(rootPath));
   if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
     const cert = new X509Certificate(fs.readFileSync(certPath));
-    if (cert.checkHost(siteUrl.hostname) && cert.checkHost('localhost') &&
+    if (cert.verify(root.publicKey) &&
+        cert.checkHost(siteUrl.hostname) && cert.checkHost('localhost') &&
         Date.parse(cert.validTo) > Date.now() + 86400000) {
       return;
     }
   }
   fs.mkdirSync('certificates', { recursive: true, mode: 0o700 });
-  const result = spawnSync('openssl', [
-    'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '30',
-    '-keyout', keyPath, '-out', certPath,
-    '-subj', '/CN=Local Docker Development',
-    '-addext', `subjectAltName=DNS:${siteUrl.hostname},DNS:localhost,IP:127.0.0.1`,
-    '-addext', 'extendedKeyUsage=serverAuth',
+  const result = spawnSync('mkcert', [
+    '-cert-file', certPath, '-key-file', keyPath,
+    siteUrl.hostname, 'localhost', '127.0.0.1', '::1',
   ], { stdio: 'inherit' });
   if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error('Failed to generate the local HTTPS certificate with OpenSSL.');
+  if (result.status !== 0) throw new Error('Failed to generate the local HTTPS certificate with mkcert.');
   fs.chmodSync(keyPath, 0o600);
-  console.log('Created a self-signed local certificate. Trust certificates/docker-local.pem on your Mac for browser access without warnings.');
+  console.log('Created a local HTTPS certificate signed by mkcert. Run mkcert -install if your browser does not trust it.');
 }
 
 compose(['config', '--quiet']);

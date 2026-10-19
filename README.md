@@ -106,7 +106,7 @@ to remove the old cache volumes. No secrets are stored in the image.
 
 Open `SITE_URL` after adding its hostname to your Mac's hosts file, or use
 `https://localhost:444` for direct access. For HTTPS, the restart script
-generates a self-signed certificate. This is a local development setup, not a
+generates a certificate signed by your mkcert local authority. This is a local development setup, not a
 production image.
 
 To use `phiapropertyrental.test`, add the local hostname mapping on macOS:
@@ -120,18 +120,21 @@ Use the hostname configured in `SITE_URL` in the hosts entry, then open
 public domain. If using Google reCAPTCHA, add the hostname to the allowed
 domains for your development site key.
 
-For local HTTPS, Docker generates and reuses a self-signed certificate in the
-ignored `certificates/` folder. To trust it on macOS (administrator approval
-required), run:
+For local HTTPS, install mkcert and trust its local certificate authority once
+on macOS (administrator approval may be required):
 
 ```bash
-sudo security add-trusted-cert -d -r trustRoot \
-  -k /Library/Keychains/System.keychain certificates/docker-local.pem
+brew install mkcert
+mkcert -install
 ```
 
-Restart your browser if needed, then open `SITE_URL`. Trust only the certificate,
-not the private key; never share the private key. Without this step, the browser
-will show a certificate warning. To use plain HTTP instead, set
+Docker's restart script generates and reuses a certificate signed by that
+authority in the ignored `certificates/` folder, replacing old self-signed
+certificates automatically. Run `npm run docker:restart` after setup, then
+restart your browser if needed and open `SITE_URL`. Never share certificate
+private keys or mkcert's root authority private key. For Firefox, install
+`nss` with Homebrew and rerun `mkcert -install` to configure its trust store.
+To use plain HTTP instead, set
 up a separate HTTP routing configuration; the shared proxy only supports HTTPS.
 
 The proxy has its own Compose project and stays running when `docker:down`
