@@ -42,33 +42,17 @@ If the database is empty, the app creates the `properties` table and inserts sam
 
 ### 2. Environment Configuration
 
-Update the `.env` file in the project root:
+Create `.env` from the checked-in template in the project root, then replace
+the placeholder admin password and reCAPTCHA keys with your own values:
+
+```bash
+cp -n .env.example .env
+```
 
 Next.js loads `.env` automatically. Keep it out of git. Environment-specific
 files such as `.env.production` take precedence over `.env`, and variables
 already set in the process take precedence over all environment files.
 Restart the development server after changing environment variables.
-
-```bash
-SQLITE_DB_PATH=./database/phia-property-rental.db
-SITE_NAME="Phia Rental LLC"
-SITE_PORT=3000
-SITE_URL=https://phiapropertyrental.test:${SITE_PORT}
-NEXT_PUBLIC_API_URL=${SITE_URL}
-CMS_ADMIN_EMAIL=admin@example.com
-CMS_ADMIN_PASSWORD=replace-with-a-strong-password
-NEXT_PUBLIC_RECAPTCHA_SITE_KEY=your-google-recaptcha-site-key
-RECAPTCHA_SECRET_KEY=your-google-recaptcha-secret-key
-VERCEL_DEPLOY_HOOK_URL=https://api.vercel.com/v1/integrations/deploy/<deploy-hook-id>
-
-# Supabase storage (optional; without these vars app uses local SQLite + local property files)
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_STORAGE_IMAGE_BUCKET=property-images-public
-SUPABASE_STORAGE_IMAGE_PREFIX=images/properties
-SUPABASE_STORAGE_DB_BUCKET=phia-property-rental-private
-```
 
 Supabase DB object path is automatically derived from `SQLITE_DB_PATH`.
 
@@ -112,10 +96,38 @@ to remove the old cache volumes. No secrets are stored in the image.
 
 Open `SITE_URL` after adding its hostname to your Mac's hosts file, or use
 the matching protocol at `localhost:<SITE_PORT>`. For HTTPS, the restart script
-generates a self-signed certificate; see the quick start for trusting it locally.
-See [the Docker quick start](./QUICK_START.md#run-locally-with-docker) for domain
-setup, storage persistence, and environment details. This is a local development
-setup, not a production image.
+generates a self-signed certificate. This is a local development setup, not a
+production image.
+
+To use `phiapropertyrental.test`, add the local hostname mapping on macOS:
+
+```bash
+echo '127.0.0.1 phiapropertyrental.test' | sudo tee -a /etc/hosts
+```
+
+Use the hostname configured in `SITE_URL` in the hosts entry, then open
+`SITE_URL` in your browser. The `.test` hostname is local to your Mac, not a
+public domain. If using Google reCAPTCHA, add the hostname to the allowed
+domains for your development site key.
+
+For local HTTPS, Docker generates and reuses a self-signed certificate in the
+ignored `certificates/` folder. To trust it on macOS (administrator approval
+required), run:
+
+```bash
+sudo security add-trusted-cert -d -r trustRoot \
+  -k /Library/Keychains/System.keychain certificates/docker-local.pem
+```
+
+Restart your browser if needed, then open `SITE_URL`. Trust only the certificate,
+not the private key; never share the private key. Without this step, the browser
+will show a certificate warning. To use plain HTTP instead, set
+`SITE_URL=http://phiapropertyrental.test:${SITE_PORT}` and run
+`npm run docker:restart`.
+
+Docker keeps the database and uploads in the project folder. Existing Supabase
+settings still apply, so local Docker uses the same configured cloud storage
+and is not an isolated copy of your data.
 
 Docker also starts Mailpit at http://localhost:8025. All app emails are captured
 in this local inbox, not delivered to real recipients. The app uses Mailpit's

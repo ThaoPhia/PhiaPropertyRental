@@ -151,7 +151,6 @@ npm run type-check
 ## 📝 Documentation Files
 
 - **README.md** - Comprehensive documentation
-- **QUICK_START.md** - Quick setup guide
 - **This file** - Project summary
 
 ## ⚠️ Important Notes

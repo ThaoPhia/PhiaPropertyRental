@@ -3,7 +3,6 @@
 ## 📄 Documentation Files
 
 - **README.md** - Comprehensive documentation with setup instructions, API routes, and deployment info
-- **QUICK_START.md** - Quick start guide for rapid setup
 - **PROJECT_SUMMARY.md** - This project summary with key features and status
 - **FILE_MANIFEST.md** - This file - complete file structure reference
 
@@ -116,7 +115,6 @@ PhiaRental/
 ├── tailwind.config.ts
 ├── tsconfig.json
 ├── README.md
-├── QUICK_START.md
 ├── PROJECT_SUMMARY.md
 └── FILE_MANIFEST.md              # This file
 ```
@@ -173,10 +171,9 @@ PhiaRental/
 
 ## 📖 Documentation Priority
 
-1. Start with **QUICK_START.md** for setup
-2. Read **README.md** for full documentation
-3. Check **PROJECT_SUMMARY.md** for overview
-4. Reference **FILE_MANIFEST.md** (this file) for file locations
+1. Start with **README.md** for setup and full documentation
+2. Check **PROJECT_SUMMARY.md** for overview
+3. Reference **FILE_MANIFEST.md** (this file) for file locations
 
 ---
 
