@@ -81,13 +81,23 @@ and dependency changes and refreshes only the dependency/build-cache volumes,
 not the database or uploads. `docker:up` remains available with the same behavior. Use
 `npm run docker:logs` for logs and `npm run docker:down` to stop it.
 
-`SITE_PORT` sets Docker's local published port; `SITE_URL` sets the browser URL
-and allowed Next.js development hostname. Set it to an HTTP or HTTPS origin with the same
-port. `${SITE_PORT}` in `.env` is expanded automatically. The container still
-listens on port 3000 internally. Native `npm run dev` uses Next.js's default port;
-pass `-- --port <port>` when using a different `SITE_PORT` outside Docker.
-Native `npm run dev` still serves HTTP unless HTTPS CLI flags are supplied;
-the Docker script selects HTTP or HTTPS automatically from `SITE_URL`.
+Use `SITE_URL=https://phiapropertyrental.test` without a port. A shared local
+NGINX proxy owns `127.0.0.1:443` and routes TLS connections by hostname:
+
+- `phiapropertyrental.test` goes to this app on container port 3000.
+- `talentreferralplateform.test` goes to the Talent Referral Platform on container port 443.
+- Unrecognized hostnames are rejected rather than sent to another app.
+
+The proxy passes TLS through, so each app retains its own certificates and HTTPS
+handling. Both apps join the external `local-https` Docker network.
+`docker:restart` creates that network if needed and starts the proxy using
+`docker/proxy/compose.yaml`. The other app must release host port 443 and use
+`DOCKER_PROXY_NETWORK=local-https` in its environment before starting the proxy.
+
+`SITE_PORT=444` is an optional direct-access/debugging host port, separate from
+the browser-facing `SITE_URL`. It maps to container port 3000 and must not be 443.
+Native `npm run dev` still serves HTTP on port 3000 by default; the shared HTTPS
+routing described here is for Docker development.
 
 Docker volume names come from a lowercase, hyphenated `SITE_NAME`: with
 `SITE_NAME="Phia Rental LLC"`, they are `phia-rental-llc-node-modules` and
@@ -95,7 +105,7 @@ Docker volume names come from a lowercase, hyphenated `SITE_NAME`: with
 to remove the old cache volumes. No secrets are stored in the image.
 
 Open `SITE_URL` after adding its hostname to your Mac's hosts file, or use
-the matching protocol at `localhost:<SITE_PORT>`. For HTTPS, the restart script
+`https://localhost:444` for direct access. For HTTPS, the restart script
 generates a self-signed certificate. This is a local development setup, not a
 production image.
 
@@ -122,8 +132,22 @@ sudo security add-trusted-cert -d -r trustRoot \
 Restart your browser if needed, then open `SITE_URL`. Trust only the certificate,
 not the private key; never share the private key. Without this step, the browser
 will show a certificate warning. To use plain HTTP instead, set
-`SITE_URL=http://phiapropertyrental.test:${SITE_PORT}` and run
-`npm run docker:restart`.
+up a separate HTTP routing configuration; the shared proxy only supports HTTPS.
+
+The proxy has its own Compose project and stays running when `docker:down`
+stops this app, so the other app remains accessible. To stop the shared proxy
+explicitly (interrupting both domains), run:
+
+```bash
+docker compose -f docker/proxy/compose.yaml down
+```
+
+To add another app, connect it to `local-https` and add its hostname and container
+address to `docker/proxy/nginx.conf`, then restart only the proxy:
+
+```bash
+docker compose -f docker/proxy/compose.yaml restart proxy
+```
 
 Docker keeps the database and uploads in the project folder. Existing Supabase
 settings still apply, so local Docker uses the same configured cloud storage

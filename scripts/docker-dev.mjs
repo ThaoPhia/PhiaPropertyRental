@@ -4,6 +4,12 @@ import fs from 'node:fs';
 
 const [docker, action] = process.argv.slice(2);
 
+function dockerCommand(args) {
+  const result = spawnSync(docker, args, { stdio: 'inherit' });
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`docker ${args.join(' ')} failed (exit ${result.status}).`);
+}
+
 function compose(args, options = {}) {
   const result = spawnSync(docker, ['compose', ...args], {
     stdio: 'inherit',
@@ -33,8 +39,11 @@ if (!/^[0-9]+$/.test(site.SITE_PORT || '') ||
 const siteUrl = new URL(site.SITE_URL);
 if (!['http:', 'https:'].includes(siteUrl.protocol) || siteUrl.username || siteUrl.password ||
     siteUrl.pathname !== '/' || siteUrl.search || siteUrl.hash ||
-    Number(siteUrl.port || (siteUrl.protocol === 'https:' ? 443 : 80)) !== Number(site.SITE_PORT)) {
-  throw new Error('SITE_URL must be an HTTP or HTTPS origin matching SITE_PORT (for example https://phiapropertyrental.test:3000).');
+    siteUrl.hostname !== 'phiapropertyrental.test' || siteUrl.protocol !== 'https:' || siteUrl.port) {
+  throw new Error('Local proxy routing requires SITE_URL=https://phiapropertyrental.test (without a port).');
+}
+if (Number(site.SITE_PORT) === 443) {
+  throw new Error('SITE_PORT must not be 443; that port belongs to the shared HTTPS proxy. Use 444 for direct access.');
 }
 process.env.DOCKER_SITE_NAME = volumePrefix;
 
@@ -67,6 +76,12 @@ switch (action) {
   case 'up':
   case 'restart':
     if (siteUrl.protocol === 'https:') ensureCertificate();
+    const networks = spawnSync(docker, ['network', 'ls', '--format', '{{.Name}}'], { encoding: 'utf8' });
+    if (networks.error) throw networks.error;
+    if (networks.status !== 0) throw new Error('Failed to list Docker networks.');
+    if (!networks.stdout.split('\n').includes('local-https')) {
+      dockerCommand(['network', 'create', 'local-https']);
+    }
     compose(['build']);
     compose(['down', '--volumes']);
     try {
@@ -75,7 +90,8 @@ switch (action) {
       compose(['logs', '--tail', '80']);
       throw error;
     }
-    console.log(`App is healthy: ${siteUrl.protocol}//localhost:${site.SITE_PORT}`);
+    compose(['-f', 'docker/proxy/compose.yaml', 'up', '--detach', '--wait']);
+    console.log(`Direct app access: ${siteUrl.protocol}//localhost:${site.SITE_PORT}`);
     console.log(`Site URL: ${siteUrl.origin}`);
     console.log(`Docker volumes: ${volumePrefix}-node-modules, ${volumePrefix}-next-cache`);
     console.log(`For the custom domain, add '127.0.0.1 ${siteUrl.hostname}' to /etc/hosts.`);

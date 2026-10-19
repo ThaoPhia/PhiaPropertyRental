@@ -1,0 +1,17 @@
+name: local-https
+
+services:
+  proxy:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - local_https
+
+networks:
+  local_https:
+    external: true
+    name: local-https

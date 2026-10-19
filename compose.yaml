@@ -5,6 +5,11 @@ services:
     build: .
     init: true
     command: ["node", "scripts/docker-start.mjs"]
+    networks:
+      default:
+      local_https:
+        aliases:
+          - phia-property-rental
     ports:
       - "127.0.0.1:${SITE_PORT:?Set SITE_PORT in .env}:3000"
     env_file:
@@ -50,3 +55,8 @@ volumes:
     name: ${DOCKER_SITE_NAME:?Use npm run docker:up to derive the volume name from SITE_NAME}-node-modules
   next_cache:
     name: ${DOCKER_SITE_NAME:?Use npm run docker:up to derive the volume name from SITE_NAME}-next-cache
+
+networks:
+  local_https:
+    external: true
+    name: local-https

@@ -79,8 +79,8 @@ else
     cat > .env << 'EOF'
 SQLITE_DB_PATH=./database/phia-property-rental.db
 SITE_NAME="Phia Rental LLC"
-SITE_PORT=3000
-SITE_URL=http://phiapropertyrental.test:${SITE_PORT}
+SITE_PORT=444
+SITE_URL=https://phiapropertyrental.test
 NEXT_PUBLIC_API_URL=${SITE_URL}
 EOF
     echo "✅ .env created with default values"
