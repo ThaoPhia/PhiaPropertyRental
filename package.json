@@ -10,8 +10,9 @@
     "docker:restart": "sh scripts/docker-dev.sh restart",
     "docker:down": "sh scripts/docker-dev.sh down",
     "docker:logs": "sh scripts/docker-dev.sh logs",
-    "build": "npm run generate:icons && next build",
-    "start": "next start",
+    "env:encrypt": "node scripts/production-env.mjs encrypt",
+    "build": "npm run generate:icons && node scripts/production-env.mjs build",
+    "start": "node scripts/production-env.mjs start",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -19,6 +20,8 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "dotenv": "^16.6.1",
+    "dotenv-expand": "^12.0.3",
     "@supabase/supabase-js": "^2.110.0",
     "@tiptap/extension-link": "^3.27.3",
     "@tiptap/react": "^3.27.3",

@@ -415,10 +415,48 @@ npm run dev -- -p 3001
 
 ### Vercel (Recommended for Next.js)
 
-1. Push code to GitHub
-2. Connect to Vercel
-3. Add environment variables in Vercel settings
-4. Deploy with one click
+Production configuration is encrypted as a whole file using OpenSSL
+AES-256-CBC with PBKDF2-SHA256 (210,000 iterations, 16-byte salt).
+An HMAC-SHA256 authenticates the salted ciphertext before decryption.
+Variable names, values, and comments are all hidden in `.env.production.enc`;
+the JSON envelope contains only format metadata, ciphertext, and its MAC.
+
+Keep editing `.env.production` locally, then run:
+
+```bash
+npm run env:encrypt
+```
+
+This command requires OpenSSL 3.2+ (support for `enc -saltlen`). It generates
+an ignored `.env.production.key` on first use, reuses that secret on subsequent
+runs, and verifies a decryption round trip before saving the encrypted file.
+Commit `.env.production.enc`, never the plaintext `.env.production` or key.
+Back up the key securely. Losing it makes the encrypted file unrecoverable.
+
+1. Connect the repository to your Vercel project.
+2. Copy the contents of `.env.production.key` into **Settings > Environment
+   Variables > PRODUCTION_ENV_KEY**, scoped to **Production**. Mark it Sensitive
+   where supported. Keep existing Vercel production variables; they override
+   file values.
+3. Use **`npm run build`** as the Build Command. Its wrapper decrypts the
+   OpenSSL-compatible ciphertext into memory before Next.js starts.
+4. Deploy. Node.js server instrumentation also decrypts at cold start; Vercel
+   functions do not need an OpenSSL executable. The key must be available during
+   both build and runtime. Missing keys, wrong keys, and tampering fail explicitly.
+5. Verify CMS login, email, and storage on the deployed app. Redeploy after any
+   change to the encrypted file, key, or Vercel environment variables.
+
+Plaintext env files and key files are excluded from server traces. Only the
+encrypted file is included for runtime decryption. Edge runtime decryption is
+not supported. Public `NEXT_PUBLIC_*` values still become readable in browser
+assets, regardless of encryption at rest.
+
+The encrypted file uses an authenticated envelope rather than a raw `openssl enc`
+file; use `npm run env:encrypt` to generate it, not a bare OpenSSL command.
+Never log or commit `PRODUCTION_ENV_KEY`. Preview deployments need separate
+environment/key configuration; do not expose production secrets to untrusted
+previews. Removing plaintext from Git does not remove old history: rotate any
+credentials previously committed.
 
 ### Self-hosted
 

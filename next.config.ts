@@ -18,6 +18,12 @@ const imageRemotePatterns = (() => {
 const nextConfig: NextConfig = {
   allowedDevOrigins: process.env.SITE_URL ? [new URL(process.env.SITE_URL).hostname] : [],
   distDir: process.env.NEXT_DIST_DIR || '.next',
+  outputFileTracingIncludes: {
+    '/*': ['./.env.production.enc'],
+  },
+  outputFileTracingExcludes: {
+    '/*': ['./.env', './.env.local', './.env.production', './.env.production.local', './.env.production.key', './.env.keys', './.env.keys.*'],
+  },
   images: {
     remotePatterns: imageRemotePatterns,
   },
